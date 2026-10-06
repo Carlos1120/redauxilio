@@ -38,12 +38,21 @@ if (typeof window !== "undefined") {
         attribution:
           '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
       }).addTo(map);
+      let hasTileError = false;
+      // load termina el lote incluso si sus teselas fallaron; no debe borrar el aviso de error.
+      // Una nueva carga permite recuperar el mensaje normal solo cuando ese lote no tiene fallos.
+      tileLayer.on("loading", () => {
+        hasTileError = false;
+      });
       tileLayer.on("tileerror", () => {
+        hasTileError = true;
         status.textContent =
           "El fondo cartográfico no está disponible. Consulta la lista y las ubicaciones de los reportes.";
       });
       tileLayer.on("load", () => {
-        status.textContent = "Ubicaciones ficticias. El fondo cartográfico requiere conexión.";
+        if (!hasTileError) {
+          status.textContent = "Ubicaciones ficticias. El fondo cartográfico requiere conexión.";
+        }
       });
       const layer = L.layerGroup().addTo(map);
       const markers = new Map();

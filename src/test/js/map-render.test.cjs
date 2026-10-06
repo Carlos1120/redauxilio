@@ -11,6 +11,8 @@ const { runInNewContext } = require("node:vm");
 function createMapHarness() {
   const layers = new Set();
   const events = {};
+  const tileEvents = {};
+  const status = {};
   let scale = 1;
   let moves = 0;
   const map = {
@@ -42,7 +44,9 @@ function createMapHarness() {
       addTo() {
         return this;
       },
-      on() {},
+      on(name, callback) {
+        tileEvents[name] = callback;
+      },
     }),
     layerGroup: () => layer,
     divIcon: (options) => options,
@@ -59,7 +63,7 @@ function createMapHarness() {
     }),
   };
   const document = {
-    getElementById: () => ({}),
+    getElementById: () => status,
     createElement: () => ({
       children: [],
       append(...nodes) {
@@ -88,6 +92,8 @@ function createMapHarness() {
     api,
     layers,
     selected,
+    status,
+    tileEvent: (name) => tileEvents[name](),
     move: () => events.moveend(),
     get moves() {
       return moves;
@@ -102,6 +108,19 @@ const reports = [
   { id: 1, latitude: 10, longitude: 10, title: "Refugio", category: "ASSISTANCE" },
   { id: 5, latitude: 12, longitude: 12, title: "Refugio cerrado", category: "ASSISTANCE" },
 ];
+
+test("fin de carga conserva fallo cartográfico y un lote exitoso posterior recupera el aviso", () => {
+  const harness = createMapHarness();
+  harness.tileEvent("loading");
+  harness.tileEvent("tileerror");
+  harness.tileEvent("load");
+  assert.match(harness.status.textContent, /no está disponible/);
+  harness.api.render(reports);
+  assert.equal(harness.layers.size, 1);
+  harness.tileEvent("loading");
+  harness.tileEvent("load");
+  assert.match(harness.status.textContent, /requiere conexión/);
+});
 
 test("consulta por movimiento conserva el grupo abierto y permite seleccionar cada detalle", () => {
   const harness = createMapHarness();

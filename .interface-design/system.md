@@ -29,3 +29,7 @@ Prettier, pruebas existentes y sintaxis JS; contraste calculado con WCAG 2.x. Re
 ## Fuente e IA
 
 Aplicada ui-ux-design-pro del ZIP suministrado por Carlos, con sus 12 referencias. Codex elaboró e implementó esta adaptación. Se conserva la guía de estándares aprobada.
+
+## Consulta geográfica RA-02
+
+El mapa precede a la lista y comparte sus filtros. Se mantienen Segoe UI, escala de 4 px, superficies claras y acento azul. Los símbolos +, ↔, ? y ! acompañan a las categorías con una leyenda textual; un número representa un grupo cercano. Los grupos permiten acercar y abrir cada detalle. La lista conserva el mismo detalle accesible por teclado cuando falla Leaflet o el fondo cartográfico. El diálogo devuelve el foco al control que lo abrió, o a la sección si la consulta reemplazó ese control. No hay movimiento animado obligatorio ni petición de ubicación del dispositivo.

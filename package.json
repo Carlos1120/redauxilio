@@ -7,6 +7,7 @@
     "npm": "11.x"
   },
   "scripts": {
+    "test": "node --test src/test/js/*.test.cjs",
     "format": "prettier --write \"*.md\" \".interface-design/*.md\" \"*.json\" \".prettierrc.json\" \"src/main/resources/**/*.{js,css,json,html}\" --ignore-unknown && prettier --write src/main/resources/static/manifest.webmanifest --parser json",
     "format:check": "prettier --check \"*.md\" \".interface-design/*.md\" \"*.json\" \".prettierrc.json\" \"src/main/resources/**/*.{js,css,json,html}\" --ignore-unknown && prettier --check src/main/resources/static/manifest.webmanifest --parser json"
   },

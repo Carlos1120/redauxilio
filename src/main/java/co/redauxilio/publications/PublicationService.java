@@ -7,64 +7,225 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-/** Consulta de datos sintéticos. Se sustituirá por un repositorio persistente. */
+/** Consulta sintética; controla visibilidad y cierre antes de devolver datos públicos. */
 @Service
 public class PublicationService {
   private static final Set<String> CATEGORIES =
       Set.of("ASSISTANCE", "ROAD", "MISSING_PERSON", "HELP_REQUEST");
-  private final List<Publication> publications =
-      List.of(
-          new Publication(
-              1,
-              "ASSISTANCE",
-              "Refugio de demostración",
-              "Villavicencio · ubicación ficticia",
-              "Disponible",
-              "REPORTADA",
-              "2026-10-05T23:00:00Z",
-              4.15,
-              -73.63),
-          new Publication(
-              2,
-              "ROAD",
-              "Vía afectada de demostración",
-              "Tramo ficticio",
-              "Bloqueada",
-              "REPORTADA",
-              "2026-10-05T23:00:00Z",
-              4.14,
-              -73.62),
-          new Publication(
-              3,
-              "MISSING_PERSON",
-              "Caso ficticio de persona desaparecida",
-              "Datos de prueba sin persona real",
-              "Sin localizar",
-              "REPORTADA",
-              "2026-10-05T23:00:00Z",
-              4.16,
-              -73.61),
-          new Publication(
-              4,
-              "HELP_REQUEST",
-              "Solicitud de agua de demostración",
-              "Sector ficticio",
-              "Abierta",
-              "REPORTADA",
-              "2026-10-05T23:00:00Z",
-              4.13,
-              -73.64));
+  private static final Set<String> STATUSES =
+      Set.of(
+          "DISPONIBLE",
+          "CAPACIDAD LIMITADA",
+          "LLENO",
+          "CERRADO",
+          "BLOQUEADA",
+          "PARCIALMENTE HABILITADA",
+          "HABILITADA",
+          "SIN LOCALIZAR",
+          "ENCONTRADA",
+          "ABIERTA",
+          "EN ATENCIÓN",
+          "SATISFECHA");
+  private static final Set<String> CONFIDENCE =
+      Set.of("REPORTADA", "CONFIRMADA", "VERIFICADA", "EN_REVISION", "DESACTUALIZADA");
+  private final List<Entry> publications;
 
-  public List<Publication> findPublications(String category) {
-    String normalized = category == null ? "" : category.trim().toUpperCase(Locale.ROOT);
-    if (!normalized.isEmpty() && !CATEGORIES.contains(normalized)) {
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Categoría inválida");
-    }
+  /**
+   * Carga seis ejemplos en memoria: cuatro activos, uno cerrado y uno oculto. No son registros
+   * persistentes: reiniciar el servidor reconstruye esta lista. El caso oculto permite comprobar
+   * que la API no revela contenido excluido de la consulta pública.
+   */
+  public PublicationService() {
+    this(
+        List.of(
+            new Entry(
+                sample(
+                    1,
+                    "ASSISTANCE",
+                    "Refugio de demostración",
+                    "Villavicencio · ubicación ficticia",
+                    "Disponible",
+                    4.15,
+                    -73.63,
+                    false),
+                true),
+            new Entry(
+                sample(
+                    2,
+                    "ROAD",
+                    "Vía afectada de demostración",
+                    "Tramo ficticio",
+                    "Bloqueada",
+                    4.14,
+                    -73.62,
+                    false),
+                true),
+            new Entry(
+                sample(
+                    3,
+                    "MISSING_PERSON",
+                    "Caso ficticio de persona desaparecida",
+                    "Datos de prueba sin persona real",
+                    "Sin localizar",
+                    4.16,
+                    -73.61,
+                    false),
+                true),
+            new Entry(
+                sample(
+                    4,
+                    "HELP_REQUEST",
+                    "Solicitud de agua de demostración",
+                    "Sector ficticio",
+                    "Abierta",
+                    4.13,
+                    -73.64,
+                    false),
+                true),
+            new Entry(
+                sample(
+                    5,
+                    "ASSISTANCE",
+                    "Refugio cerrado de demostración",
+                    "Ubicación ficticia cercana",
+                    "Cerrado",
+                    4.1501,
+                    -73.6301,
+                    true),
+                true),
+            new Entry(
+                sample(
+                    6,
+                    "ROAD",
+                    "Reporte oculto de prueba",
+                    "Ubicación ficticia",
+                    "Bloqueada",
+                    4.15,
+                    -73.63,
+                    false),
+                false)));
+  }
+
+  PublicationService(List<Entry> publications) {
+    // Copia inmutable: evita que quien entregó la lista cambie los datos después de construirla.
+    this.publications = List.copyOf(publications);
+  }
+
+  private static Publication sample(
+      long id,
+      String category,
+      String title,
+      String location,
+      String status,
+      double latitude,
+      double longitude,
+      boolean closed) {
+    return new Publication(
+        id,
+        category,
+        title,
+        location,
+        status,
+        "REPORTADA",
+        "2026-10-05T23:00:00Z",
+        latitude,
+        longitude,
+        "Información sintética para comprobar consulta, filtros y detalle. No describe una emergencia real.",
+        "2026-10-05T22:00:00Z",
+        closed);
+  }
+
+  /**
+   * Devuelve únicamente reportes visibles que cumplan TODOS los filtros activos (combinación AND).
+   * Un filtro nulo o vacío no restringe resultados. Los cerrados requieren includeClosed=true;
+   * solicitar cerrados nunca habilita los ocultos. bounds=null desactiva solo el filtro geográfico.
+   */
+  public List<Publication> findPublications(
+      String category,
+      String operationalStatus,
+      String confidenceLevel,
+      boolean includeClosed,
+      Bounds bounds) {
+    String categoryFilter = normalize(category, CATEGORIES, "Categoría");
+    String statusFilter = normalize(operationalStatus, STATUSES, "Estado");
+    String confidenceFilter = normalize(confidenceLevel, CONFIDENCE, "Confianza");
+    // La visibilidad se aplica en servidor: ocultar una tarjeta en JavaScript no protege sus datos.
     return publications.stream()
-        .filter(p -> normalized.isEmpty() || p.category().equals(normalized))
+        .filter(Entry::visible)
+        .map(Entry::publication)
+        .filter(p -> includeClosed || !p.closed())
+        .filter(p -> categoryFilter.isEmpty() || p.category().equals(categoryFilter))
+        .filter(
+            p ->
+                statusFilter.isEmpty()
+                    || p.operationalStatus().toUpperCase(Locale.ROOT).equals(statusFilter))
+        .filter(p -> confidenceFilter.isEmpty() || p.confidenceLevel().equals(confidenceFilter))
+        .filter(p -> bounds == null || bounds.contains(p.latitude(), p.longitude()))
         .toList();
   }
 
+  /**
+   * Busca un reporte visible por su identificador, incluso si está cerrado. Oculto e inexistente
+   * responden igual (404) para no revelar por esta ruta la existencia de contenido oculto.
+   */
+  public Publication findPublication(long id) {
+    return publications.stream()
+        .filter(Entry::visible)
+        .map(Entry::publication)
+        .filter(p -> p.id() == id)
+        .findFirst()
+        .orElseThrow(
+            () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Reporte no disponible"));
+  }
+
+  private static String normalize(String value, Set<String> allowed, String label) {
+    // Locale.ROOT mantiene la misma comparación aunque cambie el idioma del sistema operativo.
+    String normalized = value == null ? "" : value.trim().toUpperCase(Locale.ROOT);
+    if (!normalized.isEmpty() && !allowed.contains(normalized))
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, label + " inválido");
+    return normalized;
+  }
+
+  /**
+   * Rectángulo geográfico en grados: latitud entre -90 y 90; longitud entre -180 y 180. west > east
+   * representa un área que cruza el meridiano de ±180°, no un error de orden.
+   */
+  public record Bounds(double south, double west, double north, double east) {
+    /** Rechaza coordenadas no finitas o fuera de rango antes de ejecutar la consulta. */
+    public Bounds {
+      if (!Double.isFinite(south)
+          || !Double.isFinite(west)
+          || !Double.isFinite(north)
+          || !Double.isFinite(east)
+          || south < -90
+          || north > 90
+          || south > north
+          || west < -180
+          || west > 180
+          || east < -180
+          || east > 180) {
+        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Área inválida");
+      }
+    }
+
+    boolean contains(double latitude, double longitude) {
+      // Al cruzar ±180°, la longitud pertenece al tramo occidental O al oriental del rectángulo.
+      return latitude >= south
+          && latitude <= north
+          && (west <= east
+              ? longitude >= west && longitude <= east
+              : longitude >= west || longitude <= east);
+    }
+  }
+
+  // Envoltorio interno: visible controla la consulta; no se expone como campo del JSON público.
+  record Entry(Publication publication, boolean visible) {}
+
+  /**
+   * Datos públicos que Spring serializa a JSON. operationalStatus describe la situación del caso;
+   * confidenceLevel describe su respaldo. closed decide la exclusión por defecto y no equivale a
+   * oculto. Los tiempos son cadenas ISO 8601; las coordenadas del demostrador son ficticias.
+   */
   public record Publication(
       long id,
       String category,
@@ -74,5 +235,8 @@ public class PublicationService {
       String confidenceLevel,
       String updatedAt,
       double latitude,
-      double longitude) {}
+      double longitude,
+      String description,
+      String createdAt,
+      boolean closed) {}
 }

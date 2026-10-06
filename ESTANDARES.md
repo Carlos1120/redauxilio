@@ -117,13 +117,13 @@ Las ramas de trabajo nacen de develop, se actualizan antes de integrar y se elim
 
 3. Definition of Ready DoR
 
-Una historia puede pasar a En progreso solo si cumple las seis condiciones. Ambos integrantes las revisan durante la planificación y registran el resultado en la tarjeta del tablero.
+Una historia puede pasar a En progreso solo si cumple las seis condiciones. Un integrante puede comprobarlas y registrar el resultado en la tarjeta durante la planificación, sin esperar una respuesta previa del compañero. Identifica quién tomó la decisión y los supuestos; el compañero puede contrastarlos después. Esto no sustituye la revisión cruzada de la versión final antes de integrar.
 
 Historia y trazabilidad: tiene identificador RA-XX, responsable, redacción “Como [rol], quiero [acción], para [beneficio]” y vínculo con los requisitos y el alcance del acta.
 
 Aceptación definida: tiene al menos dos criterios observables, con entradas, acción y resultado esperado. Incluye rechazo o fallo cuando corresponde; no basta “debe ser seguro” o “debe funcionar”.
 
-Estimación y capacidad: los dos integrantes registran la estimación en horas-persona y acuerdan su selección dentro de la capacidad del sprint. Se consideran las cinco horas semanales por persona y el descuento del 30 % definido en el acta.
+Estimación y capacidad: un integrante puede estimar la historia en horas-persona y seleccionarla dentro de su capacidad disponible del sprint, registrando autor, fecha, supuestos y dependencias. Se consideran las cinco horas semanales por persona y el descuento del 30 % definido en el acta. No se compromete capacidad ni se asigna trabajo al compañero sin su acuerdo. El contraste posterior puede ajustar estimación o selección con motivo registrado; su respuesta no bloquea el inicio si las otras condiciones de la DoR están cumplidas.
 
 Dependencias resueltas: no necesita una historia pendiente para completar sus criterios; existen los datos sintéticos y accesos necesarios. Si requiere mapas o geocodificación, están identificados proveedor, límites y alternativa para la prueba.
 
@@ -257,6 +257,8 @@ Configuración de Prettier.
 Código de sesión: LLANO_14
 
 ## Estado de aplicación
+
+Ajuste DoR solicitado por Carlos el 6 de octubre de 2026: selección y estimación individuales, para evitar bloquear el inicio por una respuesta pendiente. Se aplica a decisiones futuras y a la continuidad actual, sin atribuir aceptación a Santiago ni modificar retrospectivamente evidencias. Publicación e integración del ajuste siguen el flujo de PR; la revisión cruzada del código y la DoD se conservan. Este ajuste no incorpora la propuesta v1.1 del PR #5.
 
 La aprobación de la guía fue confirmada por Carlos. Las frases de aceptación y los estados de propuesta contenidos en el documento original se conservan como antecedentes; no constituyen firmas ni evidencias actuales. Los cambios anteriores a esta adopción se conservan en el historial. A partir de esta actualización se aplican las convenciones aprobadas.
 

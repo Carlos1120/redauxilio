@@ -119,3 +119,78 @@ al servidor siguen pendientes.
 Este registro complementa las notas anteriores que indicaban pruebas
 manuales pendientes. No constituye la aprobación de Santiago ni completa
 por sí solo la definición de terminado.
+
+## Preparación RA-02 — 6 de octubre de 2026
+
+Codex ejecutó sobre la propuesta: 22 pruebas JUnit/MockMvc, sin fallos; 3 pruebas Node de agrupación, sin fallos; comprobación de sintaxis de app.js/map.js; formato Prettier y Spotless. Maven verify falló inicialmente por resolución de red al obtener el descriptor de sitio; la ejecución posterior con Maven 3.9.11 en modo offline finalizó correctamente, incluido PMD (0 infracciones). JaCoCo: 66/68 líneas Java cubiertas; no equivale a cobertura de interacción visual.
+
+Estos resultados acreditan la propuesta local, no el cierre. CI remoto, revisión de Santiago, tres resoluciones, teclado/PWA, accesibilidad y carga con 1.000 publicaciones/20 usuarios quedan pendientes. No se atribuyen a Carlos o Santiago ejecuciones realizadas por el agente. Contrato y pasos: RA02.md.
+
+## Preparación y comprobación parcial en Windows — 2026-10-06
+
+Comprobación ejecutada mediante herramientas automatizadas; validación humana pendiente. No constituye revisión de Santiago.
+Repositorio local actualizado mediante avance directo a `2371a92674a42fc26459f78568b6b52b81560d8e`.
+Entorno: Windows, Temurin Java/javac 17.0.20.1, Node 24.19.0, npm 11.17.0 y navegador integrado de Codex.
+Se utilizó el servidor ya activo en `http://localhost:8080`; no se reinició ni se acreditó el SHA de sus clases cargadas. Los resultados siguientes son una comprobación preliminar del servidor activo, no una certificación del commit actualizado.
+
+| Acción ejecutada                               | Resultado observado                                                                                                                                                                                     |
+| ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Consultar inicio                               | Cuatro reportes, marcadores, leyenda y atribución cartográfica visibles.                                                                                                                                |
+| Combinar Vías afectadas, Bloqueada y Reportada | Un reporte y marcador compatibles.                                                                                                                                                                      |
+| Abrir detalle de la vía con Enter              | Título, descripción, estado, confianza, coordenadas y fechas visibles; foco en Cerrar detalle.                                                                                                          |
+| Cerrar con Escape                              | El foco vuelve al botón de detalle. No acredita el recorrido completo con Tab.                                                                                                                          |
+| Limpiar e incluir cerrados                     | Cinco reportes y grupo de dos cerca del refugio.                                                                                                                                                        |
+| Abrir grupo                                    | Se muestran ambos refugios; después cambia el área consultada y desaparece el menú antes de seleccionar el cerrado. Observación pendiente de reproducción; sin diagnóstico confirmado.                  |
+| Limpiar y volver al área inicial               | Cuatro reportes; filtros restablecidos.                                                                                                                                                                 |
+| Aplicar 360×800, 768×1024 y 1366×768           | Ancho del documento 345, 753 y 1351 respectivamente, sin desbordamiento horizontal según DOM. Capturas parciales del panel; revisión visual completa pendiente. Se restableció el tamaño del navegador. |
+
+### Siguiente validación reproducible
+
+Arranque del SHA actualizado comprobado posteriormente con `.\mvnw.cmd spring-boot:run '-Dspring-boot.run.arguments=--server.port=0'`: compilación Java 17 correcta, servidor iniciado en puerto asignado 63852, inicio HTTP 200 y API con cuatro publicaciones. El intento previo en 8081 falló por puerto ocupado; el primer intento sin comillas falló por interpretación del argumento en PowerShell. Esto acredita arranque y consulta HTTP de la versión actual, sin extender las comprobaciones preliminares de UI a ese servidor. Se detuvo únicamente el proceso iniciado por Codex al terminar.
+
+1. Ejecutar `.\mvnw.cmd spring-boot:run` desde la rama actualizada en una terminal libre. Si 8080 está ocupado, detener el servidor anterior desde su terminal y arrancar de nuevo; no confundir la versión cargada con HEAD.
+2. Registrar SHA, navegador/versión, red, fecha y responsable; recorrer los casos de RA02.md, incluyendo selección de cada detalle desde grupos y marcadores.
+3. Revisar filtros, mapa, lista, diálogo y borrador completos en los tres tamaños, foco visible y recorrido Tab/Shift+Tab.
+4. En Chrome o Edge, probar instalación, service worker, recarga, desconexión/reconexión y bloqueo de CDN/cartografía; distinguir consulta exacta guardada y consulta sin caché.
+5. Completar auditoría de accesibilidad y carga con 1.000 publicaciones/20 usuarios bajo red documentada. No extrapolar rendimiento del demostrador de seis datos.
+
+No se repitieron las pruebas automáticas del traspaso: este bloque no cambia código funcional. PR #5 abierto y #6 en borrador comprobados públicamente; CI actual no verificable en esta sesión (CLI con HTTP 401 y checks públicos sin resultados). Pendientes acuerdo DoR/estimación y revisión de Santiago.
+
+## Corrección del menú de grupos — 6 de octubre de 2026
+
+Comprobación ejecutada mediante herramientas automatizadas; validación humana pendiente. Entorno Windows/Java 17, navegador integrado de Codex, conexión disponible sin perfil de velocidad medido. Base `6c4bf1d` más la corrección de map.js y su prueba/documentación incluida en el commit `8aaec3a`. No representa revisión de Carlos o Santiago.
+
+Se arrancó el repositorio con `.\mvnw.cmd spring-boot:run '-Dspring-boot.run.arguments=--server.port=0'`. En puerto 61055 se reprodujo: incluir cerrados, abrir grupo 2, esperar la consulta por movimiento y seleccionar el refugio cerrado; el menú desaparecía. La referencia Leaflet 1.9.4 confirma autoPan y eliminación individual de capas: https://leafletjs.com/reference.html#popup-autopan y https://leafletjs.com/reference.html#layergroup-removelayer.
+
+Diagnóstico: abrir el popup desplaza la vista y dispara la consulta; render eliminaba todas las capas. Se conservan ahora grupos con los mismos datos y se retiran solo los grupos reemplazados o ausentes. La consulta por área continúa; datos o miembros distintos pueden cerrar un menú ya obsoleto.
+
+La primera recarga tras copiar recursos en el mismo servidor siguió mostrando el fallo; no se tomó como prueba aprobada ni se confirmó la causa de esa recarga. Se reinició la instancia en puerto 53859, origen nuevo sin almacenamiento previo, desde los recursos modificados. En esa instancia se comprobaron:
+
+| Caso                                                            | Resultado observado                                                                                                                                |
+| --------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Abrir grupo, dejar terminar consulta y elegir cada refugio      | Menú conservado; detalles Disponible y Cerrado correctos.                                                                                          |
+| Cerrar detalle con Escape                                       | Foco vuelve al botón del refugio dentro del popup.                                                                                                 |
+| Acercar al grupo                                                | Cambia zoom y aparecen marcadores separados; consulta sigue funcionando.                                                                           |
+| Restablecer vista y combinar Vías afectadas/Bloqueada/Reportada | Un resultado compatible; detalle de lista abre con Enter.                                                                                          |
+| Seleccionar refugio cerrado en 360×800, 768×1024 y 1366×768     | Detalle correcto en cada tamaño; se restableció viewport. Esto acredita el flujo afectado, no una revisión visual completa de todas las secciones. |
+| npm.cmd test                                                    | Cinco pruebas aprobadas: tres existentes y dos nuevas de conservación/selección y retirada por datos, zoom o consulta vacía.                       |
+| .\mvnw.cmd verify                                               | BUILD SUCCESS: 22 ejecuciones Java, sin fallos/errores/omitidos; Spotless y PMD aprobados.                                                         |
+| npm.cmd run format:check y formato de nueva prueba CJS          | Aprobados.                                                                                                                                         |
+
+Los dobles DOM/Leaflet prueban el ciclo de capas; el navegador comprueba el autoPan y selección reales. Capturas revisadas por el compañero, recorrido completo de teclado, instalación/offline/PWA, accesibilidad y carga 1.000/20 siguen pendientes. No se declara DoD ni CI remoto aprobado para esta corrección. Las instancias temporales se detuvieron; servidor previo 8080 preservado.
+
+## Teclado y recuperación local — 6 de octubre de 2026
+
+Comprobación ejecutada mediante herramientas automatizadas; validación humana pendiente. Versión `484e1da`, Windows/Java 17 y navegador integrado de Codex. Instancia propia en `http://localhost:51928`, origen nuevo sin borradores del usuario; conexión disponible sin velocidad medida. CI `verify` de `484e1da` comprobado aprobado mediante API pública de GitHub antes de esta ejecución.
+
+| Caso y pasos                                                                      | Resultado observado                                                                                                                                                                                                                                                                                                                                                                                                |
+| --------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Tab desde enlace inicial y categoría, por controles hasta el final del formulario | Orden observado: marca, navegación, categoría, estado/confianza/cerrados, limpieza/actualización, restablecer/mapa, cuatro marcadores, zoom/atribución, cuatro detalles, texto/coordenadas y guardar/descartar. Controles del recorrido con outline solid de 3 px. Al salir del documento el foco pasó al cuerpo y terminó el seguimiento; no se considera fallo funcional ni auditoría completa de accesibilidad. |
+| Shift+Tab desde Latitud; Enter para detalle de vía; Escape para cerrar            | Retrocede al texto del borrador; abre detalle y devuelve foco al botón de la vía.                                                                                                                                                                                                                                                                                                                                  |
+| Guardar texto sintético y coordenadas 4.15/-73.63; recargar                       | Tres valores recuperados; aviso de borrador local no publicado.                                                                                                                                                                                                                                                                                                                                                    |
+| Detener únicamente servidor propio y recargar misma URL                           | Página utilizable; cuatro reportes desde consulta guardada con fecha y advertencia de posible desactualización; borrador recuperado.                                                                                                                                                                                                                                                                               |
+| Sin servidor, seleccionar Vías afectadas nunca consultada en este origen          | Error de consulta sin respaldo guardado; no se anuncia éxito.                                                                                                                                                                                                                                                                                                                                                      |
+| Reiniciar servidor en el mismo puerto y consultar Vías afectadas                  | Un reporte obtenido del servidor; desaparece el error.                                                                                                                                                                                                                                                                                                                                                             |
+| Descartar borrador sintético y recargar                                           | Texto, latitud y longitud vacíos.                                                                                                                                                                                                                                                                                                                                                                                  |
+
+La caída del servidor verifica el respaldo del service worker, pero no simula desconexión total del navegador: Internet/CDN/cartografía permanecieron disponibles y el aviso de conexión de red siguió activo. Instalación PWA, navegador offline/reconexión real, bloqueo CDN/cartografía, captura/revisión visual del foco, lector de pantalla y validación humana siguen pendientes. Se preservó el servidor ajeno de 8080 y se detuvo la instancia propia al cerrar. Solo se modifica documentación; no se repiten suites de código ya aprobadas.

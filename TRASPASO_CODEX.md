@@ -26,7 +26,7 @@ Sin persistencia, autenticación ni publicación real; borrador local no publica
 ## Siguiente bloque
 
 1. Comprobar carpeta/Git; usar VALIDACION_WINDOWS.md para arrancar versión identificable preservando servidores ajenos.
-2. Completar revisión visual de todas las secciones en tres tamaños, teclado/PWA, desconexión/reconexión y fallo de CDN/mapa; registrar evidencia real. El flujo de selección de grupo ya fue comprobado tras la corrección.
+2. Completar revisión visual de todas las secciones en tres tamaños, instalación PWA, desconexión total/reconexión y bloqueo CDN/mapa. Ya comprobados en `484e1da`: recorrido Tab, Shift+Tab y diálogo, guardar/recuperar/descartar borrador; caché de consulta exacta ante caída del servidor, error de filtro sin caché y recuperación al restaurar servidor. No equivale a navegador offline ni auditoría completa; evidencia en EVIDENCIAS.md. CI de `484e1da` aprobado. Flujo de selección de grupo comprobado tras corrección.
 3. Completar RNF-10 accesibilidad y RNF-01: 1.000 publicaciones/20 usuarios, p95 servidor ≤2 s, primeros resultados ≤3 s con red documentada.
 4. Contrastar DoR/selección y estimación propuesta 6–8 horas-persona con Santiago; no consta acuerdo. No declarar Trello terminado ni DoD completo.
 5. Atender #5 y revisión final #6; integrar cumpliendo estándares.

@@ -119,3 +119,9 @@ al servidor siguen pendientes.
 Este registro complementa las notas anteriores que indicaban pruebas
 manuales pendientes. No constituye la aprobación de Santiago ni completa
 por sí solo la definición de terminado.
+
+## Preparación RA-02 — 6 de octubre de 2026
+
+Codex ejecutó sobre la propuesta: 22 pruebas JUnit/MockMvc, sin fallos; 3 pruebas Node de agrupación, sin fallos; comprobación de sintaxis de app.js/map.js; formato Prettier y Spotless. Maven verify falló inicialmente por resolución de red al obtener el descriptor de sitio; la ejecución posterior con Maven 3.9.11 en modo offline finalizó correctamente, incluido PMD (0 infracciones). JaCoCo: 66/68 líneas Java cubiertas; no equivale a cobertura de interacción visual.
+
+Estos resultados acreditan la propuesta local, no el cierre. CI remoto, revisión de Santiago, tres resoluciones, teclado/PWA, accesibilidad y carga con 1.000 publicaciones/20 usuarios quedan pendientes. No se atribuyen a Carlos o Santiago ejecuciones realizadas por el agente. Contrato y pasos: RA02.md.

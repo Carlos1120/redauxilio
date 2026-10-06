@@ -45,6 +45,8 @@ La instalación PWA depende del navegador y entorno seguro (localhost para desar
 
 ## Calidad y colaboración
 
+Para continuar el diseño de las pantallas, leer [ESTANDARES_INTERFAZ.md](ESTANDARES_INTERFAZ.md): paleta, tipografía, componentes, adaptación, accesibilidad y lista de revisión. Reutilizar el CSS compartido; la guía refleja la dirección visual del PR #8 y requiere revisión del compañero.
+
 `./mvnw spotless:apply` aplica formato; `./mvnw verify` compila, prueba, comprueba formato y ejecuta PMD. Reportes en `target/surefire-reports`, `target/site/jacoco/index.html` y `target/pmd.xml`.
 
 Leer [ESTANDARES.md](ESTANDARES.md), [PREPARACION.md](PREPARACION.md) y [EVIDENCIAS.md](EVIDENCIAS.md). Guía aprobada según Carlos; conservar los registros personales reales de aceptación. Cambios por rama y PR; no subir secretos ni datos personales reales.

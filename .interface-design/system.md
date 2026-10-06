@@ -1,41 +1,15 @@
 # Sistema de interfaz de RedAuxilio
 
-## Intención
+La referencia vigente para continuar la dirección visual del PR #8 es [ESTANDARES_INTERFAZ.md](../ESTANDARES_INTERFAZ.md). Leerla antes de crear o modificar pantallas.
 
-Persona que consulta reportes comunitarios desde un celular, posiblemente con conectividad limitada. Encontrar la categoría, entender qué se sabe y distinguir información almacenada de una consulta actual. Sensación: calma, legibilidad y cautela.
+## Dirección actual
 
-## Exploración
+Onest local, rojo #d7262e, tinta #1c1414, fondo cálido #f5f1f1 y paneles blancos. En consulta geográfica: mapa desaturado de fondo, lista izquierda y detalle derecho en escritorio; mapa antes de lista y detalle modal en móvil. Búsqueda local, filtros avanzados y rápidos comparten resultados. Borrador secundario y exclusivamente local.
 
-Dominio: refugio, punto de encuentro, rutas, reporte comunitario, confianza, vigencia, borrador y conexión. Colores del entorno: azul de señalización, blanco de información, ámbar de precaución, verde de conexión y gris de infraestructura. Azul es el único acento de acciones; los otros colores comunican estados con texto.
-Firma: ficha de reporte con categoría, estado operativo, confianza y fecha como información separada. Aparece en etiqueta, título, pares de estado/confianza, fecha y aviso de fuente de consulta.
-Evitar: métricas decorativas (sustituidas por información útil), hero de marketing (cabecera breve), falsa disponibilidad de mapas/publicación (solo funciones existentes).
+Reutilizar tokens y componentes de app.css, controles semánticos y datos reales del contrato. Preservar avisos de demostración, fallos de mapa y antigüedad de caché. No fabricar rutas, capacidad, alertas o confianza oficial.
 
-## Dirección y decisiones
+La guía incluye componentes, medidas, puntos de adaptación, accesibilidad, estados y lista de revisión. La implementación inicial azul con Segoe UI es un antecedente conservado en Git; no se combina con el diseño rojo en nuevas pantallas.
 
-Tema claro, consulta dominante y borrador secundario. Tipografía Segoe UI y alternativas locales para lectura inmediata sin conexiones externas. Escala 4/8/12/16/24/32/48 px. Profundidad por superficies de la misma familia, sin sombras decorativas. Formularios con controles nativos estilizados por accesibilidad y compatibilidad; no se añade una biblioteca.
+## Estado de adopción
 
-## Tokens
-
-Texto principal #172c3c; secundario #42576a; metadatos #526477. Acción #145777 sobre fondo #ffffff; acción hover #103e57. Superficie #f5f8fa; tarjeta #ffffff; campo #f1f5f7. Aviso #80500a sobre #fff4db; conexión #246342 sobre #eaf5ed. Foco #145777 con anillo de 3 px. Radios de 8 y 12 px. Objetivos interactivos >=44 px.
-
-## Patrones
-
-Cabecera con marca y estado de red, dos enlaces de sección; no menús innecesarios. Selector de categoría + actualizar consulta. Reportes en dos columnas en escritorio y una en móvil. Estado y confianza mediante lista descriptiva; fecha con time. Borrador agrupado y campos de coordenadas separados. Guardar y descartar son acciones distintas. Estados de consulta: cargando, vacía, error, servidor y caché fechada. Texto sin conexión no afirma que existan datos almacenados.
-
-## Verificación
-
-Prettier, pruebas existentes y sintaxis JS; contraste calculado con WCAG 2.x. Revisión visual y pruebas de teclado/PWA deben documentarse sin presumir certificación WCAG. Revisión humana final pendiente. No introduce datos reales ni cambia los requisitos del proyecto.
-
-## Fuente e IA
-
-Aplicada ui-ux-design-pro del ZIP suministrado por Carlos, con sus 12 referencias. Codex elaboró e implementó esta adaptación. Se conserva la guía de estándares aprobada.
-
-## Consulta geográfica RA-02
-
-El mapa precede a la lista y comparte sus filtros. Se mantienen Segoe UI, escala de 4 px, superficies claras y acento azul. Los símbolos +, ↔, ? y ! acompañan a las categorías con una leyenda textual; un número representa un grupo cercano. Los grupos permiten acercar y abrir cada detalle. La lista conserva el mismo detalle accesible por teclado cuando falla Leaflet o el fondo cartográfico. El diálogo devuelve el foco al control que lo abrió, o a la sección si la consulta reemplazó ese control. No hay movimiento animado obligatorio ni petición de ubicación del dispositivo.
-
-## Prototipo visual map-first
-
-El 6 de octubre de 2026 Santiago pidió una reproducción visual más fiel de su referencia. Este prototipo web usa Onest local, rojo `#d7262e` para marca y acciones, tinta `#1c1414`, superficies `#f5f1f1` y mapa desaturado como fondo de toda la pantalla. En escritorio, la lista y sus filtros flotan a la izquierda y el detalle del reporte seleccionado flota a la derecha; el borrador sigue disponible más abajo. En ancho estrecho, el mapa antecede a la lista y el detalle se abre en diálogo. Estos colores sustituyen la paleta azul anterior solo en el prototipo local, sin atribuir aprobación del equipo.
-
-La franja roja identifica explícitamente la demostración ficticia; no anuncia un sismo activo. La búsqueda de la cabecera filtra únicamente los resultados recibidos y conserva la advertencia de datos guardados. No se agregan geolocalización, rutas, cifras de ocupación o verificación oficial que el producto no tenga. La futura app móvil nativa queda fuera de este bloque.
+Santiago solicitó esta dirección y observó su implementación en IntelliJ. Carlos debe revisar el PR y la guía; este archivo no registra su aprobación. Las comprobaciones del agente y las humanas están separadas en EVIDENCIAS.md. La futura app móvil nativa aún no se implementa.

@@ -16,6 +16,10 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.web.servlet.MockMvc;
 
+/**
+ * Pruebas del contrato HTTP con el contexto real de Spring y peticiones simuladas por MockMvc.
+ * Comprueban JSON, estados y recursos; no abren Chrome ni prueban interacción visual o rendimiento.
+ */
 @SpringBootTest
 @AutoConfigureMockMvc
 class PublicationTests {

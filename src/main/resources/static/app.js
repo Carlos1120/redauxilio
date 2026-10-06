@@ -8,36 +8,77 @@ const categoryLabels = {
 };
 let latestPublicationQueryId = 0;
 function updateConnectionStatus() {
+  getElement("connection").dataset.offline = String(!navigator.onLine);
   getElement("connection").textContent = navigator.onLine
     ? "Conexión de red disponible"
-    : "Sin conexión · datos guardados";
+    : "Sin conexión · consulta la caché";
 }
 window.addEventListener("online", updateConnectionStatus);
 window.addEventListener("offline", updateConnectionStatus);
 updateConnectionStatus();
+function createReportElement(tag, className, text) {
+  const element = document.createElement(tag);
+  element.className = className;
+  element.textContent = text;
+  return element;
+}
 function renderPublications(items) {
   getElement("publications").replaceChildren();
+  if (items.length === 0) {
+    const empty = createReportElement("div", "empty-state", "");
+    empty.append(
+      createReportElement("h3", "", "No hay reportes para mostrar"),
+      createReportElement(
+        "p",
+        "",
+        "Cambia la categoría o vuelve a consultar cuando tengas conexión.",
+      ),
+    );
+    getElement("publications").append(empty);
+  }
   for (const item of items) {
-    const card = document.createElement("article");
-    card.className = "card";
-    for (const [tag, value] of [
-      ["span", categoryLabels[item.category]],
-      ["h3", item.title],
-      ["p", item.location],
-      ["p", `${item.operationalStatus} · ${item.confidenceLevel}`],
-      ["p", `Fecha del reporte: ${new Date(item.updatedAt).toLocaleString("es-CO")}`],
+    const card = createReportElement("article", "card", "");
+    const header = createReportElement("div", "report-header", "");
+    header.append(
+      createReportElement("span", "tag", categoryLabels[item.category]),
+      createReportElement("span", "report-id", `REPORTE ${String(item.id).padStart(3, "0")}`),
+    );
+    const facts = createReportElement("dl", "report-facts", "");
+    for (const [label, value] of [
+      ["Estado operativo", item.operationalStatus],
+      [
+        "Confianza",
+        item.confidenceLevel === "REPORTADA" ? "Reportada · sin verificar" : item.confidenceLevel,
+      ],
     ]) {
-      const el = document.createElement(tag);
-      el.textContent = value;
-      if (tag === "span") el.className = "tag";
-      card.append(el);
+      const fact = document.createElement("div");
+      fact.append(createReportElement("dt", "", label), createReportElement("dd", "", value));
+      facts.append(fact);
     }
+    const date = createReportElement("p", "report-date", "Fecha del reporte: ");
+    const timestamp = createReportElement(
+      "time",
+      "",
+      new Date(item.updatedAt).toLocaleString("es-CO"),
+    );
+    timestamp.dateTime = item.updatedAt;
+    date.append(timestamp);
+    card.append(
+      header,
+      createReportElement("h3", "", item.title),
+      createReportElement("p", "report-location", item.location),
+      facts,
+      date,
+    );
     getElement("publications").append(card);
   }
 }
 async function loadPublications() {
   const query = ++latestPublicationQueryId;
-  getElement("message").textContent = "Consultando…";
+  getElement("message").textContent = "Consultando reportes…";
+  getElement("message").dataset.error = "false";
+  getElement("publications").setAttribute("aria-busy", "true");
+  getElement("refresh").disabled = true;
   try {
     const response = await fetch(
       `/api/publications?category=${encodeURIComponent(getElement("category").value)}`,
@@ -53,8 +94,14 @@ async function loadPublications() {
   } catch {
     if (query === latestPublicationQueryId) {
       renderPublications([]);
+      getElement("message").dataset.error = "true";
       getElement("message").textContent =
         "No se pudo consultar. La categoría podría no tener una consulta guardada. Intenta de nuevo con conexión.";
+    }
+  } finally {
+    if (query === latestPublicationQueryId) {
+      getElement("publications").setAttribute("aria-busy", "false");
+      getElement("refresh").disabled = false;
     }
   }
 }

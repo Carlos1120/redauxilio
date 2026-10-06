@@ -1,4 +1,8 @@
 "use strict";
+/**
+ * Coordina la pantalla: consulta la API, sincroniza lista/mapa y conserva el borrador en IndexedDB.
+ * map.js se ocupa de Leaflet; sw.js decide si una consulta se obtiene de red o de caché.
+ */
 const getElement = (id) => document.getElementById(id);
 const categoryLabels = {
   ASSISTANCE: "Punto de asistencia",
@@ -9,6 +13,7 @@ const categoryLabels = {
 let latestPublicationQueryId = 0;
 let mapQueryTimer;
 let detailTrigger;
+/** Mapa y lista entregan el mismo objeto de la consulta; el diálogo no hace otra petición HTTP. */
 function showReportDetail(item, trigger) {
   detailTrigger = trigger;
   getElement("detail-title").textContent = item.title;
@@ -29,11 +34,13 @@ function showReportDetail(item, trigger) {
 }
 getElement("close-detail").addEventListener("click", () => getElement("report-detail").close());
 getElement("report-detail").addEventListener("close", () => {
+  // Una consulta nueva puede haber eliminado el botón original; entonces el foco vuelve a la sección.
   if (detailTrigger?.isConnected) detailTrigger.focus();
   else getElement("search-section").focus();
 });
 const reportMap = window.RedAuxilioMap?.create(
   () => {
+    // Debounce: espera 250 ms tras el último movimiento para no consultar por cada desplazamiento.
     clearTimeout(mapQueryTimer);
     mapQueryTimer = setTimeout(loadPublications, 250);
   },
@@ -43,6 +50,7 @@ const reportMap = window.RedAuxilioMap?.create(
 getElement("reset-map").disabled = !reportMap;
 getElement("reset-map").addEventListener("click", () => reportMap?.reset());
 function updateConnectionStatus() {
+  // onLine indica conectividad del navegador; no garantiza que servidor o proveedor respondan.
   getElement("connection").dataset.offline = String(!navigator.onLine);
   getElement("connection").textContent = navigator.onLine
     ? "Conexión de red disponible"
@@ -54,9 +62,11 @@ updateConnectionStatus();
 function createReportElement(tag, className, text) {
   const element = document.createElement(tag);
   element.className = className;
+  // Trata los datos como texto, no como HTML ejecutable que pudiera introducir un reporte.
   element.textContent = text;
   return element;
 }
+/** Actualiza mapa y tarjetas con exactamente los mismos resultados recibidos del servidor. */
 function renderPublications(items) {
   reportMap?.render(items);
   getElement("publications").replaceChildren();
@@ -114,6 +124,7 @@ function renderPublications(items) {
     getElement("publications").append(card);
   }
 }
+/** Combina formulario y área del mapa, consulta la API y comunica carga, error o fuente guardada. */
 async function loadPublications() {
   const query = ++latestPublicationQueryId;
   getElement("message").textContent = "Consultando reportes…";
@@ -131,8 +142,10 @@ async function loadPublications() {
     const response = await fetch(`/api/publications?${parameters}`);
     if (!response.ok) throw new Error("Consulta rechazada");
     const items = await response.json();
+    // Si otra consulta empezó después, esta respuesta ya es vieja y no debe reemplazar su pantalla.
     if (query !== latestPublicationQueryId) return;
     renderPublications(items);
+    // El service worker añade esta cabecera SOLO a la copia guardada, para advertir su antigüedad.
     const savedAt = response.headers.get("X-RedAuxilio-Saved-At");
     getElement("message").textContent = savedAt
       ? `Consulta almacenada el ${new Date(savedAt).toLocaleString("es-CO")}; puede estar desactualizada. ${items.length} reportes.`
@@ -159,15 +172,19 @@ getElement("query-form").addEventListener("submit", (event) => {
   loadPublications();
 });
 getElement("clear-filters").addEventListener("click", () => {
+  // Limpia el formulario, pero conserva el área actual; reset-map cambia la vista por separado.
   getElement("query-form").reset();
   loadPublications();
 });
+// IndexedDB es almacenamiento de este navegador, separado de la caché HTTP y del servidor.
+// Se guarda un único borrador bajo la clave "current"; nunca se publica mediante esta operación.
 const database = new Promise((resolve, reject) => {
   const request = indexedDB.open("redauxilio-demo", 1);
   request.onupgradeneeded = () => request.result.createObjectStore("drafts");
   request.onsuccess = () => resolve(request.result);
   request.onerror = () => reject(request.error);
 });
+/** Ejecuta lectura/escritura local y solo confirma éxito cuando termina toda la transacción. */
 async function executeDraftOperation(mode, operation) {
   const db = await database;
   return new Promise((resolve, reject) => {
@@ -177,6 +194,7 @@ async function executeDraftOperation(mode, operation) {
     request.onsuccess = () => {
       result = request.result;
     };
+    // Éxito de la petición no basta: la transacción aún podría abortarse antes de confirmar cambios.
     transaction.oncomplete = () => resolve(result);
     transaction.onerror = () => reject(transaction.error);
     transaction.onabort = () => reject(transaction.error);
@@ -223,6 +241,7 @@ executeDraftOperation("readonly", (store) => store.get("current"))
   .catch(() => {
     getElement("draft-message").textContent = "Almacenamiento local no disponible.";
   });
+// El registro habilita caché de recursos/consultas; el primer acceso aún necesita descargar recursos.
 if ("serviceWorker" in navigator)
   navigator.serviceWorker.register("/sw.js").catch(() => {
     getElement("connection").textContent += " · caché offline no disponible";

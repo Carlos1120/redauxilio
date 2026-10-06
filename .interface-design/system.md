@@ -33,3 +33,9 @@ Aplicada ui-ux-design-pro del ZIP suministrado por Carlos, con sus 12 referencia
 ## Consulta geográfica RA-02
 
 El mapa precede a la lista y comparte sus filtros. Se mantienen Segoe UI, escala de 4 px, superficies claras y acento azul. Los símbolos +, ↔, ? y ! acompañan a las categorías con una leyenda textual; un número representa un grupo cercano. Los grupos permiten acercar y abrir cada detalle. La lista conserva el mismo detalle accesible por teclado cuando falla Leaflet o el fondo cartográfico. El diálogo devuelve el foco al control que lo abrió, o a la sección si la consulta reemplazó ese control. No hay movimiento animado obligatorio ni petición de ubicación del dispositivo.
+
+## Prototipo visual map-first
+
+El 6 de octubre de 2026 Santiago pidió una reproducción visual más fiel de su referencia. Este prototipo web usa Onest local, rojo `#d7262e` para marca y acciones, tinta `#1c1414`, superficies `#f5f1f1` y mapa desaturado como fondo de toda la pantalla. En escritorio, la lista y sus filtros flotan a la izquierda y el detalle del reporte seleccionado flota a la derecha; el borrador sigue disponible más abajo. En ancho estrecho, el mapa antecede a la lista y el detalle se abre en diálogo. Estos colores sustituyen la paleta azul anterior solo en el prototipo local, sin atribuir aprobación del equipo.
+
+La franja roja identifica explícitamente la demostración ficticia; no anuncia un sismo activo. La búsqueda de la cabecera filtra únicamente los resultados recibidos y conserva la advertencia de datos guardados. No se agregan geolocalización, rutas, cifras de ocupación o verificación oficial que el producto no tenga. La futura app móvil nativa queda fuera de este bloque.

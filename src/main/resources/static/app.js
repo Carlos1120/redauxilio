@@ -13,27 +13,58 @@ const categoryLabels = {
 let latestPublicationQueryId = 0;
 let mapQueryTimer;
 let detailTrigger;
-/** Mapa y lista entregan el mismo objeto de la consulta; el diálogo no hace otra petición HTTP. */
-function showReportDetail(item, trigger) {
-  detailTrigger = trigger;
+let selectedReportId;
+let currentItems = [];
+let currentQueryMessage = "";
+let currentSourceMessage = "";
+let suppressFocusReturn = false;
+/** El panel usa el objeto ya consultado; en ancho estrecho conserva el diálogo modal. */
+function showReportDetail(item, trigger, initial = false) {
+  if (trigger) detailTrigger = trigger;
+  selectedReportId = item.id;
+  getElement("detail-kicker").textContent = `${categoryLabels[item.category]} · reporte ficticio`;
   getElement("detail-title").textContent = item.title;
   const detail = getElement("detail-content");
   detail.replaceChildren();
-  for (const text of [
-    categoryLabels[item.category],
-    item.description,
-    item.location,
-    `Estado: ${item.operationalStatus} · Confianza: ${item.confidenceLevel}`,
-    `Ubicación aproximada: ${item.latitude.toFixed(3)}, ${item.longitude.toFixed(3)}`,
-    `Creación: ${new Date(item.createdAt).toLocaleString("es-CO")}`,
-    `Actualización: ${new Date(item.updatedAt).toLocaleString("es-CO")}`,
+  const facts = createReportElement("div", "detail-facts", "");
+  for (const [label, value] of [
+    ["Estado operativo", item.operationalStatus],
+    [
+      "Confianza",
+      item.confidenceLevel === "REPORTADA" ? "Reportada · sin verificar" : item.confidenceLevel,
+    ],
+    ["Ubicación aproximada", `${item.latitude.toFixed(3)}, ${item.longitude.toFixed(3)}`],
   ]) {
-    detail.append(createReportElement("p", "", text));
+    const fact = createReportElement("div", "detail-fact", "");
+    fact.append(createReportElement("small", "", label), createReportElement("strong", "", value));
+    facts.append(fact);
   }
-  getElement("report-detail").showModal();
+  detail.append(
+    createReportElement("p", "detail-location", item.location),
+    createReportElement("p", "detail-description", item.description),
+    facts,
+    createReportElement(
+      "p",
+      "detail-date",
+      `Creado: ${new Date(item.createdAt).toLocaleString("es-CO")} · Actualizado: ${new Date(item.updatedAt).toLocaleString("es-CO")}`,
+    ),
+  );
+  for (const card of getElement("publications").querySelectorAll(".card")) {
+    card.dataset.selected = String(card.dataset.reportId === String(item.id));
+  }
+  const dialog = getElement("report-detail");
+  if (window.matchMedia("(min-width: 1100px)").matches) {
+    if (!dialog.open) dialog.show();
+  } else if (!initial && !dialog.open) {
+    dialog.showModal();
+  }
 }
 getElement("close-detail").addEventListener("click", () => getElement("report-detail").close());
 getElement("report-detail").addEventListener("close", () => {
+  if (suppressFocusReturn) {
+    suppressFocusReturn = false;
+    return;
+  }
   // Una consulta nueva puede haber eliminado el botón original; entonces el foco vuelve a la sección.
   if (detailTrigger?.isConnected) detailTrigger.focus();
   else getElement("search-section").focus();
@@ -66,7 +97,7 @@ function createReportElement(tag, className, text) {
   element.textContent = text;
   return element;
 }
-/** Actualiza mapa y tarjetas con exactamente los mismos resultados recibidos del servidor. */
+/** Actualiza mapa y tarjetas con el mismo subconjunto visible, después de filtros y búsqueda local. */
 function renderPublications(items) {
   reportMap?.render(items);
   getElement("publications").replaceChildren();
@@ -77,13 +108,14 @@ function renderPublications(items) {
       createReportElement(
         "p",
         "",
-        "Cambia los filtros, mueve el mapa o vuelve a consultar con conexión.",
+        "Cambia los filtros o la búsqueda, mueve el mapa o consulta de nuevo.",
       ),
     );
     getElement("publications").append(empty);
   }
   for (const item of items) {
     const card = createReportElement("article", "card", "");
+    card.dataset.reportId = String(item.id);
     const header = createReportElement("div", "report-header", "");
     header.append(
       createReportElement("span", "tag", categoryLabels[item.category]),
@@ -123,6 +155,49 @@ function renderPublications(items) {
     card.append(detail);
     getElement("publications").append(card);
   }
+  const selected = items.find((item) => item.id === selectedReportId) ?? items[0];
+  if (selected) showReportDetail(selected, null, true);
+  else {
+    selectedReportId = undefined;
+    if (getElement("report-detail").open) {
+      suppressFocusReturn = true;
+      getElement("report-detail").close();
+    }
+  }
+}
+/** Busca solo dentro de la respuesta actual, sin añadir una petición ni cambiar los filtros del servidor. */
+function renderSearchResults() {
+  const term = getElement("search-query").value.trim().toLocaleLowerCase("es-CO");
+  const visible = term
+    ? currentItems.filter((item) =>
+        [item.title, item.location, item.description, categoryLabels[item.category]]
+          .join(" ")
+          .toLocaleLowerCase("es-CO")
+          .includes(term),
+      )
+    : currentItems;
+  renderPublications(visible);
+  getElement("message").textContent =
+    term && getElement("message").dataset.error !== "true"
+      ? `Coincidencias: ${visible.length} de ${currentItems.length} reportes. ${currentSourceMessage}`
+      : currentQueryMessage;
+}
+getElement("search-query").addEventListener("input", renderSearchResults);
+/** Mantiene las pastillas rápidas sincronizadas con el filtro avanzado de categoría. */
+function syncQuickFilters() {
+  for (const button of document.querySelectorAll(".quick-filters button")) {
+    button.setAttribute(
+      "aria-pressed",
+      String(button.dataset.category === getElement("category").value),
+    );
+  }
+}
+for (const button of document.querySelectorAll(".quick-filters button")) {
+  button.addEventListener("click", () => {
+    getElement("category").value = button.dataset.category;
+    syncQuickFilters();
+    loadPublications();
+  });
 }
 /** Combina formulario y área del mapa, consulta la API y comunica carga, error o fuente guardada. */
 async function loadPublications() {
@@ -144,18 +219,27 @@ async function loadPublications() {
     const items = await response.json();
     // Si otra consulta empezó después, esta respuesta ya es vieja y no debe reemplazar su pantalla.
     if (query !== latestPublicationQueryId) return;
-    renderPublications(items);
     // El service worker añade esta cabecera SOLO a la copia guardada, para advertir su antigüedad.
     const savedAt = response.headers.get("X-RedAuxilio-Saved-At");
-    getElement("message").textContent = savedAt
-      ? `Consulta almacenada el ${new Date(savedAt).toLocaleString("es-CO")}; puede estar desactualizada. ${items.length} reportes.`
-      : `${items.length} reportes ficticios encontrados. Datos obtenidos del servidor.`;
+    currentItems = items;
+    currentSourceMessage = savedAt
+      ? `Consulta almacenada el ${new Date(savedAt).toLocaleString("es-CO")}; puede estar desactualizada.`
+      : "Datos obtenidos del servidor.";
+    const countLabel =
+      items.length === 1
+        ? "1 reporte ficticio encontrado."
+        : `${items.length} reportes ficticios encontrados.`;
+    currentQueryMessage = `${countLabel} ${currentSourceMessage}`;
+    renderSearchResults();
   } catch {
     if (query === latestPublicationQueryId) {
+      currentItems = [];
+      currentSourceMessage = "";
       renderPublications([]);
       getElement("message").dataset.error = "true";
-      getElement("message").textContent =
+      currentQueryMessage =
         "No se pudo consultar. La categoría podría no tener una consulta guardada. Intenta de nuevo con conexión.";
+      getElement("message").textContent = currentQueryMessage;
     }
   } finally {
     if (query === latestPublicationQueryId) {
@@ -164,8 +248,23 @@ async function loadPublications() {
     }
   }
 }
+// Al cambiar entre panel lateral y diálogo móvil, conserva el reporte sin bloquear el mapa.
+window.matchMedia("(min-width: 1100px)").addEventListener("change", (event) => {
+  const dialog = getElement("report-detail");
+  if (dialog.open) {
+    suppressFocusReturn = true;
+    dialog.close();
+  }
+  if (event.matches && currentItems.length > 0) {
+    const selected = currentItems.find((item) => item.id === selectedReportId) ?? currentItems[0];
+    showReportDetail(selected, null, true);
+  }
+});
 for (const id of ["category", "operational-status", "confidence-level", "include-closed"]) {
-  getElement(id).addEventListener("change", loadPublications);
+  getElement(id).addEventListener("change", () => {
+    syncQuickFilters();
+    loadPublications();
+  });
 }
 getElement("query-form").addEventListener("submit", (event) => {
   event.preventDefault();
@@ -174,6 +273,7 @@ getElement("query-form").addEventListener("submit", (event) => {
 getElement("clear-filters").addEventListener("click", () => {
   // Limpia el formulario, pero conserva el área actual; reset-map cambia la vista por separado.
   getElement("query-form").reset();
+  syncQuickFilters();
   loadPublications();
 });
 // IndexedDB es almacenamiento de este navegador, separado de la caché HTTP y del servidor.

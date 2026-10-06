@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#145777" />
+    <title>RedAuxilio · Consulta comunitaria</title>
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="stylesheet" href="/app.css" />
+    <script src="/app.js" defer></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">Saltar al contenido</a>
+    <header class="site-header">
+      <div class="header-content">
+        <a class="brand" href="#main-content"
+          ><img src="/icon.svg" width="36" height="36" alt="" /><span
+            >RedAuxilio<small>Información que nos conecta</small></span
+          ></a
+        >
+        <nav aria-label="Secciones">
+          <a href="#search-section">Consultar reportes</a><a href="#draft-section">Mi borrador</a>
+        </nav>
+        <span id="connection" class="connection-status" role="status">Comprobando conexión</span>
+      </div>
+    </header>
+    <main id="main-content" tabindex="-1">
+      <div class="page-intro">
+        <p class="eyebrow">RED DE INFORMACIÓN COMUNITARIA</p>
+        <h1>Encuentra información.<br />Conecta con la ayuda.</h1>
+        <p class="intro">
+          Consulta puntos de asistencia, vías afectadas y reportes de la comunidad.
+        </p>
+      </div>
+      <aside class="notice" aria-label="Aviso de demostración">
+        <span class="notice-icon" aria-hidden="true">!</span>
+        <div>
+          <strong>Estás en una demostración académica</strong>
+          <p>
+            Todos los reportes de esta versión son ficticios. No usar estos datos para tomar
+            decisiones durante una emergencia. El mapa y la publicación al servidor aún no están
+            implementados.
+          </p>
+        </div>
+      </aside>
+      <div class="workspace">
+        <section id="search-section" class="search-section" aria-labelledby="search-title">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">CONSULTA PÚBLICA</p>
+              <h2 id="search-title">¿Qué información buscas?</h2>
+            </div>
+            <span class="section-caption">Sin registro</span>
+          </div>
+          <div class="query-controls">
+            <div class="field">
+              <label for="category">Tipo de reporte</label
+              ><select id="category">
+                <option value="">Todas las categorías</option>
+                <option value="ASSISTANCE">Puntos de asistencia</option>
+                <option value="ROAD">Vías afectadas</option>
+                <option value="MISSING_PERSON">Personas desaparecidas</option>
+                <option value="HELP_REQUEST">Solicitudes de ayuda</option>
+              </select>
+            </div>
+            <button id="refresh" type="button">
+              Actualizar consulta <span aria-hidden="true">↻</span>
+            </button>
+          </div>
+          <p id="message" class="query-message" role="status" aria-live="polite">
+            Preparando consulta…
+          </p>
+          <div id="publications" class="report-grid" aria-busy="true"></div>
+          <p class="query-help">
+            Un reporte comunitario no equivale a una verificación oficial. Revisa siempre su
+            confianza y fecha.
+          </p>
+        </section>
+        <section id="draft-section" class="draft-section" aria-labelledby="draft-title">
+          <p class="eyebrow">SOLO EN TU DISPOSITIVO</p>
+          <h2 id="draft-title">Prepara un borrador</h2>
+          <p id="draft-help">
+            Borrador local de demostración. Solo se guarda en este navegador. No crea una
+            publicación. Usa información ficticia.
+          </p>
+          <form id="draft-form" aria-describedby="draft-help">
+            <div class="field">
+              <label for="draft-text">¿Qué quieres reportar?</label
+              ><textarea
+                id="draft-text"
+                maxlength="1000"
+                required
+                placeholder="Describe un reporte ficticio…"
+                aria-describedby="description-help"
+              ></textarea
+              ><small id="description-help"
+                >Hasta 1000 caracteres. No incluyas datos personales reales.</small
+              >
+            </div>
+            <fieldset>
+              <legend>Ubicación del borrador</legend>
+              <div class="coordinate-fields">
+                <div class="field">
+                  <label for="latitude">Latitud</label
+                  ><input
+                    id="latitude"
+                    type="number"
+                    min="-90"
+                    max="90"
+                    step="any"
+                    required
+                    aria-describedby="latitude-help"
+                  /><small id="latitude-help">Entre −90 y 90</small>
+                </div>
+                <div class="field">
+                  <label for="longitude">Longitud</label
+                  ><input
+                    id="longitude"
+                    type="number"
+                    min="-180"
+                    max="180"
+                    step="any"
+                    required
+                    aria-describedby="longitude-help"
+                  /><small id="longitude-help">Entre −180 y 180</small>
+                </div>
+              </div>
+            </fieldset>
+            <div class="draft-actions">
+              <button type="submit">Guardar borrador</button
+              ><button type="button" id="discard" class="secondary-button">
+                Descartar borrador
+              </button>
+            </div>
+          </form>
+          <p id="draft-message" class="draft-message" role="status" aria-live="polite">
+            El borrador no se envía al servidor.
+          </p>
+        </section>
+      </div>
+    </main>
+    <footer>
+      <span>RedAuxilio · Proyecto académico · Equipo 4</span
+      ><span>Carlos Mario Peña y Santiago Ortiz Ochoa</span>
+    </footer>
+  </body>
+</html>

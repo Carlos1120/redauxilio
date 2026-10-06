@@ -77,3 +77,7 @@ La rama RA-00 se creó antes de adoptar develop; se conserva su historial y se a
 ## Validar RA-02
 
 Leer [RA02.md](RA02.md) para contrato, proveedor, casos de prueba y pendientes. Ejecutar `npm test` además de formato y Maven. El mapa base requiere conexión; la lista sigue disponible si el CDN o la cartografía fallan. Las bibliotecas CDN no se guardan con el service worker.
+
+## Entender el código
+
+Leer [GUIA_CODIGO.md](GUIA_CODIGO.md): explica cada archivo principal, el recorrido de una consulta, el almacenamiento local y cómo comprobar el comportamiento. Los comentarios del código describen contratos y decisiones; actualizar ambos cuando cambie la lógica.

@@ -4,8 +4,23 @@
  * Intenta primero la red; solo ante un fallo de red utiliza una copia previamente guardada.
  * No almacena borradores, operaciones de escritura, bibliotecas CDN ni cartografía externa.
  */
-const CACHE = "redauxilio-demo-v3";
-const SHELL = ["/", "/app.css", "/app.js", "/map.js", "/manifest.webmanifest", "/icon.svg"];
+const CACHE = "redauxilio-demo-v6";
+const SHELL = [
+  "/",
+  "/app.css",
+  "/app.js",
+  "/map.js",
+  "/manifest.webmanifest",
+  "/icon.svg",
+  "/vendor/leaflet/leaflet.css",
+  "/vendor/leaflet/leaflet.js",
+  "/vendor/leaflet/images/marker-icon.png",
+  "/vendor/leaflet/images/marker-icon-2x.png",
+  "/vendor/leaflet/images/marker-shadow.png",
+  "/vendor/leaflet/images/layers.png",
+  "/vendor/leaflet/images/layers-2x.png",
+  "/vendor/onest/onest-latin.woff2",
+];
 self.addEventListener("install", (event) => {
   // waitUntil mantiene la instalación abierta hasta guardar los recursos iniciales de la pantalla.
   event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(SHELL)));

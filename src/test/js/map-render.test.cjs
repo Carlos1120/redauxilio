@@ -12,7 +12,7 @@ function createMapHarness() {
   const layers = new Set();
   const events = {};
   const tileEvents = {};
-  const status = {};
+  const status = { dataset: {} };
   let scale = 1;
   let moves = 0;
   const map = {

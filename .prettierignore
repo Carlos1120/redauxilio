@@ -4,3 +4,4 @@ node_modules/
 mvnw
 mvnw.cmd
 **/*.svg
+src/main/resources/static/vendor/leaflet/

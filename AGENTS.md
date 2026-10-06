@@ -1,6 +1,7 @@
 # Reglas para agentes
 
 - Leer TRASPASO_CODEX.md al retomar; ESTANDARES.md es la norma. Distinguir cambios pendientes de PR de reglas integradas.
+- Antes de crear o modificar pantallas, leer ESTANDARES_INTERFAZ.md y reutilizar los tokens y componentes de app.css. Conservar la dirección Onest/rojo/mapa del PR #8; no mezclar la paleta azul anterior. Registrar cambios de dirección en la guía y someterlos a revisión del compañero.
 - Antes de modificar, comprobar carpeta, estado Git, rama y remotos; preservar cambios locales. Continuar historias en su rama y crear trabajo nuevo desde develop actualizado.
 - Leer solo los documentos y fragmentos necesarios. No repetir pruebas sobre el mismo SHA sin una razón nueva.
 - Documentar código nuevo o modificado en español: propósito, entradas/salidas, reglas y límites. Usar identificadores en inglés y actualizar documentación si cambia el comportamiento.

@@ -26,6 +26,7 @@ if (typeof window !== "undefined") {
     create(onMove, onDetail, labels) {
       const status = document.getElementById("map-status");
       if (!window.L) {
+        status.dataset.error = "true";
         status.textContent = "El mapa no pudo cargarse. Puedes consultar los reportes en la lista.";
         return null;
       }
@@ -33,7 +34,8 @@ if (typeof window !== "undefined") {
         [4.145, -73.625],
         13,
       );
-      const tileLayer = L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      const tileLayer = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        subdomains: ["a", "b", "c"],
         maxZoom: 19,
         attribution:
           '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
@@ -43,6 +45,7 @@ if (typeof window !== "undefined") {
       // El aviso es conservador mientras Leaflet mantenga una tesela fallida, incluso en su buffer.
       const failedTiles = new Set();
       function updateTileStatus() {
+        status.dataset.error = String(failedTiles.size > 0);
         status.textContent = failedTiles.size
           ? "El fondo cartográfico no está disponible. Consulta la lista y las ubicaciones de los reportes."
           : "Ubicaciones ficticias. El fondo cartográfico requiere conexión.";
@@ -63,7 +66,7 @@ if (typeof window !== "undefined") {
       const layer = L.layerGroup().addTo(map);
       const markers = new Map();
       let items = [];
-      const symbols = { ASSISTANCE: "+", ROAD: "↔", MISSING_PERSON: "?", HELP_REQUEST: "!" };
+      const symbols = { ASSISTANCE: "⌂", ROAD: "↔", MISSING_PERSON: "?", HELP_REQUEST: "!" };
       function redraw() {
         // Conserva grupos con los mismos datos para no cerrar su popup al consultar tras autoPan.
         // Si cambian datos, miembros o agrupación por zoom, se reemplaza el marcador afectado.
@@ -119,7 +122,9 @@ if (typeof window !== "undefined") {
               : labels[first.category] + ": " + first.title,
             alt: grouped ? "Grupo de reportes" : labels[first.category],
             icon: L.divIcon({
-              className: "report-marker",
+              className:
+                "report-marker report-marker--" +
+                (grouped ? "group" : first.category.toLowerCase()),
               html: grouped ? String(group.length) : symbols[first.category],
               iconSize: [44, 44],
               iconAnchor: [22, 22],

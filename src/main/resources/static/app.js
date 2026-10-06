@@ -7,6 +7,41 @@ const categoryLabels = {
   HELP_REQUEST: "Solicitud de ayuda",
 };
 let latestPublicationQueryId = 0;
+let mapQueryTimer;
+let detailTrigger;
+function showReportDetail(item, trigger) {
+  detailTrigger = trigger;
+  getElement("detail-title").textContent = item.title;
+  const detail = getElement("detail-content");
+  detail.replaceChildren();
+  for (const text of [
+    categoryLabels[item.category],
+    item.description,
+    item.location,
+    `Estado: ${item.operationalStatus} · Confianza: ${item.confidenceLevel}`,
+    `Ubicación aproximada: ${item.latitude.toFixed(3)}, ${item.longitude.toFixed(3)}`,
+    `Creación: ${new Date(item.createdAt).toLocaleString("es-CO")}`,
+    `Actualización: ${new Date(item.updatedAt).toLocaleString("es-CO")}`,
+  ]) {
+    detail.append(createReportElement("p", "", text));
+  }
+  getElement("report-detail").showModal();
+}
+getElement("close-detail").addEventListener("click", () => getElement("report-detail").close());
+getElement("report-detail").addEventListener("close", () => {
+  if (detailTrigger?.isConnected) detailTrigger.focus();
+  else getElement("search-section").focus();
+});
+const reportMap = window.RedAuxilioMap?.create(
+  () => {
+    clearTimeout(mapQueryTimer);
+    mapQueryTimer = setTimeout(loadPublications, 250);
+  },
+  showReportDetail,
+  categoryLabels,
+);
+getElement("reset-map").disabled = !reportMap;
+getElement("reset-map").addEventListener("click", () => reportMap?.reset());
 function updateConnectionStatus() {
   getElement("connection").dataset.offline = String(!navigator.onLine);
   getElement("connection").textContent = navigator.onLine
@@ -23,6 +58,7 @@ function createReportElement(tag, className, text) {
   return element;
 }
 function renderPublications(items) {
+  reportMap?.render(items);
   getElement("publications").replaceChildren();
   if (items.length === 0) {
     const empty = createReportElement("div", "empty-state", "");
@@ -31,7 +67,7 @@ function renderPublications(items) {
       createReportElement(
         "p",
         "",
-        "Cambia la categoría o vuelve a consultar cuando tengas conexión.",
+        "Cambia los filtros, mueve el mapa o vuelve a consultar con conexión.",
       ),
     );
     getElement("publications").append(empty);
@@ -70,6 +106,11 @@ function renderPublications(items) {
       facts,
       date,
     );
+    const detail = createReportElement("button", "secondary-button", "Ver detalle");
+    detail.type = "button";
+    detail.setAttribute("aria-label", `Ver detalle de ${item.title}`);
+    detail.addEventListener("click", () => showReportDetail(item, detail));
+    card.append(detail);
     getElement("publications").append(card);
   }
 }
@@ -80,9 +121,14 @@ async function loadPublications() {
   getElement("publications").setAttribute("aria-busy", "true");
   getElement("refresh").disabled = true;
   try {
-    const response = await fetch(
-      `/api/publications?category=${encodeURIComponent(getElement("category").value)}`,
-    );
+    const parameters = new URLSearchParams({
+      category: getElement("category").value,
+      operationalStatus: getElement("operational-status").value,
+      confidenceLevel: getElement("confidence-level").value,
+      includeClosed: String(getElement("include-closed").checked),
+      ...reportMap?.bounds(),
+    });
+    const response = await fetch(`/api/publications?${parameters}`);
     if (!response.ok) throw new Error("Consulta rechazada");
     const items = await response.json();
     if (query !== latestPublicationQueryId) return;
@@ -105,8 +151,17 @@ async function loadPublications() {
     }
   }
 }
-getElement("category").addEventListener("change", loadPublications);
-getElement("refresh").addEventListener("click", loadPublications);
+for (const id of ["category", "operational-status", "confidence-level", "include-closed"]) {
+  getElement(id).addEventListener("change", loadPublications);
+}
+getElement("query-form").addEventListener("submit", (event) => {
+  event.preventDefault();
+  loadPublications();
+});
+getElement("clear-filters").addEventListener("click", () => {
+  getElement("query-form").reset();
+  loadPublications();
+});
 const database = new Promise((resolve, reject) => {
   const request = indexedDB.open("redauxilio-demo", 1);
   request.onupgradeneeded = () => request.result.createObjectStore("drafts");

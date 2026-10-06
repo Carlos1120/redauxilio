@@ -1,6 +1,6 @@
 # Estándares de trabajo de RedAuxilio
 
-> Fuente normativa: ESTANDARES_RedAuxilio.docx, versión 1.0. Guía aprobada según confirmación de Carlos en esta conversación. Esta transcripción conserva sus reglas; las evidencias individuales de aceptación y revisión deben registrarse con sus autores reales.
+> Fuente normativa: ESTANDARES_RedAuxilio.docx, versión 1.0. Guía aprobada según confirmación de Carlos en esta conversación. La versión 1.1 actualiza la política de evidencias manuales por decisión de Carlos del 6 de octubre de 2026; las evidencias individuales de aceptación y revisión deben registrarse con sus autores reales.
 
 Estándares de trabajo de RedAuxilio
 
@@ -10,7 +10,7 @@ Equipo: 4
 Integrantes: Carlos Mario Peña y Santiago Ortiz Ochoa
 Interlocutor principal: Javier Charry
 Fecha: 30 de septiembre de 2026
-Versión: 1.0 — Propuesta para aceptación y publicación
+Versión: 1.1 — Política de evidencias manuales actualizada
 
 Propósito y aplicación
 
@@ -141,7 +141,7 @@ Criterios aceptados: cada criterio tiene un resultado y evidencia enlazados en e
 
 Construcción y formato aprobados: ./mvnw verify, ./mvnw spotless:check y npm run format:check finalizan sin errores sobre el commit final del PR. Se adjunta el resultado de CI o, si aún no existe, una salida reproducible con comando, entorno y hash.
 
-Pruebas trazadas: cada criterio funcional tiene al menos una prueba automatizada identificable y todas pasan. Las verificaciones de interacción visual o instalación que requieran ejecución manual tienen pasos, resultado y capturas revisados por el compañero. Las reglas de negocio no se validan únicamente con capturas.
+Pruebas trazadas: cada criterio funcional tiene al menos una prueba automatizada identificable y todas pasan. Las verificaciones de interacción visual o instalación que requieran ejecución manual se documentan con la versión probada, el entorno, los pasos, el resultado y la confirmación del responsable; el compañero revisa ese registro. Los resultados pueden registrarse en EVIDENCIAS.md o en un comentario del PR, y enlazarse desde Trello. Las capturas son opcionales y se adjuntan cuando ayudan a explicar un resultado o un defecto; su ausencia no impide el cierre. El CI acredita las comprobaciones automáticas ejecutadas y las confirmaciones del equipo acreditan las pruebas manuales realmente realizadas.
 
 Reglas críticas y cobertura: los cambios en autoría, permisos, confirmaciones, reportes, transiciones o auditoría tienen pruebas positivas, negativas y de límites aplicables. Si afectan módulos críticos, el informe de cobertura de líneas del código de producción de esos módulos alcanza al menos 80 % y queda enlazado; se documentan las exclusiones de código generado.
 
@@ -220,7 +220,7 @@ Carlos Mario Peña: “conozco y acepto estos estándares”.
 
 Santiago Ortiz Ochoa: “conozco y acepto estos estándares”.
 
-El PR de adopción conserva ambas confirmaciones, fecha y enlace. Las revisiones posteriores del documento necesitan acuerdo de los dos integrantes y registro del motivo e impacto; no se cambian retrospectivamente las reglas para dar por terminada una historia incompleta.
+El PR de adopción conserva ambas confirmaciones, fecha y enlace. Las revisiones posteriores del documento necesitan acuerdo de los dos integrantes y registro del motivo e impacto; los ajustes de criterios de evidencia se documentan con fecha, motivo y alcance. No sustituyen la ejecución de pruebas ni permiten atribuir resultados o aprobaciones inexistentes.
 
 6.3 Publicación y evidencia
 
@@ -262,4 +262,10 @@ Ajuste DoR solicitado por Carlos el 6 de octubre de 2026: selección y estimaci�
 
 La aprobación de la guía fue confirmada por Carlos. Las frases de aceptación y los estados de propuesta contenidos en el documento original se conservan como antecedentes; no constituyen firmas ni evidencias actuales. Los cambios anteriores a esta adopción se conservan en el historial. A partir de esta actualización se aplican las convenciones aprobadas.
 
-La base técnica RA-00 está en preparación y revisión. No satisface todavía el DoD: faltan la revisión del compañero, las comprobaciones manuales aplicables y la integración en develop. No se declaran completados los módulos críticos ni los entregables del Taller 5.
+La base técnica RA-00 fue integrada en develop mediante los PR #1 y #4. Las pruebas manuales están registradas en EVIDENCIAS.md y en la revisión de Santiago del PR #4; el CI de la versión integrada finalizó correctamente. Su cierre se acredita con estos registros según la política de evidencias manuales de la versión 1.1. No se declaran completados los módulos críticos ni los entregables del Taller 5.
+
+## Actualización 1.1 — 6 de octubre de 2026
+
+Carlos autoriza que las pruebas manuales se acrediten mediante registros de resultados y confirmaciones del equipo, complementados por el CI para las comprobaciones automáticas. Las capturas son opcionales. El objetivo es reducir trabajo documental sin eliminar las pruebas ni su trazabilidad.
+
+Esta política se aplica al cierre de RA-00 y a los incrementos posteriores. Se mantienen la revisión del compañero, las comprobaciones de formato y compilación y la integración verificada en develop. La aceptación de Santiago de esta actualización debe registrarse desde su cuenta en el PR correspondiente.

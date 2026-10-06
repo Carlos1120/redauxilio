@@ -73,6 +73,8 @@ La versión de caché permite retirar recursos antiguos durante `activate`; una 
 
 ## Alternativas y límites
 
+El render del mapa conserva las capas de grupos cuya representación JSON no cambió. Así, el desplazamiento automático de Leaflet para mostrar un popup puede consultar el área visible sin borrar ese menú. Si cambian sus datos o miembros, se reemplaza el marcador; cambiar zoom puede separar grupos y una consulta vacía los elimina. La comparación supone el orden estable de reportes y campos de la API actual; un cambio de orden puede reconstruir un grupo sin alterar su contenido. No evita el cierre si el grupo deja de pertenecer a los resultados.
+
 La lista en memoria facilita demostrar consultas con datos controlados; un repositorio persistente y migraciones serán necesarios para datos reales. La agrupación por celdas es sencilla de probar; una librería especializada tendría sentido con más puntos o requisitos de agrupación más precisos. Mostrar el detalle del objeto ya cargado evita otra petición; consultar el endpoint al abrirlo sería útil si se necesita comprobar información más reciente. Estas son alternativas futuras, no cambios incluidos en esta documentación.
 
 Para aprender con este código, céntrate primero en petición/respuesta HTTP, controlador frente a servicio, promesas y `async/await`, eventos DOM, transacciones y diferencia entre datos actuales y caché. Al modificar una regla, actualiza sus comentarios, esta guía y las pruebas que demuestran su comportamiento. Los comentarios deben explicar propósito, contrato y motivo; no repetir cada instrucción obvia ni declarar funciones que aún no existen.

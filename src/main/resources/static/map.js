@@ -46,15 +46,20 @@ if (typeof window !== "undefined") {
         status.textContent = "Ubicaciones ficticias. El fondo cartográfico requiere conexión.";
       });
       const layer = L.layerGroup().addTo(map);
+      const markers = new Map();
       let items = [];
       const symbols = { ASSISTANCE: "+", ROAD: "↔", MISSING_PERSON: "?", HELP_REQUEST: "!" };
       function redraw() {
-        // Solo reemplaza marcadores; el fondo cartográfico permanece en su capa independiente.
-        layer.clearLayers();
+        // Conserva grupos con los mismos datos para no cerrar su popup al consultar tras autoPan.
+        // Si cambian datos, miembros o agrupación por zoom, se reemplaza el marcador afectado.
+        const activeKeys = new Set();
         const groups = groupMapPoints(items, (item) =>
           map.project([item.latitude, item.longitude]),
         );
         for (const group of groups) {
+          const key = JSON.stringify(group);
+          activeKeys.add(key);
+          if (markers.has(key)) continue;
           const first = group[0];
           const grouped = group.length > 1;
           // Sitúa el marcador del grupo en la media de sus coordenadas; no es una nueva ubicación real.
@@ -93,7 +98,7 @@ if (typeof window !== "undefined") {
             detail.addEventListener("click", () => onDetail(item, detail));
             popup.append(text, detail);
           }
-          L.marker(center, {
+          const marker = L.marker(center, {
             title: grouped
               ? group.length + " reportes cercanos"
               : labels[first.category] + ": " + first.title,
@@ -107,6 +112,13 @@ if (typeof window !== "undefined") {
           })
             .bindPopup(popup, { maxWidth: 320, maxHeight: 260 })
             .addTo(layer);
+          markers.set(key, marker);
+        }
+        for (const [key, marker] of markers) {
+          if (!activeKeys.has(key)) {
+            layer.removeLayer(marker);
+            markers.delete(key);
+          }
         }
       }
       // Cambiar zoom cambia la proyección y agrupación; terminar el movimiento dispara la consulta.

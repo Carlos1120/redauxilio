@@ -155,3 +155,26 @@ Arranque del SHA actualizado comprobado posteriormente con `.\mvnw.cmd spring-bo
 5. Completar auditoría de accesibilidad y carga con 1.000 publicaciones/20 usuarios bajo red documentada. No extrapolar rendimiento del demostrador de seis datos.
 
 No se repitieron las pruebas automáticas del traspaso: este bloque no cambia código funcional. PR #5 abierto y #6 en borrador comprobados públicamente; CI actual no verificable en esta sesión (CLI con HTTP 401 y checks públicos sin resultados). Pendientes acuerdo DoR/estimación y revisión de Santiago.
+
+## Corrección del menú de grupos — 6 de octubre de 2026
+
+Responsable: Codex. Entorno Windows/Java 17, navegador integrado de Codex, conexión disponible sin perfil de velocidad medido. Base `6c4bf1d` más la corrección de map.js y su prueba/documentación incluida en este commit. No representa revisión de Carlos o Santiago.
+
+Se arrancó el repositorio con `.\mvnw.cmd spring-boot:run '-Dspring-boot.run.arguments=--server.port=0'`. En puerto 61055 se reprodujo: incluir cerrados, abrir grupo 2, esperar la consulta por movimiento y seleccionar el refugio cerrado; el menú desaparecía. La referencia Leaflet 1.9.4 confirma autoPan y eliminación individual de capas: https://leafletjs.com/reference.html#popup-autopan y https://leafletjs.com/reference.html#layergroup-removelayer.
+
+Diagnóstico: abrir el popup desplaza la vista y dispara la consulta; render eliminaba todas las capas. Se conservan ahora grupos con los mismos datos y se retiran solo los grupos reemplazados o ausentes. La consulta por área continúa; datos o miembros distintos pueden cerrar un menú ya obsoleto.
+
+La primera recarga tras copiar recursos en el mismo servidor siguió mostrando el fallo; no se tomó como prueba aprobada ni se confirmó la causa de esa recarga. Se reinició la instancia en puerto 53859, origen nuevo sin almacenamiento previo, desde los recursos modificados. En esa instancia se comprobaron:
+
+| Caso                                                            | Resultado observado                                                                                                                                |
+| --------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Abrir grupo, dejar terminar consulta y elegir cada refugio      | Menú conservado; detalles Disponible y Cerrado correctos.                                                                                          |
+| Cerrar detalle con Escape                                       | Foco vuelve al botón del refugio dentro del popup.                                                                                                 |
+| Acercar al grupo                                                | Cambia zoom y aparecen marcadores separados; consulta sigue funcionando.                                                                           |
+| Restablecer vista y combinar Vías afectadas/Bloqueada/Reportada | Un resultado compatible; detalle de lista abre con Enter.                                                                                          |
+| Seleccionar refugio cerrado en 360×800, 768×1024 y 1366×768     | Detalle correcto en cada tamaño; se restableció viewport. Esto acredita el flujo afectado, no una revisión visual completa de todas las secciones. |
+| npm.cmd test                                                    | Cinco pruebas aprobadas: tres existentes y dos nuevas de conservación/selección y retirada por datos, zoom o consulta vacía.                       |
+| .\mvnw.cmd verify                                               | BUILD SUCCESS: 22 ejecuciones Java, sin fallos/errores/omitidos; Spotless y PMD aprobados.                                                         |
+| npm.cmd run format:check y formato de nueva prueba CJS          | Aprobados.                                                                                                                                         |
+
+Los dobles DOM/Leaflet prueban el ciclo de capas; el navegador comprueba el autoPan y selección reales. Capturas revisadas por el compañero, recorrido completo de teclado, instalación/offline/PWA, accesibilidad y carga 1.000/20 siguen pendientes. No se declara DoD ni CI remoto aprobado para esta corrección. Las instancias temporales se detuvieron; servidor previo 8080 preservado.

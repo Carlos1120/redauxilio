@@ -16,7 +16,7 @@ Tablero https://trello.com/b/BiGr7UFw/redauxilio-gerencia-de-software; tarjeta R
 - PR #6 en borrador hacia develop: https://github.com/Carlos1120/redauxilio/pull/6. CI #48 aprobado sobre 2371a92 según traspaso previo; checks actuales no confirmados. gh devuelve 401, web no expone resultados. No repetir sin motivo/acceso nuevo.
 - Windows confirmado: Java/javac Temurin 17.0.20.1, JAVA_HOME correcto, Node 24.19.0/npm 11.17.0, Git 2.45.1. Arranque desde código actualizado: HTTP 200 y cuatro publicaciones en puerto temporal; proceso detenido. Servidor previo 8080 preservado, versión cargada no acreditada.
 - Pruebas previas: 22 Java/3 Node, formato/Spotless/PMD aprobados. UI preliminar: filtros combinados, detalle Enter/Escape y retorno de foco, anchos sin desbordamiento DOM. No acredita revisión visual completa ni servidor UI reiniciado al SHA actual.
-- Observación pendiente: abrir grupo puede mover el área y cerrar menú antes de seleccionar detalle. Reproducir antes de diagnosticar.
+- Fallo del grupo reproducido y corregido localmente: autoPan dispara consulta y el render borraba su marcador. Se conservan capas de grupos sin cambios; datos/miembros distintos se reemplazan. Comprobado con instancia nueva, ambos detalles, retorno de foco, zoom y selección en tres tamaños; evidencia en EVIDENCIAS.md. Cinco pruebas Node y 22 Java, formato/Spotless/PMD aprobados. Publicación/revisión de la corrección pendientes.
 
 ## Producto y límites
 
@@ -26,7 +26,7 @@ Sin persistencia, autenticación ni publicación real; borrador local no publica
 ## Siguiente bloque
 
 1. Comprobar carpeta/Git; usar VALIDACION_WINDOWS.md para arrancar versión identificable preservando servidores ajenos.
-2. Validar grupo/marcadores, tres tamaños completos, teclado/PWA, desconexión/reconexión y fallo de CDN/mapa; registrar evidencia real.
+2. Completar revisión visual de todas las secciones en tres tamaños, teclado/PWA, desconexión/reconexión y fallo de CDN/mapa; registrar evidencia real. El flujo de selección de grupo ya fue comprobado tras la corrección.
 3. Completar RNF-10 accesibilidad y RNF-01: 1.000 publicaciones/20 usuarios, p95 servidor ≤2 s, primeros resultados ≤3 s con red documentada.
 4. Contrastar DoR/selección y estimación propuesta 6–8 horas-persona con Santiago; no consta acuerdo. No declarar Trello terminado ni DoD completo.
 5. Atender #5 y revisión final #6; integrar cumpliendo estándares.

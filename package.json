@@ -1,0 +1,16 @@
+{
+  "name": "redauxilio-quality",
+  "version": "0.1.0",
+  "private": true,
+  "engines": {
+    "node": "24.x",
+    "npm": "11.x"
+  },
+  "scripts": {
+    "format": "prettier --write \"*.md\" \"*.json\" \".prettierrc.json\" \"src/main/resources/**/*.{js,css,json,html}\" --ignore-unknown && prettier --write src/main/resources/static/manifest.webmanifest --parser json",
+    "format:check": "prettier --check \"*.md\" \"*.json\" \".prettierrc.json\" \"src/main/resources/**/*.{js,css,json,html}\" --ignore-unknown && prettier --check src/main/resources/static/manifest.webmanifest --parser json"
+  },
+  "devDependencies": {
+    "prettier": "3.9.9"
+  }
+}

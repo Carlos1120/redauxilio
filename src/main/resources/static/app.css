@@ -1,3 +1,5 @@
+/* Orden de las capas: valores compartidos, elementos básicos, componentes y adaptación de anchos.
+   Las reglas sin @layer al final tienen prioridad sobre estas capas y ajustan Leaflet/RA-02. */
 @layer tokens, base, components, responsive;
 @layer tokens {
   :root {

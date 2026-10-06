@@ -39,16 +39,30 @@ if (typeof window !== "undefined") {
         maxZoom: 19,
         attribution:
           '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-      }).addTo(map);
-      tileLayer.on("tileerror", () => {
-        status.dataset.error = "true";
-        status.textContent =
-          "El fondo cartográfico no está disponible. Consulta la lista y las ubicaciones de los reportes.";
       });
-      tileLayer.on("load", () => {
-        status.dataset.error = "false";
-        status.textContent = "Ubicaciones ficticias. El fondo cartográfico requiere conexión.";
+      // Leaflet reutiliza teselas entre lotes: loading/load no acreditan su recuperación.
+      // TileEvent.tile identifica cada fallo retenido; solo tileload o tileunload lo retiran.
+      // El aviso es conservador mientras Leaflet mantenga una tesela fallida, incluso en su buffer.
+      const failedTiles = new Set();
+      function updateTileStatus() {
+        status.dataset.error = String(failedTiles.size > 0);
+        status.textContent = failedTiles.size
+          ? "El fondo cartográfico no está disponible. Consulta la lista y las ubicaciones de los reportes."
+          : "Ubicaciones ficticias. El fondo cartográfico requiere conexión.";
+      }
+      tileLayer.on("tileerror", ({ tile }) => {
+        failedTiles.add(tile);
+        updateTileStatus();
       });
+      function clearTileError({ tile }) {
+        failedTiles.delete(tile);
+        updateTileStatus();
+      }
+      tileLayer.on("tileload", clearTileError);
+      tileLayer.on("tileunload", clearTileError);
+      tileLayer.on("load", updateTileStatus);
+      // Registrar los eventos antes de añadir la capa evita perder cargas iniciales.
+      tileLayer.addTo(map);
       const layer = L.layerGroup().addTo(map);
       const markers = new Map();
       let items = [];

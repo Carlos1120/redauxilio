@@ -1,39 +1,29 @@
 # RedAuxilio: estado para continuar
 
-Instantánea del 6 de octubre de 2026 (Colombia). Normas en AGENTS.md y ESTANDARES.md; evidencia en EVIDENCIAS.md; antecedentes completos conservados en Git.
+Instantánea del 6 de octubre de 2026 (Colombia). Normas en AGENTS.md y ESTANDARES.md; contrato en RA02.md; evidencia automática y humana separada en EVIDENCIAS.md.
 
-## Objetivo y contexto
+## Estado actual
 
-Continuar validación RA-02 en Windows; no iniciar otra funcionalidad. Carlos Mario Peña responsable, Santiago Ortiz Ochoa revisor; equipo 4 de dos autorizado según Carlos, interlocutor Javier Charry. Conservar 25 RF/15 RNF originales.
-Repositorio local de Santiago `C:\Users\Santiago\redauxilio`; remoto https://github.com/Carlos1120/redauxilio.
-Tablero https://trello.com/b/BiGr7UFw/redauxilio-gerencia-de-software; tarjeta RA-02 https://trello.com/c/LYDxDTZT.
+- Repositorio de Santiago: `C:\Users\Santiago\redauxilio`; remoto https://github.com/Carlos1120/redauxilio.git.
+- Rama `feat/RA-02-interfaz-mapa`; PR https://github.com/Carlos1120/redauxilio/pull/8 hacia develop, en borrador. Commit inicial del rediseño `40eac93`; se incorpora develop actualizado `ad3f205` (PR #7) conservando la corrección por tesela, sus pruebas y evidencias. Consultar HEAD y CI antes de revisar.
+- PR #5, #6 y #7 integrados en develop. No fusionar otra vez las ramas antiguas ni reutilizar un traspaso previo como estado actual. La integración anterior no aprueba este rediseño.
+- El rediseño solicitado por Santiago usa Onest, rojo `#d7262e`, mapa como fondo y paneles flotantes de lista/detalle. Conserva API, filtros avanzados y borrador local; añade búsqueda local y filtros rápidos. Leaflet 1.9.4 y Onest se sirven localmente con sus licencias; caché PWA v6. No hay geolocalización, rutas, publicación real ni datos oficiales.
+- Santiago observó el diseño en IntelliJ y autorizó commit y push; la revisión final corresponde a Carlos. No atribuir aprobación del PR ni pruebas del agente a Santiago.
 
-## Estado conocido
+## Evidencias y límites
 
-- Rama de este bloque: `feat/RA-02-interfaz-mapa`, nacida de `develop` en `e0fdb1a`. Comprobar HEAD/status y estado del PR al retomar; la integración requiere revisión de Carlos.
-- `origin/develop` observado en `e0fdb1a` el 6 de octubre de 2026; incluye la integración de los PR #5 y #6. RA-00 integrada; versión y límites en EVIDENCIAS.md.
-- En este equipo `mvnw verify` pasó con Corretto 21.0.10; OpenJDK 25 ejecutó las pruebas, pero Spotless falló por incompatibilidad del formateador. Arranque actualizado: HTTP 200 y cuatro publicaciones en puerto temporal 8081; servidor 8080 de IntelliJ preservado.
-- Pruebas previas: 22 Java/3 Node, formato/Spotless/PMD aprobados. UI preliminar: filtros combinados, detalle Enter/Escape y retorno de foco, anchos sin desbordamiento DOM. No acredita revisión visual completa ni servidor UI reiniciado al SHA actual.
-- La corrección del marcador agrupado por autoPan quedó integrada con RA-02. Se conservan capas de grupos sin cambios; datos, miembros o agrupación distintos se reemplazan. Evidencia previa en EVIDENCIAS.md.
-
-## Producto y límites
-
-Monolito Java/Spring Boot, Thymeleaf y JS/CSS; IndexedDB/service worker. Leaflet 1.9.4/OSM, área visible, celdas de 64 píxeles, filtros y detalle del objeto consultado. Cuatro activos visibles, un cerrado visible, un oculto excluido por servidor. Contrato y criterios: RA02.md.
-Sin persistencia, autenticación ni publicación real; borrador local no publica. La cartografía requiere red; Leaflet se sirve localmente. No hay descarga masiva ni caché de mosaicos externos por service worker. Consultas guardadas dependen de URL exacta y pueden estar desactualizadas. No ampliar arquitectura ni tocar trabajo compartido de Santiago sin verificar sus ramas.
-
-## Actualización local de Santiago — 6 de octubre de 2026
-
-- Esta rama incorpora el arreglo de carga de Leaflet: recursos 1.9.4 y licencia bajo `static/vendor/leaflet`, URL OSM con subdominios y caché PWA v6. La fuente Onest y su licencia están bajo `static/vendor/onest`. Edge requirió actualizar el service worker para mostrar el mapa antes del rediseño.
-- Santiago entregó `Downloads/Red Auxilio.html` y una imagen de referencia, y pidió respetar su aspecto: Onest, rojo `#d7262e`, mapa de fondo, panel de reportes izquierdo y detalle derecho. El prototipo local conserva consultas, filtros, mapa, detalle y borrador; añade búsqueda local entre resultados. El borrador queda debajo del mapa. No añadir geolocalización, alerta sísmica, rutas ni datos oficiales falsos. `system.md` registra la dirección; futuro móvil nativo no se implementó.
-- Comprobado en servidor temporal `http://localhost:8081/`: página renderizada, mapa OSM y cuatro marcadores, paneles a 1440 × 900, búsqueda que reduce simultáneamente lista/mapa y filtro rápido de vías con conteo singular correcto. Revisión visual a 360 × 800, 768 × 1024 y 1366 × 768 sin desbordamiento horizontal; selectores completos en tableta y detalle modal móvil. Borrador guardado, recuperado tras recarga y descartado; con servidor propio detenido, consulta guardada con fecha y posterior recuperación desde servidor. Evidencia detallada y límites en EVIDENCIAS.md. Cinco pruebas Node y 22 Java aprobadas, formato Prettier, Spotless, PMD y `git diff --check` sin errores. `mvnw verify` pasa con Corretto 21; con OpenJDK 25 las pruebas pasan, pero Spotless falla por incompatibilidad del formateador.
-- Conservar la rama y obtener revisión de Carlos antes de integrar. La app previa en `:8080` puede conservar la plantilla en memoria; reiniciarla desde IntelliJ para actualizarla. El servidor temporal `:8081` se usó como vista previa y puede detenerse.
+- Rediseño: comprobado mediante Codex en servidor propio 8081, Windows/Corretto 21.0.10 y navegador integrado. Tres tamaños 360×800, 768×1024 y 1366×768 sin desbordamiento horizontal; selectores completos en tableta y detalle modal móvil. Búsqueda/filtros actualizan lista/mapa/detalle. Borrador guardado, recuperado y descartado. Caída del servidor muestra caché fechada; reinicio recupera datos del servidor. Esto no simula desconexión total de red.
+- Antes de incorporar PR #7: cinco pruebas Node y 22 Java, Prettier, Spotless, PMD y git diff --check aprobados. OpenJDK 25 falla en Spotless; verify pasa con el JDK 21 instalado. El registro posterior a la actualización debe consultarse en el PR y EVIDENCIAS.md.
+- PR #7 aporta 23 ejecuciones Java y nueve JS, corrección del aviso cartográfico por tesela y pruebas de carga aisladas. RNF-01: 1.000 datos/20 usuarios, p95 interno 19,802/4,299/0,252 ms (consulta/filtros/detalle), primeros resultados 366,9 ms en el entorno registrado. El rediseño no modifica el servidor; conservar esa evidencia sin afirmar medición nueva.
+- Carlos comunicó validación humana de responsive, instalación PWA en Chrome y desconexión/reconexión real sobre `e95b7da`, antes del rediseño. RNF-10 anterior: Lighthouse 100/100 móvil/escritorio. Esos resultados no acreditan automáticamente la nueva interfaz ni la nueva caché; confirmar los casos afectados. No atribuirlos a Santiago.
+- Leaflet retiene los fallos de cada tesela hasta tileload/tileunload; el rediseño conserva esta corrección y usa el mismo estado para mostrar el aviso. Cartografía requiere Internet y no se descarga masivamente ni se guarda por service worker. Consultas offline dependen de la URL exacta previamente guardada.
 
 ## Siguiente bloque
 
-1. Comprobar carpeta/Git; usar VALIDACION_WINDOWS.md para arrancar versión identificable preservando servidores ajenos.
-2. Completar revisión visual de todas las secciones en tres tamaños, instalación PWA, desconexión total/reconexión y bloqueo CDN/mapa. Ya comprobados en `484e1da`: recorrido Tab, Shift+Tab y diálogo, guardar/recuperar/descartar borrador; caché de consulta exacta ante caída del servidor, error de filtro sin caché y recuperación al restaurar servidor. No equivale a navegador offline ni auditoría completa; evidencia en EVIDENCIAS.md. CI de `484e1da` aprobado. Flujo de selección de grupo comprobado tras corrección.
-3. Completar RNF-10 accesibilidad y RNF-01: 1.000 publicaciones/20 usuarios, p95 servidor ≤2 s, primeros resultados ≤3 s con red documentada.
-4. DoR contrastado y boceto enlazado en RA02.md. Carlos confirmó Sprint 1 del 5 al 19 de octubre de 2026 y unas 10 h propias disponibles: 7 h efectivas tras reserva del 30 %, sin sumar capacidad de Santiago. Pendiente confirmación del incremento sintético con confianza Reportada. Reestimar esfuerzo restante; los 6–8 h-persona eran estimación de implementación, pruebas y revisión, no saldo medido. Tras resolver estos datos, registrar selección y mover tarjeta a En progreso si cumple las seis condiciones y el WIP. No esperar respuesta previa de Santiago; revisión cruzada antes de integrar se conserva. No declarar DoR/DoD completos sin evidencia.
-5. Revisar el PR de `feat/RA-02-interfaz-mapa` con Carlos, resolver bloqueantes y validar la versión integrada en `develop`; no confundir el envío de la rama con cierre DoD.
+1. Consultar CI y commit final del PR #8; Carlos revisa código, criterios y evidencias conforme al estándar.
+2. Confirmar instalación PWA, desconexión total/reconexión, teclado y accesibilidad sobre el rediseño. Reutilizar solo las evidencias previas sin impacto; no repetir carga del servidor sin nueva incertidumbre.
+3. Resolver bloqueantes, completar la revisión y luego integrar por squash con pruebas sobre develop. No declarar DoD ni mover Trello por cuenta del agente.
 
-Lectura mínima: este estado y AGENTS.md; ESTANDARES.md al aplicar normas, RA02.md para aceptación, VALIDACION_WINDOWS.md para ejecución. GUIA_CODIGO.md y .interface-design/system.md solo al estudiar código/diseño. Skills globales: validar-app-local, preparar-entrega, regresion-ui, validar-rendimiento y verificar-trazabilidad; leen los comandos y criterios de este proyecto. Sustituyen redauxilio-windows y redauxilio-entrega; no presumir transferidas otras skills de conversaciones previas.
+Servidor de IntelliJ 8080 preservado; puede requerir reinicio para cargar plantillas nuevas. La instancia propia 8081 se usa como vista previa y puede detenerse. Tarjeta RA-02: https://trello.com/c/LYDxDTZT.
+
+Lectura mínima: este estado y AGENTS.md; secciones finales de RA02.md/EVIDENCIAS.md; ESTANDARES.md al aplicar reglas.

@@ -452,6 +452,12 @@
     .report-grid {
       grid-template-columns: 1fr;
     }
+    .query-controls {
+      grid-template-columns: 1fr;
+    }
+    .query-controls button {
+      width: 100%;
+    }
     .header-content {
       flex-wrap: wrap;
       gap: var(--space-3);
@@ -480,12 +486,6 @@
     .workspace {
       grid-template-columns: 1fr;
       gap: var(--space-8);
-    }
-    .query-controls {
-      grid-template-columns: 1fr;
-    }
-    .query-controls button {
-      width: 100%;
     }
     .section-caption {
       display: none;

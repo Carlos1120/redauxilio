@@ -1,31 +1,10 @@
-# Java y Maven
-/target/
-*.class
-*.log
-
-# Editores
+target/
 .idea/
-*.iml
 .vscode/
-.classpath
-.project
-.settings/
-
-# Configuración local y credenciales
+*.iml
 .env
 .env.*
 !.env.example
-application-local.properties
-application-local.yml
-application-local.yaml
-*.pem
-*.key
+*.log
 
-# Datos locales y archivos subidos
-/uploads/
-/backups/
-*.dump
-
-# Sistema operativo
-.DS_Store
-Thumbs.db
+node_modules/

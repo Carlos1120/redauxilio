@@ -325,3 +325,22 @@ El mensaje menciona solo “categoría”, aunque la ausencia de caché también
 Responsive humano, instalación PWA y desconexión/reconexión real aprobados según ejecución comunicada por Carlos. Se conservan las evidencias previas aprobadas de RNF-01, RNF-10 y pruebas automáticas; no se vuelven a ejecutar carga, Lighthouse ni suites completas por este registro documental.
 
 **Listo para revisión final de Santiago.** No consta su aprobación final sobre esta entrega. El cierre requiere esa revisión/aprobación y posterior integración del PR en develop conforme a los estándares. No se realiza merge ni se mueve Trello en esta tarea.
+
+## Corrección del bloqueante P2 de PR #7 — 6 de octubre de 2026
+
+Comprobación ejecutada mediante herramientas automatizadas; validación humana pendiente. Rama `test/RA-02-cierre-validacion`, base de esta corrección `c20c6c5bbcba67f01d8ae8b1cfd0283d4a61778b`; la versión corregida se identifica por el commit que incorpora esta sección. Entorno Windows, Node.js v24.19.0. No constituye aprobación de Santiago ni repetición de las validaciones humanas anteriores.
+
+La [revisión P2 de PR #7](https://github.com/Carlos1120/redauxilio/pull/7#discussion_r4198164717) detectó que reiniciar el error en `loading` permite un aviso normal falso tras una carga parcial: A falla, B carga correctamente y A sigue retenida. La corrección inicial por lote registrada arriba no cubría este caso. Según [GridLayer de Leaflet 1.9.4](https://github.com/Leaflet/Leaflet/blob/v1.9.4/src/layer/tile/GridLayer.js#L785-L824), `tileload` acredita carga correcta de una tesela; [`tileunload`](https://github.com/Leaflet/Leaflet/blob/v1.9.4/src/layer/tile/GridLayer.js#L724-L738) notifica su retirada.
+
+`map.js` conserva un conjunto de identidades de teselas fallidas entre lotes. Solo la carga correcta o retirada de esa misma tesela elimina su fallo; los eventos de otra tesela no lo borran. El aviso se conserva de forma prudente mientras Leaflet retenga fallos, incluso en su buffer fuera de pantalla. No se usan campos privados de Leaflet ni se promete mapa offline.
+
+| Comando / escenario                                                                                 | Resultado                                                                                                                                                          |
+| --------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Antes del cambio: `node --test --test-name-pattern="carga parcial" src/test/js/map-render.test.cjs` | Dos fallos reproducibles: tras cargar B se mostraba el aviso normal pese al fallo retenido de A.                                                                   |
+| Después: `node --test src/test/js/map-render.test.cjs`                                              | 6/6 aprobadas. A falla → nueva carga de B → aviso permanece → A se recupera o se retira → aviso normal. También dos fallos simultáneos y eventos repetidos/ajenos. |
+| `npm test`                                                                                          | 9/9 aprobadas, sin fallos.                                                                                                                                         |
+| `npm run format:check` y `git diff --check`                                                         | Aprobados sobre los archivos finales de este commit.                                                                                                               |
+
+La prueba previa de recuperación por lote se reemplaza por una expectativa por tesela. Estas pruebas usan dobles DOM/Leaflet y no acreditan una nueva ejecución en navegador real. Se reutilizan las evidencias anteriores de RNF-01, RNF-10, responsive y PWA/conectividad; no se repiten carga 1.000/20, Lighthouse, Maven ni validaciones humanas porque esta corrección solo afecta el seguimiento del aviso cartográfico.
+
+Bloqueante P2 corregido y preparado para revisión en PR #7. Pendientes la revisión/aprobación final de Santiago y la integración posterior con CI aprobado; sin merge ni cambios en Trello.

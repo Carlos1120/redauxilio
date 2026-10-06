@@ -93,7 +93,7 @@ function createMapHarness() {
     layers,
     selected,
     status,
-    tileEvent: (name) => tileEvents[name](),
+    tileEvent: (name, tile) => tileEvents[name]?.({ tile }),
     move: () => events.moveend(),
     get moves() {
       return moves;
@@ -109,16 +109,47 @@ const reports = [
   { id: 5, latitude: 12, longitude: 12, title: "Refugio cerrado", category: "ASSISTANCE" },
 ];
 
-test("fin de carga conserva fallo cartográfico y un lote exitoso posterior recupera el aviso", () => {
+test("fin de carga conserva fallo cartográfico y mantiene los reportes utilizables", () => {
   const harness = createMapHarness();
   harness.tileEvent("loading");
-  harness.tileEvent("tileerror");
+  harness.tileEvent("tileerror", {});
   harness.tileEvent("load");
   assert.match(harness.status.textContent, /no está disponible/);
   harness.api.render(reports);
   assert.equal(harness.layers.size, 1);
-  harness.tileEvent("loading");
+});
+
+// Cada evento lleva la identidad de la tesela, como TileEvent de Leaflet 1.9.4.
+for (const recoveryEvent of ["tileload", "tileunload"]) {
+  test("carga parcial conserva tesela fallida hasta " + recoveryEvent, () => {
+    const harness = createMapHarness();
+    const tileA = {};
+    const tileB = {};
+    harness.tileEvent("loading");
+    harness.tileEvent("tileerror", tileA);
+    harness.tileEvent("load");
+    assert.match(harness.status.textContent, /no está disponible/);
+    harness.tileEvent("loading");
+    harness.tileEvent("tileload", tileB);
+    harness.tileEvent("load");
+    assert.match(harness.status.textContent, /no está disponible/);
+    harness.tileEvent(recoveryEvent, tileA);
+    assert.match(harness.status.textContent, /requiere conexión/);
+  });
+}
+
+test("recuperar o retirar una tesela no oculta el fallo de otra", () => {
+  const harness = createMapHarness();
+  const tileA = {};
+  const tileB = {};
+  harness.tileEvent("tileerror", tileA);
+  harness.tileEvent("tileerror", tileB);
+  harness.tileEvent("tileerror", tileA);
+  harness.tileEvent("tileload", tileA);
+  harness.tileEvent("tileunload", {});
   harness.tileEvent("load");
+  assert.match(harness.status.textContent, /no está disponible/);
+  harness.tileEvent("tileunload", tileB);
   assert.match(harness.status.textContent, /requiere conexión/);
 });
 

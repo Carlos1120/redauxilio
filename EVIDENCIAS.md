@@ -194,3 +194,106 @@ Comprobación ejecutada mediante herramientas automatizadas; validación humana 
 | Descartar borrador sintético y recargar                                           | Texto, latitud y longitud vacíos.                                                                                                                                                                                                                                                                                                                                                                                  |
 
 La caída del servidor verifica el respaldo del service worker, pero no simula desconexión total del navegador: Internet/CDN/cartografía permanecieron disponibles y el aviso de conexión de red siguió activo. Instalación PWA, navegador offline/reconexión real, bloqueo CDN/cartografía, captura/revisión visual del foco, lector de pantalla y validación humana siguen pendientes. Se preservó el servidor ajeno de 8080 y se detuvo la instancia propia al cerrar. Solo se modifica documentación; no se repiten suites de código ya aprobadas.
+
+## Validación de cierre RA-02 desde develop — 6 de octubre de 2026
+
+Comprobación ejecutada mediante herramientas automatizadas; validación humana pendiente. Ejecución mediante Codex/herramientas, sin atribuir estas pruebas a Carlos ni Santiago. Esta sección reemplaza los pendientes antiguos solo en los casos que acredita; no declara DoD completo ni modifica Trello.
+
+### Versión, entorno y comandos
+
+Base `e0fdb1ae7a001dc1cf640c0fa9134ba22bb87c6e`, CI `verify` aprobado comprobado mediante API pública. PR #6 integrado por `ad7755a8fc9c8c5e9b408649e8b82442c7fc7a52` y #5 integrado por `e0fdb1a`, comprobados mediante `/repos/Carlos1120/redauxilio/pulls/{5,6}`. Rama nueva `test/RA-02-cierre-validacion`; no se fusionó la rama antigua. Únicamente se reaplicó el diff de RA02.md de `0594565`. Código/pruebas finales: `9bbdbd9`; el commit documental posterior no modifica el código ejecutado.
+
+Windows, Temurin Java 17.0.20.1, Maven Wrapper 3.9.11, Node 24.19.0/npm 11.17.0; Intel Core i9-10900K, 20 procesadores lógicos y aproximadamente 32 GiB RAM. Navegador integrado Chromium 154.0.0.0; Lighthouse 13.5.0 con Google Chrome headless 154.0.0.0. HTTP de aplicación por loopback, sin limitación artificial de red/CPU. CDN/OSM por conexión disponible, sin medición de ancho de banda o latencia externa. No se extrapola a redes móviles/lentas; caché HTTP de bibliotecas externas ya calentada en las pruebas de tiempo visible. Otros procesos del equipo y Lighthouse concurrente no se aislaron durante la última carga; no se capturó utilización de CPU/RAM.
+
+| Comando                                                            | Resultado                                                                                                           |
+| ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------- |
+| `npm.cmd ci`                                                       | Instalación reproducible; 0 vulnerabilidades informadas para las dependencias del proyecto.                         |
+| `npm.cmd run format:check`                                         | Aprobado.                                                                                                           |
+| `npm.cmd test`                                                     | Seis pruebas JS aprobadas tras corregir el defecto; cinco en la base inicial.                                       |
+| `.\mvnw.cmd -B verify`                                             | En `9bbdbd9`: 23 ejecuciones Java, 0 fallos/errores/omitidas; Spotless, PMD y BUILD SUCCESS. Incluye la carga real. |
+| `npm.cmd exec -- prettier --check src/test/js/map-render.test.cjs` | Comprobación adicional de la prueba CJS, fuera del glob de format:check.                                            |
+
+Informes regenerables: `target/surefire-reports/`, `target/site/jacoco/`, `target/ra02-performance.json` y los JSON de Lighthouse descritos abajo. No se versionan binarios, logs completos ni archivos generados.
+
+Instancia normal: `.\mvnw.cmd -B spring-boot:run '-Dspring-boot.run.arguments=--server.port=0'`, puerto 59607. Se detuvo únicamente PID propio 8624 para probar caída; se restauró en el mismo origen con `--server.port=59607`, PID propio 2300. Fixture final en puerto 60756/PID 37764. Instancias temporales anteriores del fixture (12168, 37356, 33184) detenidas al cambiar pruebas. Servidores ajenos preservados; las instancias propias se detienen al finalizar.
+
+### Regresión funcional y responsive
+
+| Pasos reproducibles                                                                                                           | Resultado observado                                                                                                                                                                                                                          | Estado                                                    |
+| ----------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------- |
+| Abrir sin iniciar sesión; seleccionar cada una de las cuatro categorías y actualizar                                          | Cuatro activos iniciales; un reporte por categoría; mapa y lista correspondientes.                                                                                                                                                           | Aprobado                                                  |
+| Combinar ROAD, Bloqueada y REPORTADA                                                                                          | Un reporte de vía compatible; mismo contenido al abrir detalle.                                                                                                                                                                              | Aprobado                                                  |
+| Seleccionar VERIFICADA y actualizar; después limpiar                                                                          | Estado vacío explícito; limpiar devuelve los cuatro activos. No fabrica confianza adicional.                                                                                                                                                 | Aprobado                                                  |
+| Incluir cerrados y actualizar                                                                                                 | Cinco visibles y grupo 2; oculto ausente. Sin selección de cerrados, cuatro activos.                                                                                                                                                         | Aprobado                                                  |
+| Abrir grupo 2, dejar consulta por autoPan completar, elegir ambos refugios; acercar y volver al área inicial                  | Menú conservado; detalle Disponible/Cerrado; zoom separa marcadores y conserva sincronización por área.                                                                                                                                      | Aprobado                                                  |
+| Detalle de lista con Enter y cierre Escape; detalle de grupo y Escape                                                         | Título, descripción, estado/confianza, coordenadas y fechas coherentes; foco regresa al control que abrió el diálogo.                                                                                                                        | Aprobado                                                  |
+| HTTP real `/api/publications`, `?includeClosed=true`, filtros combinados, `?confidenceLevel=VERIFICADA`                       | 200 y tamaños 4, 5, 1 y 0 respectivamente.                                                                                                                                                                                                   | Aprobado                                                  |
+| HTTP real `?category=OTHER`, área parcial `?south=4`, detalles `/6` y `/999`                                                  | 400, 400, 404 y 404; complementado por los 22 casos Java existentes.                                                                                                                                                                         | Aprobado                                                  |
+| Inspección visual completa de cabecera, aviso, filtros, mapa, leyenda, fichas, borrador y pie en 360×800, 768×1024 y 1366×768 | Navegación y controles utilizables; diálogo abierto/cerrado en cada tamaño; sin overflow horizontal. Anchos DOM/client: 345/345, 753/753 y 1351/1351 (barra vertical ocupa 15 px). Una columna de fichas en móvil/tablet, dos en escritorio. | Aprobado mediante herramientas; revisión humana pendiente |
+
+La revisión funcional/responsive inicial corresponde al código integrado sin diferencias en esos flujos. La única corrección de producción posterior afecta al aviso de teselas; fue reproducida y comprobada de nuevo en el fixture final. No se repiten comprobaciones del mismo CSS ni se afirma certificación por observar el ancho DOM; también se inspeccionaron las capturas completas.
+
+### RNF-10
+
+La aplicación tiene una página principal con secciones de consulta y borrador. Lighthouse 13.5.0 la auditó con configuración móvil y escritorio: **100/100 en ambas** (umbral ≥90), sin auditorías de accesibilidad con score 0. No equivale a certificación WCAG ni revisión de lector de pantalla. Informes: `target/ra02-accessibility-mobile.json` y `target/ra02-accessibility-desktop.json`.
+
+Reproducir con Chrome instalado y una instancia identificable (reemplazar PUERTO):
+
+```powershell
+$env:CHROME_PATH='C:\Program Files\Google\Chrome\Application\chrome.exe'
+npm.cmd exec --yes --package=lighthouse@13.5.0 -- lighthouse http://localhost:PUERTO/ --only-categories=accessibility --output=json --output-path=target/ra02-accessibility-mobile.json --chrome-flags=--headless --quiet
+npm.cmd exec --yes --package=lighthouse@13.5.0 -- lighthouse http://localhost:PUERTO/ --only-categories=accessibility --preset=desktop --output=json --output-path=target/ra02-accessibility-desktop.json --chrome-flags=--headless --quiet
+```
+
+Lighthouse se ejecuta desde el registro npm en ámbito temporal; no cambia package.json/lockfile ni añade dependencias productivas. Navegación real Tab por filtros, checkbox, acciones, mapa, marcadores y zoom: foco con outline sólido de 3 px. Shift+Tab desde Latitud vuelve al texto del borrador. Enter/Escape y retorno de foco comprobados en detalle. Etiquetas y nombres accesibles presentes; estados/confianza, conexión, caché/error y categorías incluyen texto/símbolos, además de color. Falta revisión humana final, no la auditoría automática pedida.
+
+### RNF-01
+
+`Ra02ValidationApplication.Fixture` existe solo en `src/test/java`. Inyecta lista inmutable de **1.000 registros sintéticos**, cuatro categorías: 900 activos visibles, 50 cerrados visibles y 50 ocultos. No altera el constructor productivo de seis registros, no introduce persistencia y no se empaqueta en el JAR productivo.
+
+`Ra02PerformanceTests` usa HTTP real con Tomcat en puerto aleatorio: 20 trabajadores/usuarios virtuales simultáneos en circuito cerrado (una petición pendiente por usuario), 3 s de calentamiento y 10 s medidos, mezcla uniforme de consulta por área, filtros combinados y detalle. Timeout 5 s. Cada respuesta debe ser 200 y tener los IDs/campos/recuentos esperados; un error hace fallar la prueba. Percentil por rango más próximo; no es promedio. No realiza carga contra OSM/CDN.
+
+Medición de servidor: filtro de pruebas cronometra cadena HTTP/DispatcherServlet y serialización JSON antes de copiar el cuerpo a la conexión; publica `Server-Timing: ra02;dur=...`. Incluye sobrecarga del buffer de pruebas, excluye cola previa al filtro, transferencia de red y renderizado. **No es duración HTTP del cliente ni latencia total de infraestructura.** La métrica cliente se registra por separado.
+
+Última ejecución sobre `9bbdbd9`: 13.725 muestras, cero errores, aproximadamente 1.372,5 peticiones/s en esta ventana corta. No es una prueba de resistencia ni garantía de capacidad productiva.
+
+| Operación         | Muestras | p50 interno ms | p95 interno ms | p99 interno ms | p95 cliente ms |
+| ----------------- | -------: | -------------: | -------------: | -------------: | -------------: |
+| Consulta por área |    4.577 |          8,624 |         19,802 |         25,602 |        24,0601 |
+| Filtros           |    4.572 |          1,865 |          4,299 |          7,509 |         8,7102 |
+| Detalle           |    4.576 |          0,078 |          0,252 |          0,543 |         4,3105 |
+
+**Umbral interno ≤2 s aprobado para las tres operaciones.** Las ejecuciones preliminares sirvieron para preparar/cambiar el fixture; se informa la última, sin escoger la más rápida. Informe completo regenerable con `.\mvnw.cmd -B test '-Dtest=Ra02PerformanceTests'` o `verify`.
+
+Tiempo visible: en el fixture, un MutationObserver insertado exclusivamente por el filtro de pruebas espera lista no vacía y marcadores, y registra `performance.now()` tras dos frames de renderizado en `#report-map[data-first-results-millis]`. Inicio de navegación es el origen de tiempo; no confunde respuesta HTTP con resultado visible. Chromium integrado 154, viewport 1366×768, loopback sin throttling y bibliotecas externas calentadas: **366,9 ms** en código final, 900 fichas/15 grupos. Umbral ≤3 s aprobado para este entorno; antes de la corrección se observaron 750,4 ms. No mide mapa base completamente cargado ni arranque frío de CDN bajo red lenta.
+
+Para reproducir navegador/primer resultado y fallos de proveedores, arrancar:
+
+```powershell
+.\mvnw.cmd -B spring-boot:test-run '-Dspring-boot.run.main-class=co.redauxilio.publications.Ra02ValidationApplication' '-Dspring-boot.run.arguments=--server.port=0'
+```
+
+Abrir el puerto real a 1366×768 y leer el atributo DOM indicado después de ver mapa y lista. Las URL `/?validation=cdn-failure` y `/?validation=tile-failure` aplican CSP solo en el fixture: la primera bloquea scripts/estilos externos y la segunda imágenes externas. No debilitan seguridad ni cambian el proveedor productivo.
+
+### PWA, conectividad y defecto corregido
+
+| Pasos                                                                | Observado                                                                                                                                                                                        | Estado                                  |
+| -------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------- |
+| Guardar borrador ficticio y coordenadas 4.15/-73.63; recargar        | Texto y coordenadas recuperados; no anuncia publicación.                                                                                                                                         | Aprobado                                |
+| Detener servidor propio 59607, mantener navegador/red; recargar      | Shell/borrador utilizables y cuatro reportes con fecha de consulta guardada y advertencia de desactualización.                                                                                   | Aprobado para caída del servidor        |
+| Sin servidor, seleccionar estado Lleno no consultado y actualizar    | Error claro de consulta sin respaldo; estado vacío; no anuncia éxito.                                                                                                                            | Aprobado                                |
+| Restaurar servidor en mismo origen y actualizar Lleno, luego limpiar | Cero resultados legítimos desde servidor; limpieza restaura cuatro reportes.                                                                                                                     | Aprobado para restauración del servidor |
+| Descartar borrador de prueba y recargar                              | Tres campos vacíos; datos del usuario ajenos a este origen no modificados.                                                                                                                       | Aprobado                                |
+| CSP `cdn-failure` en fixture                                         | Leaflet rechazado, aviso de mapa no cargado, 900 fichas y detalle utilizables.                                                                                                                   | Aprobado                                |
+| CSP `tile-failure` en fixture                                        | 15 teselas fallidas (complete=true/naturalWidth=0), 15 grupos y 900 fichas; detalle utilizable.                                                                                                  | Aprobado tras corrección                |
+| Navegar a fixture sin CSP de fallo                                   | Fondo y aviso normal recuperados; consulta utilizable.                                                                                                                                           | Aprobado                                |
+| Instalar y abrir como PWA                                            | Navegador integrado sin interfaz/capacidad de instalación expuesta; no se simuló appinstalled.                                                                                                   | Pendiente por capacidad de herramienta  |
+| Desconexión total y reconexión del navegador                         | Las capacidades admitidas son viewport/visibilidad y lectura/interacción DOM; no hay offline/contexto/red o DevTools accesible. No se desconectó Windows ni se sustituyó por caída del servidor. | Pendiente por capacidad de herramienta  |
+
+Defecto real: el evento Leaflet `load` se emite al terminar las teselas incluso tras `tileerror`, y el manejador sobrescribía el aviso de cartografía fallida. `map.js` conserva ahora el error del lote y solo recupera el aviso normal en una carga sin errores. Prueba añadida: `fin de carga conserva fallo cartográfico y un lote exitoso posterior recupera el aviso`; regresión real comprobada con CSP y navegación posterior. Código documentado en español. No se promete mapa offline completo ni se añade funcionalidad posterior.
+
+### Pendientes que bloquean el cierre
+
+**RA-02 NO está preparada para cierre/revisión final de Santiago mientras falten instalación PWA y desconexión total/reconexión reproducibles.** En Chrome/Edge con perfil de prueba: consultar/guardar, poner únicamente ese navegador offline mediante sus herramientas, recargar, verificar shell/borrador/fecha de caché; consultar URL nueva y exigir fallo; restaurar red y exigir respuesta normal. Instalar desde la interfaz real cuando sea elegible y abrir la app instalada. Registrar versión, pasos y observado; una validación de manifiesto o un evento simulado no acredita instalación. Después Santiago registra su revisión humana final sobre los cambios y evidencias. PR #6 ya integrado no aprueba automáticamente esta corrección posterior.
+
+Fuentes decisivas: [Lighthouse: alcance y puntuación](https://developer.chrome.com/docs/lighthouse/accessibility/scoring), [Playwright: comportamiento visible y aislamiento](https://playwright.dev/docs/best-practices), [fuente Leaflet 1.9.4: GridLayer y fin de carga](https://github.com/Leaflet/Leaflet/blob/v1.9.4/src/layer/tile/GridLayer.js). La referencia genérica de Leaflet consultada hoy corresponde a 2.0 alpha; para el diagnóstico se utilizó la fuente de la versión 1.9.4 fijada por el proyecto.

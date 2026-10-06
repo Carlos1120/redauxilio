@@ -58,6 +58,89 @@ class PublicationTests {
   }
 
   @Test
+  void combinesFiltersAndArea() throws Exception {
+    mvc.perform(
+            get("/api/publications")
+                .param("category", "ROAD")
+                .param("operationalStatus", "Bloqueada")
+                .param("confidenceLevel", "REPORTADA")
+                .param("south", "4.13")
+                .param("west", "-73.64")
+                .param("north", "4.15")
+                .param("east", "-73.61"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$", hasSize(1)))
+        .andExpect(jsonPath("$[0].id", is(2)));
+  }
+
+  @Test
+  void closedCasesRequireExplicitFilter() throws Exception {
+    mvc.perform(get("/api/publications").param("operationalStatus", "Cerrado"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$", hasSize(0)));
+    mvc.perform(get("/api/publications").param("includeClosed", "true"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$", hasSize(5)));
+    mvc.perform(
+            get("/api/publications")
+                .param("includeClosed", "true")
+                .param("operationalStatus", "Cerrado"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$[0].id", is(5)));
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"6", "999"})
+  void hiddenAndMissingDetailsReturnNotFound(String id) throws Exception {
+    mvc.perform(get("/api/publications/" + id)).andExpect(status().isNotFound());
+  }
+
+  @Test
+  void detailsMatchTheSelectedReport() throws Exception {
+    mvc.perform(get("/api/publications/2"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.category", is("ROAD")))
+        .andExpect(jsonPath("$.latitude", is(4.14)))
+        .andExpect(jsonPath("$.description").isNotEmpty())
+        .andExpect(jsonPath("$.createdAt").isNotEmpty());
+  }
+
+  @Test
+  void rejectsInvalidFiltersAndBounds() throws Exception {
+    for (String field : new String[] {"operationalStatus", "confidenceLevel"}) {
+      mvc.perform(get("/api/publications").param(field, "INVALID"))
+          .andExpect(status().isBadRequest());
+    }
+    mvc.perform(get("/api/publications").param("south", "4")).andExpect(status().isBadRequest());
+    mvc.perform(
+            get("/api/publications")
+                .param("south", "5")
+                .param("west", "-74")
+                .param("north", "4")
+                .param("east", "-73"))
+        .andExpect(status().isBadRequest());
+    mvc.perform(
+            get("/api/publications")
+                .param("south", "NaN")
+                .param("west", "-74")
+                .param("north", "5")
+                .param("east", "-73"))
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  void emptyAreaReturnsNoReports() throws Exception {
+    mvc.perform(
+            get("/api/publications")
+                .param("south", "0")
+                .param("west", "0")
+                .param("north", "1")
+                .param("east", "1"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$", hasSize(0)));
+  }
+
+  @Test
   void rendersHome() throws Exception {
     mvc.perform(get("/"))
         .andExpect(status().isOk())
@@ -70,7 +153,8 @@ class PublicationTests {
   }
 
   @ParameterizedTest
-  @ValueSource(strings = {"/app.js", "/app.css", "/sw.js", "/manifest.webmanifest", "/icon.svg"})
+  @ValueSource(
+      strings = {"/app.js", "/map.js", "/app.css", "/sw.js", "/manifest.webmanifest", "/icon.svg"})
   void servesPwaAssets(String path) throws Exception {
     mvc.perform(get(path)).andExpect(status().isOk());
   }

@@ -128,7 +128,7 @@ Estos resultados acreditan la propuesta local, no el cierre. CI remoto, revisió
 
 ## Preparación y comprobación parcial en Windows — 2026-10-06
 
-Responsable de esta ejecución: Codex; no constituye validación humana ni revisión de Santiago.
+Comprobación ejecutada mediante herramientas automatizadas; validación humana pendiente. No constituye revisión de Santiago.
 Repositorio local actualizado mediante avance directo a `2371a92674a42fc26459f78568b6b52b81560d8e`.
 Entorno: Windows, Temurin Java/javac 17.0.20.1, Node 24.19.0, npm 11.17.0 y navegador integrado de Codex.
 Se utilizó el servidor ya activo en `http://localhost:8080`; no se reinició ni se acreditó el SHA de sus clases cargadas. Los resultados siguientes son una comprobación preliminar del servidor activo, no una certificación del commit actualizado.
@@ -158,7 +158,7 @@ No se repitieron las pruebas automáticas del traspaso: este bloque no cambia c�
 
 ## Corrección del menú de grupos — 6 de octubre de 2026
 
-Responsable: Codex. Entorno Windows/Java 17, navegador integrado de Codex, conexión disponible sin perfil de velocidad medido. Base `6c4bf1d` más la corrección de map.js y su prueba/documentación incluida en este commit. No representa revisión de Carlos o Santiago.
+Comprobación ejecutada mediante herramientas automatizadas; validación humana pendiente. Entorno Windows/Java 17, navegador integrado de Codex, conexión disponible sin perfil de velocidad medido. Base `6c4bf1d` más la corrección de map.js y su prueba/documentación incluida en el commit `8aaec3a`. No representa revisión de Carlos o Santiago.
 
 Se arrancó el repositorio con `.\mvnw.cmd spring-boot:run '-Dspring-boot.run.arguments=--server.port=0'`. En puerto 61055 se reprodujo: incluir cerrados, abrir grupo 2, esperar la consulta por movimiento y seleccionar el refugio cerrado; el menú desaparecía. La referencia Leaflet 1.9.4 confirma autoPan y eliminación individual de capas: https://leafletjs.com/reference.html#popup-autopan y https://leafletjs.com/reference.html#layergroup-removelayer.
 

@@ -1,6 +1,61 @@
 <!doctype html>
-<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#153b5c"><title>RedAuxilio · Demostración</title><link rel="manifest" href="/manifest.webmanifest"><link rel="stylesheet" href="/app.css"><script src="/app.js" defer></script></head>
-<body><header><span class="brand">RedAuxilio</span><span id="connection" role="status">Comprobando conexión</span></header>
-<main><p class="eyebrow">PROYECTO ACADÉMICO · EQUIPO 4</p><h1>La información de ayuda, en un solo lugar.</h1><p class="intro">Primera consulta pública de RedAuxilio. Todos los reportes de esta versión son ficticios.</p><aside class="notice">Demostración: no usar estos datos para tomar decisiones durante una emergencia. El mapa y la publicación al servidor aún no están implementados.</aside>
-<section aria-labelledby="search-title"><h2 id="search-title">Consultar reportes</h2><label for="category">Categoría</label><select id="category"><option value="">Todas las categorías</option><option value="ASSISTANCE">Puntos de asistencia</option><option value="ROAD">Vías afectadas</option><option value="MISSING_PERSON">Personas desaparecidas</option><option value="HELP_REQUEST">Solicitudes de ayuda</option></select><button id="refresh" type="button">Actualizar consulta</button><p id="message" role="status" aria-live="polite"></p><div id="publications" class="grid"></div></section>
-<section aria-labelledby="draft-title"><h2 id="draft-title">Borrador local de demostración</h2><p>Solo se guarda en este navegador. No crea una publicación. Usa información ficticia.</p><form id="draft-form"><label for="draft-text">Descripción</label><textarea id="draft-text" maxlength="1000" required></textarea><label for="latitude">Latitud (−90 a 90)</label><input id="latitude" type="number" min="-90" max="90" step="any" required><label for="longitude">Longitud (−180 a 180)</label><input id="longitude" type="number" min="-180" max="180" step="any" required><button type="submit">Guardar borrador en este dispositivo</button><button type="button" id="discard">Descartar borrador</button></form><p id="draft-message" role="status" aria-live="polite"></p></section></main><footer>RedAuxilio · Carlos Mario Peña y Santiago Ortiz Ochoa · Versión inicial</footer></body></html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#153b5c" />
+    <title>RedAuxilio · Demostración</title>
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="stylesheet" href="/app.css" />
+    <script src="/app.js" defer></script>
+  </head>
+  <body>
+    <header>
+      <span class="brand">RedAuxilio</span
+      ><span id="connection" role="status">Comprobando conexión</span>
+    </header>
+    <main>
+      <p class="eyebrow">PROYECTO ACADÉMICO · EQUIPO 4</p>
+      <h1>La información de ayuda, en un solo lugar.</h1>
+      <p class="intro">
+        Primera consulta pública de RedAuxilio. Todos los reportes de esta versión son ficticios.
+      </p>
+      <aside class="notice">
+        Demostración: no usar estos datos para tomar decisiones durante una emergencia. El mapa y la
+        publicación al servidor aún no están implementados.
+      </aside>
+      <section aria-labelledby="search-title">
+        <h2 id="search-title">Consultar reportes</h2>
+        <label for="category">Categoría</label
+        ><select id="category">
+          <option value="">Todas las categorías</option>
+          <option value="ASSISTANCE">Puntos de asistencia</option>
+          <option value="ROAD">Vías afectadas</option>
+          <option value="MISSING_PERSON">Personas desaparecidas</option>
+          <option value="HELP_REQUEST">Solicitudes de ayuda</option></select
+        ><button id="refresh" type="button">Actualizar consulta</button>
+        <p id="message" role="status" aria-live="polite"></p>
+        <div id="publications" class="grid"></div>
+      </section>
+      <section aria-labelledby="draft-title">
+        <h2 id="draft-title">Borrador local de demostración</h2>
+        <p>Solo se guarda en este navegador. No crea una publicación. Usa información ficticia.</p>
+        <form id="draft-form">
+          <label for="draft-text">Descripción</label
+          ><textarea id="draft-text" maxlength="1000" required></textarea
+          ><label for="latitude">Latitud (−90 a 90)</label
+          ><input id="latitude" type="number" min="-90" max="90" step="any" required /><label
+            for="longitude"
+            >Longitud (−180 a 180)</label
+          ><input id="longitude" type="number" min="-180" max="180" step="any" required /><button
+            type="submit"
+          >
+            Guardar borrador en este dispositivo</button
+          ><button type="button" id="discard">Descartar borrador</button>
+        </form>
+        <p id="draft-message" role="status" aria-live="polite"></p>
+      </section>
+    </main>
+    <footer>RedAuxilio · Carlos Mario Peña y Santiago Ortiz Ochoa · Versión inicial</footer>
+  </body>
+</html>

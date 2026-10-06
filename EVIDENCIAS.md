@@ -125,3 +125,33 @@ por sí solo la definición de terminado.
 Codex ejecutó sobre la propuesta: 22 pruebas JUnit/MockMvc, sin fallos; 3 pruebas Node de agrupación, sin fallos; comprobación de sintaxis de app.js/map.js; formato Prettier y Spotless. Maven verify falló inicialmente por resolución de red al obtener el descriptor de sitio; la ejecución posterior con Maven 3.9.11 en modo offline finalizó correctamente, incluido PMD (0 infracciones). JaCoCo: 66/68 líneas Java cubiertas; no equivale a cobertura de interacción visual.
 
 Estos resultados acreditan la propuesta local, no el cierre. CI remoto, revisión de Santiago, tres resoluciones, teclado/PWA, accesibilidad y carga con 1.000 publicaciones/20 usuarios quedan pendientes. No se atribuyen a Carlos o Santiago ejecuciones realizadas por el agente. Contrato y pasos: RA02.md.
+
+## Preparación y comprobación parcial en Windows — 2026-10-06
+
+Responsable de esta ejecución: Codex; no constituye validación humana ni revisión de Santiago.
+Repositorio local actualizado mediante avance directo a `2371a92674a42fc26459f78568b6b52b81560d8e`.
+Entorno: Windows, Temurin Java/javac 17.0.20.1, Node 24.19.0, npm 11.17.0 y navegador integrado de Codex.
+Se utilizó el servidor ya activo en `http://localhost:8080`; no se reinició ni se acreditó el SHA de sus clases cargadas. Los resultados siguientes son una comprobación preliminar del servidor activo, no una certificación del commit actualizado.
+
+| Acción ejecutada                               | Resultado observado                                                                                                                                                                                     |
+| ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Consultar inicio                               | Cuatro reportes, marcadores, leyenda y atribución cartográfica visibles.                                                                                                                                |
+| Combinar Vías afectadas, Bloqueada y Reportada | Un reporte y marcador compatibles.                                                                                                                                                                      |
+| Abrir detalle de la vía con Enter              | Título, descripción, estado, confianza, coordenadas y fechas visibles; foco en Cerrar detalle.                                                                                                          |
+| Cerrar con Escape                              | El foco vuelve al botón de detalle. No acredita el recorrido completo con Tab.                                                                                                                          |
+| Limpiar e incluir cerrados                     | Cinco reportes y grupo de dos cerca del refugio.                                                                                                                                                        |
+| Abrir grupo                                    | Se muestran ambos refugios; después cambia el área consultada y desaparece el menú antes de seleccionar el cerrado. Observación pendiente de reproducción; sin diagnóstico confirmado.                  |
+| Limpiar y volver al área inicial               | Cuatro reportes; filtros restablecidos.                                                                                                                                                                 |
+| Aplicar 360×800, 768×1024 y 1366×768           | Ancho del documento 345, 753 y 1351 respectivamente, sin desbordamiento horizontal según DOM. Capturas parciales del panel; revisión visual completa pendiente. Se restableció el tamaño del navegador. |
+
+### Siguiente validación reproducible
+
+Arranque del SHA actualizado comprobado posteriormente con `.\mvnw.cmd spring-boot:run '-Dspring-boot.run.arguments=--server.port=0'`: compilación Java 17 correcta, servidor iniciado en puerto asignado 63852, inicio HTTP 200 y API con cuatro publicaciones. El intento previo en 8081 falló por puerto ocupado; el primer intento sin comillas falló por interpretación del argumento en PowerShell. Esto acredita arranque y consulta HTTP de la versión actual, sin extender las comprobaciones preliminares de UI a ese servidor. Se detuvo únicamente el proceso iniciado por Codex al terminar.
+
+1. Ejecutar `.\mvnw.cmd spring-boot:run` desde la rama actualizada en una terminal libre. Si 8080 está ocupado, detener el servidor anterior desde su terminal y arrancar de nuevo; no confundir la versión cargada con HEAD.
+2. Registrar SHA, navegador/versión, red, fecha y responsable; recorrer los casos de RA02.md, incluyendo selección de cada detalle desde grupos y marcadores.
+3. Revisar filtros, mapa, lista, diálogo y borrador completos en los tres tamaños, foco visible y recorrido Tab/Shift+Tab.
+4. En Chrome o Edge, probar instalación, service worker, recarga, desconexión/reconexión y bloqueo de CDN/cartografía; distinguir consulta exacta guardada y consulta sin caché.
+5. Completar auditoría de accesibilidad y carga con 1.000 publicaciones/20 usuarios bajo red documentada. No extrapolar rendimiento del demostrador de seis datos.
+
+No se repitieron las pruebas automáticas del traspaso: este bloque no cambia código funcional. PR #5 abierto y #6 en borrador comprobados públicamente; CI actual no verificable en esta sesión (CLI con HTTP 401 y checks públicos sin resultados). Pendientes acuerdo DoR/estimación y revisión de Santiago.

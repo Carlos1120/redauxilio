@@ -46,10 +46,29 @@ La instalación PWA depende del navegador y entorno seguro (localhost para desar
 
 `./mvnw spotless:apply` aplica formato; `./mvnw verify` compila, prueba, comprueba formato y ejecuta PMD. Reportes en `target/surefire-reports`, `target/site/jacoco/index.html` y `target/pmd.xml`.
 
-Leer [ESTANDARES.md](ESTANDARES.md), [PREPARACION.md](PREPARACION.md) y [EVIDENCIAS.md](EVIDENCIAS.md). Estándares pendientes de aceptación personal. Cambios por rama y PR; no subir secretos ni datos personales reales.
+Leer [ESTANDARES.md](ESTANDARES.md), [PREPARACION.md](PREPARACION.md) y [EVIDENCIAS.md](EVIDENCIAS.md). Guía aprobada según Carlos; conservar los registros personales reales de aceptación. Cambios por rama y PR; no subir secretos ni datos personales reales.
 
 Tablero: https://trello.com/b/BiGr7UFw/redauxilio-gerencia-de-software
 
 ## Declaración de uso de IA
 
 Codex de OpenAI apoyó código, pruebas y documentación. La evidencia diferencia comprobaciones ejecutadas por el agente de revisión humana pendiente. Carlos y Santiago son responsables de revisar y comprender el resultado.
+
+## Aplicación de la guía aprobada
+
+Guía completa: [ESTANDARES.md](ESTANDARES.md). Java 17, Node 24.x y npm 11.x; Prettier 3.9.9 está fijado con package-lock.json. El demostrador usa datos sintéticos y no requiere PostgreSQL. La persistencia del proyecto completo sí requerirá PostgreSQL; aún no está implementada.
+
+```bash
+npm ci
+npm run format
+npm run format:check
+./mvnw spotless:apply
+./mvnw spotless:check
+./mvnw verify
+```
+
+En Windows sustituir ./mvnw por mvnw.cmd. Activar formato al guardar en los editores personales y usar las versiones del proyecto; la configuración compartida no demuestra que cada integrante haya configurado su editor.
+
+Crear las ramas de trabajo desde develop: feat/RA-XX-descripcion, fix/RA-XX-descripcion, docs/nombre o chore/nombre. PR hacia develop con revisión del compañero y comprobaciones aprobadas. main recibe únicamente promociones desde develop. Mensaje: tipo(modulo): descripción en infinitivo imperativo [RA-XX]; tipos feat, fix, docs, refactor, test, style y chore. Para tareas transversales, enlazar la tarjeta de gestión en el PR sin inventar una historia funcional.
+
+La rama RA-00 se creó antes de adoptar develop; se conserva su historial y se ajusta el destino del PR. Los commits anteriores son antecedentes y no se reescriben. La aprobación de la guía no equivale a aprobar automáticamente el código ni a completar el DoD.

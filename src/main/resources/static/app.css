@@ -520,3 +520,101 @@
     }
   }
 }
+/* RA-02: la consulta geográfica conserva las superficies y tipografía aprobadas. */
+.query-controls {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: end;
+}
+.closed-filter {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 48px;
+}
+.closed-filter input {
+  width: 20px;
+  min-height: 20px;
+}
+.map-section {
+  margin-block: var(--space-6);
+}
+#report-map {
+  height: 400px;
+  width: 100%;
+  border-radius: var(--radius-report);
+  background: var(--color-report-inset);
+  isolation: isolate;
+  margin-block: var(--space-3);
+  font-family: var(--font-reading);
+}
+.map-legend {
+  display: flex;
+  flex-wrap: wrap;
+  list-style: none;
+  gap: var(--space-3);
+  padding: 0;
+  margin-block: var(--space-3);
+  font-size: 0.8125rem;
+  color: var(--color-report-secondary);
+}
+.report-marker {
+  display: grid;
+  place-items: center;
+  background: var(--color-relief-blue);
+  color: var(--color-information-paper);
+  border: 2px solid var(--color-information-paper);
+  border-radius: 50%;
+  font: 700 18px var(--font-reading);
+}
+.map-summary {
+  display: grid;
+  gap: var(--space-2);
+}
+.map-summary button {
+  white-space: normal;
+}
+#report-map .leaflet-control-zoom a {
+  width: 44px;
+  height: 44px;
+  line-height: 44px;
+  color: var(--color-relief-blue);
+}
+#report-map .leaflet-control-attribution {
+  font-size: 12px;
+}
+#report-map :focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 3px;
+}
+#report-detail {
+  width: min(640px, calc(100% - 32px));
+  max-height: calc(100dvh - 32px);
+  padding: var(--space-6);
+  border: 1px solid var(--color-report-border);
+  border-radius: var(--radius-report);
+  color: var(--color-report-ink);
+  background: var(--color-information-paper);
+  overflow-wrap: anywhere;
+}
+#report-detail::backdrop {
+  background: rgba(23, 44, 60, 0.45);
+}
+#detail-content {
+  display: grid;
+  gap: var(--space-3);
+  margin-block: var(--space-6);
+}
+@media (max-width: 1100px) {
+  .query-controls {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (max-width: 760px) {
+  #report-map {
+    height: 320px;
+  }
+  .map-section .section-heading {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

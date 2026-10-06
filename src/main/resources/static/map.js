@@ -1,5 +1,9 @@
 "use strict";
-// Agrupación por celdas de pantalla: al acercar el mapa los grupos se separan.
+/**
+ * Agrupa coordenadas proyectadas en celdas de píxeles al zoom actual, no por distancia en metros.
+ * project transforma cada reporte a {x, y}; cellSize define el tamaño de celda (64 por defecto).
+ * Puntos junto a un borde pueden quedar separados. Se mantiene pura para probarla sin Leaflet/DOM.
+ */
 function groupMapPoints(items, project, cellSize = 64) {
   const cells = new Map();
   for (const item of items) {
@@ -11,9 +15,14 @@ function groupMapPoints(items, project, cellSize = 64) {
   }
   return Array.from(cells.values());
 }
+// Node usa esta exportación para las pruebas; el navegador utiliza RedAuxilioMap más abajo.
 if (typeof module !== "undefined") module.exports = { groupMapPoints };
 if (typeof window !== "undefined") {
   window.RedAuxilioMap = {
+    /**
+     * Crea el mapa y devuelve render/bounds/reset. Los callbacks notifican movimiento y selección
+     * a app.js; este módulo no consulta la API. Si falta Leaflet, devuelve null y conserva la lista.
+     */
     create(onMove, onDetail, labels) {
       const status = document.getElementById("map-status");
       if (!window.L) {
@@ -40,6 +49,7 @@ if (typeof window !== "undefined") {
       let items = [];
       const symbols = { ASSISTANCE: "+", ROAD: "↔", MISSING_PERSON: "?", HELP_REQUEST: "!" };
       function redraw() {
+        // Solo reemplaza marcadores; el fondo cartográfico permanece en su capa independiente.
         layer.clearLayers();
         const groups = groupMapPoints(items, (item) =>
           map.project([item.latitude, item.longitude]),
@@ -47,6 +57,7 @@ if (typeof window !== "undefined") {
         for (const group of groups) {
           const first = group[0];
           const grouped = group.length > 1;
+          // Sitúa el marcador del grupo en la media de sus coordenadas; no es una nueva ubicación real.
           const center = group.reduce(
             (p, item) => [
               p[0] + item.latitude / group.length,
@@ -54,6 +65,7 @@ if (typeof window !== "undefined") {
             ],
             [0, 0],
           );
+          // Construye contenido como nodos/texto: títulos y descripciones no se interpretan como HTML.
           const popup = document.createElement("div");
           popup.className = "map-summary";
           const heading = document.createElement("strong");
@@ -97,6 +109,7 @@ if (typeof window !== "undefined") {
             .addTo(layer);
         }
       }
+      // Cambiar zoom cambia la proyección y agrupación; terminar el movimiento dispara la consulta.
       map.on("zoomend", redraw);
       map.on("moveend", onMove);
       return {
@@ -108,6 +121,8 @@ if (typeof window !== "undefined") {
           const b = map.getBounds();
           // No filtro por área si el usuario está viendo el mundo completo.
           if (b.getEast() - b.getWest() >= 360) return {};
+          // Leaflet permite desplazarse entre copias del mundo; normaliza a [-180, 180).
+          // El servidor admite west > east cuando la vista cruza el meridiano de ±180°.
           const wrap = (longitude) => ((((longitude + 180) % 360) + 360) % 360) - 180;
           return {
             south: Math.max(-90, b.getSouth()),

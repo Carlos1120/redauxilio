@@ -70,8 +70,8 @@ public class PublicationService {
       String category,
       String title,
       String location,
-      String status,
-      String confidence,
+      String operationalStatus,
+      String confidenceLevel,
       String updatedAt,
       double latitude,
       double longitude) {}

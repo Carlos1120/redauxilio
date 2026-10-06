@@ -265,7 +265,7 @@ Medición de servidor: filtro de pruebas cronometra cadena HTTP/DispatcherServle
 
 **Umbral interno ≤2 s aprobado para las tres operaciones.** Las ejecuciones preliminares sirvieron para preparar/cambiar el fixture; se informa la última, sin escoger la más rápida. Informe completo regenerable con `.\mvnw.cmd -B test '-Dtest=Ra02PerformanceTests'` o `verify`.
 
-Tiempo visible: en el fixture, un MutationObserver insertado exclusivamente por el filtro de pruebas espera lista no vacía y marcadores, y registra `performance.now()` tras dos frames de renderizado en `#report-map[data-first-results-millis]`. Inicio de navegación es el origen de tiempo; no confunde respuesta HTTP con resultado visible. Chromium integrado 154, viewport 1366×768, loopback sin throttling y bibliotecas externas calentadas: **366,9 ms** en código final, 900 fichas/15 grupos. Umbral ≤3 s aprobado para este entorno; antes de la corrección se observaron 750,4 ms. No mide mapa base completamente cargado ni arranque frío de CDN bajo red lenta.
+Tiempo visible: en el fixture, un MutationObserver insertado exclusivamente por el filtro de pruebas espera lista no vacía y marcadores, y registra `performance.now()` tras dos frames de renderizado en `#report-map[data-first-results-millis]`. Inicio de navegación es el origen de tiempo; no confunde respuesta HTTP con resultado visible. Chromium integrado 154, viewport efectivo 908×930 comprobado al leer el resultado, loopback sin throttling y bibliotecas externas calentadas: **366,9 ms** en código final, 900 fichas/15 grupos. Umbral ≤3 s aprobado para este entorno. No mide mapa base completamente cargado ni arranque frío de CDN bajo red lenta.
 
 Para reproducir navegador/primer resultado y fallos de proveedores, arrancar:
 
@@ -273,7 +273,7 @@ Para reproducir navegador/primer resultado y fallos de proveedores, arrancar:
 .\mvnw.cmd -B spring-boot:test-run '-Dspring-boot.run.main-class=co.redauxilio.publications.Ra02ValidationApplication' '-Dspring-boot.run.arguments=--server.port=0'
 ```
 
-Abrir el puerto real a 1366×768 y leer el atributo DOM indicado después de ver mapa y lista. Las URL `/?validation=cdn-failure` y `/?validation=tile-failure` aplican CSP solo en el fixture: la primera bloquea scripts/estilos externos y la segunda imágenes externas. No debilitan seguridad ni cambian el proveedor productivo.
+Abrir el puerto real a 908×930 (o registrar explícitamente otro viewport) y leer el atributo DOM indicado después de ver mapa y lista. Las URL `/?validation=cdn-failure` y `/?validation=tile-failure` aplican CSP solo en el fixture: la primera bloquea scripts/estilos externos y la segunda imágenes externas. No debilitan seguridad ni cambian el proveedor productivo.
 
 ### PWA, conectividad y defecto corregido
 

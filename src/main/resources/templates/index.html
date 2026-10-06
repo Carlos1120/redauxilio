@@ -6,7 +6,20 @@
     <meta name="theme-color" content="#145777" />
     <title>RedAuxilio · Consulta comunitaria</title>
     <link rel="manifest" href="/manifest.webmanifest" />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+      crossorigin=""
+    />
     <link rel="stylesheet" href="/app.css" />
+    <script
+      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+      crossorigin=""
+      defer
+    ></script>
+    <script src="/map.js" defer></script>
     <script src="/app.js" defer></script>
   </head>
   <body>
@@ -38,13 +51,18 @@
           <strong>Estás en una demostración académica</strong>
           <p>
             Todos los reportes de esta versión son ficticios. No usar estos datos para tomar
-            decisiones durante una emergencia. El mapa y la publicación al servidor aún no están
-            implementados.
+            decisiones durante una emergencia. La publicación al servidor aún no está implementada.
+            Las ubicaciones del mapa son ficticias.
           </p>
         </div>
       </aside>
       <div class="workspace">
-        <section id="search-section" class="search-section" aria-labelledby="search-title">
+        <section
+          id="search-section"
+          tabindex="-1"
+          class="search-section"
+          aria-labelledby="search-title"
+        >
           <div class="section-heading">
             <div>
               <p class="eyebrow">CONSULTA PÚBLICA</p>
@@ -52,7 +70,7 @@
             </div>
             <span class="section-caption">Sin registro</span>
           </div>
-          <div class="query-controls">
+          <form id="query-form" class="query-controls" aria-label="Filtros de consulta">
             <div class="field">
               <label for="category">Tipo de reporte</label
               ><select id="category">
@@ -63,13 +81,70 @@
                 <option value="HELP_REQUEST">Solicitudes de ayuda</option>
               </select>
             </div>
-            <button id="refresh" type="button">
+            <div class="field">
+              <label for="operational-status">Estado operativo</label>
+              <select id="operational-status">
+                <option value="">Todos los estados</option>
+                <option>Disponible</option>
+                <option>Capacidad limitada</option>
+                <option>Lleno</option>
+                <option>Cerrado</option>
+                <option>Bloqueada</option>
+                <option>Parcialmente habilitada</option>
+                <option>Habilitada</option>
+                <option>Sin localizar</option>
+                <option>Encontrada</option>
+                <option>Abierta</option>
+                <option>En atención</option>
+                <option>Satisfecha</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="confidence-level">Confianza</label>
+              <select id="confidence-level">
+                <option value="">Todos los niveles</option>
+                <option value="REPORTADA">Reportada · sin verificar</option>
+                <option value="CONFIRMADA">Confirmada por la comunidad</option>
+                <option value="VERIFICADA">Verificada oficialmente</option>
+                <option value="EN_REVISION">En revisión</option>
+                <option value="DESACTUALIZADA">Desactualizada</option>
+              </select>
+            </div>
+            <label class="closed-filter"
+              ><input type="checkbox" id="include-closed" /> Incluir casos cerrados</label
+            >
+            <button id="clear-filters" type="button" class="secondary-button">
+              Limpiar filtros
+            </button>
+            <button id="refresh" type="submit">
               Actualizar consulta <span aria-hidden="true">↻</span>
             </button>
-          </div>
+          </form>
           <p id="message" class="query-message" role="status" aria-live="polite">
             Preparando consulta…
           </p>
+          <section class="map-section" aria-labelledby="map-title">
+            <div class="section-heading">
+              <h3 id="map-title">Mapa de reportes</h3>
+              <button id="reset-map" type="button" class="secondary-button">
+                Volver al área inicial
+              </button>
+            </div>
+            <p id="map-status" class="query-help" role="status">
+              Preparando mapa. La lista permite consultar sin fondo cartográfico.
+            </p>
+            <div id="report-map" aria-label="Mapa de ubicaciones ficticias"></div>
+            <ul class="map-legend" aria-label="Leyenda del mapa">
+              <li>+ Punto de asistencia</li>
+              <li>↔ Vía afectada</li>
+              <li>? Persona desaparecida</li>
+              <li>! Solicitud de ayuda</li>
+            </ul>
+            <p class="query-help">
+              Un número agrupa reportes cercanos. Selecciónalo para consultar sus detalles. Los
+              filtros se aplican al área visible.
+            </p>
+          </section>
           <div id="publications" class="report-grid" aria-busy="true"></div>
           <p class="query-help">
             Un reporte comunitario no equivale a una verificación oficial. Revisa siempre su
@@ -139,6 +214,11 @@
         </section>
       </div>
     </main>
+    <dialog id="report-detail" aria-labelledby="detail-title">
+      <h2 id="detail-title"></h2>
+      <div id="detail-content"></div>
+      <button id="close-detail" type="button" class="secondary-button">Cerrar detalle</button>
+    </dialog>
     <footer>
       <span>RedAuxilio · Proyecto académico · Equipo 4</span
       ><span>Carlos Mario Peña y Santiago Ortiz Ochoa</span>

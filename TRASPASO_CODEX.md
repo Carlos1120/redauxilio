@@ -1,22 +1,20 @@
 # RedAuxilio: estado para continuar
 
-Instantánea del 6 de octubre de 2026 (Colombia). Normas en AGENTS.md y ESTANDARES.md; contrato en RA02.md y resultados en EVIDENCIAS.md.
+Instantánea del 6 de octubre de 2026 (Colombia). Normas en AGENTS.md y ESTANDARES.md; contrato en RA02.md; evidencia automática y humana separada en EVIDENCIAS.md.
 
 ## Estado actual
 
-- Base develop: e0fdb1ae7a001dc1cf640c0fa9134ba22bb87c6e; CI verify aprobado comprobado. PR #6 integrado por squash ad7755a8fc9c8c5e9b408649e8b82442c7fc7a52; PR #5 también integrado. No fusionar otra vez feat/RA-02-consulta-geografica.
-- Rama nueva test/RA-02-cierre-validacion, desde develop actualizado; remoto origin https://github.com/Carlos1120/redauxilio.git. Código/pruebas de cierre: 9bbdbd9; documentación posterior se identifica con HEAD. Se reaplicó solo RA02.md del commit documental 0594565, sin su traspaso antiguo.
-- RA-02 mantiene incremento sintético con confianza Reportada confirmado por Carlos. Sprint 1: 5–19 de octubre de 2026; disponibilidad declarada ~10 h, 7 h efectivas; previsión histórica, no tiempo consumido ni nueva garantía de cierre.
-- Fixture aislado de pruebas: 1.000 publicaciones, 20 usuarios concurrentes, medición interna separada del cliente. Último p95 interno consulta/filtros/detalle: 19,802/4,299/0,252 ms; primeros marcadores/lista 366,9 ms en loopback y CDN calentado, sin throttling. Límites y reproducción en EVIDENCIAS.md.
-- npm ci, formato, 6 pruebas JS y Maven -B verify (23 Java, Spotless/PMD) aprobados. Lighthouse 13.5.0: 100/100 en móvil y escritorio. Regresión, teclado y revisión visual completa en los tres tamaños aprobados mediante herramientas; validación humana pendiente.
-- Defecto corregido: load de teselas borraba aviso tras tileerror. Prueba nueva y navegador con CSP de pruebas acreditan conservación del error y recuperación posterior. Sin reimplementar consulta ni agregar funcionalidades posteriores.
-- Recarga/borrador, consulta guardada ante caída del servidor, fallo sin caché, restauración del servidor y rechazo real de CDN/cartografía comprobados. Esto NO acredita desconexión total ni instalación PWA.
-- Instancias propias de esta validación detenidas; servidores ajenos preservados. No mover Trello, no integrar esta rama, no declarar terminada RA-02.
+- Rama test/RA-02-cierre-validacion; referencia anterior al registro humano e95b7da48038bc7f70fc657f0b9398e3b61c2f28. HEAD identifica el commit documental final; código/pruebas en 9bbdbd9 sin cambios productivos posteriores.
+- Base develop e0fdb1ae7a001dc1cf640c0fa9134ba22bb87c6e; remoto origin https://github.com/Carlos1120/redauxilio.git. RA-02 integrada previamente por PR #6/squash ad7755a8fc9c8c5e9b408649e8b82442c7fc7a52; estándares PR #5 integrados. No fusionar otra vez feat/RA-02-consulta-geografica.
+- Esta rama contiene la corrección del aviso cartográfico y pruebas aisladas de carga. 23 ejecuciones Java, 6 JS, formato, Spotless/PMD aprobados. RNF-01: 1.000 datos/20 usuarios, p95 interno 19,802/4,299/0,252 ms (consulta/filtros/detalle), primeros resultados 366,9 ms bajo entorno documentado. RNF-10: Lighthouse 100/100 móvil/escritorio. No repetir carga/auditorías/suites completas sin cambios de código o nueva incertidumbre.
+- Carlos comunicó el 6/10/2026 aprobación humana de responsive 360×800, 768×1024 y 1366×768; instalación PWA desde Chrome en Windows; Offline real desde DevTools con recarga, borrador/coordenadas y cuatro reportes de caché fechada; reconexión a No throttling recupera datos del servidor y conserva borrador. Registro detallado en la sección Validación humana final de Carlos de EVIDENCIAS.md. No atribuir ejecución ni aprobación a Santiago.
+- Movimiento de mapa offline sin URL exacta guardada falla claramente y es esperado. Observación UX no bloqueante: mensaje menciona solo categoría y podría incluir filtros/zona. Sugerencia futura; no implementarla en este cierre.
+- Capturas respaldan la sesión; no afirmar que estén versionadas en GitHub. Política 1.1: capturas opcionales. Instancias temporales de la validación automatizada detenidas; servidores ajenos preservados.
+- Entrega lista para revisión final de Santiago. Preparar PR hacia develop desde esta rama, con evidencia y declaración de IA conforme a la plantilla. La aprobación/integración anteriores de RA-02 no aprueban automáticamente esta corrección posterior.
 
-## Siguiente acción y bloqueos
+## Único cierre pendiente
 
-1. Completar instalación PWA y desconexión total/reconexión en Chrome/Edge con perfil de prueba y controles reales de red. El navegador integrado de esta sesión solo expone viewport/visibilidad e interacción DOM; no ofrece instalación/offline. Pasos exactos y criterios en EVIDENCIAS.md. No sustituir estas pruebas por manifiesto válido o servidor detenido.
-2. Una vez acreditados esos casos, Santiago realiza revisión final del código/evidencias. PR #6 integrado no aprueba los cambios posteriores. Mantener entrega incompleta en borrador si se abre PR; no integrar sin aprobación.
-3. Verificar Git/HEAD y CI remoto al retomar; reutilizar comprobaciones del mismo código/entorno. No repetir carga o auditorías sin cambios o hipótesis nueva.
+1. Revisión final y aprobación de Santiago sobre código y evidencias de esta entrega.
+2. Integración del PR en develop conforme a los estándares y CI aprobado. No hacer merge ni mover Trello en esta tarea; no declarar RA-02 terminada por cuenta del agente.
 
-Lectura mínima: este estado y AGENTS.md; sección final de RA02.md/EVIDENCIAS.md para cierre. VALIDACION_WINDOWS.md para ejecución; ESTANDARES.md al aplicar reglas. Skills globales validar-app-local, regresion-ui, validar-rendimiento, verificar-trazabilidad y preparar-entrega según el bloque.
+Lectura mínima: este estado y AGENTS.md; sección final de RA02.md/EVIDENCIAS.md para cierre. Consultar ESTANDARES.md al aplicar reglas. Las comprobaciones del registro humano son documentales: formato Markdown y git diff --check.

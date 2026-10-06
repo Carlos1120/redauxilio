@@ -67,3 +67,55 @@ Se aplicaron las 12 referencias del ZIP proporcionado por Carlos. Consulta princ
 La aprobación automática no reemplaza pruebas reales de teclado, lector de pantalla, instalación ni desconexión/reconexión. La revisión humana final sigue pendiente; no se declara certificación WCAG.
 
 Contraste de pares principales calculado: texto principal 13.47:1, secundario 7.49:1, metadatos 6.09:1, acción 7.90:1, aviso 6.26:1 y conexión 6.39:1. Referencia: https://www.w3.org/TR/WCAG22/ . Se inspeccionó una representación estática del diseño; no equivale a una prueba en navegador. El navegador de esta sesión bloquea archivos locales.
+
+## Validación manual en Windows — 2026-10-05
+
+Responsable: Carlos Mario Peña.
+Entorno: Windows, Google Chrome y servidor local en http://localhost:8080.
+Versión de la interfaz: be1fef8, ejecutada desde la descarga ZIP con el ajuste de Spotless a LF.
+Corrección de compilación publicada posteriormente: commit 438bb79.
+
+### Resultados
+
+| Prueba                               | Resultado observado                                                                                                                                         | Estado          |
+| ------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------- |
+| Consulta inicial                     | Se muestran cuatro reportes ficticios obtenidos del servidor.                                                                                               | Aprobada        |
+| Filtro de reportes                   | Vía afectada muestra una tarjeta; Todas las categorías recupera las cuatro.                                                                                 | Aprobada        |
+| Guardar y recuperar borrador         | El texto, la latitud y la longitud se conservan después de recargar.                                                                                        | Aprobada        |
+| Descartar borrador                   | Los tres campos quedan vacíos y siguen vacíos después de recargar.                                                                                          | Aprobada        |
+| Consulta sin conexión                | Con Offline en Chrome, la página y los cuatro reportes cargan desde caché; aparece la fecha de almacenamiento y la advertencia de posible desactualización. | Aprobada        |
+| Recuperación de conexión             | Al restaurar la red y actualizar, aparecen los avisos de conexión disponible y datos obtenidos del servidor.                                                | Aprobada        |
+| Adaptación a 360, 768 y 1280 píxeles | Los bloques se reorganizan sin superposiciones visibles en las capturas. En 768 píxeles se recorta el texto del selector.                                   | Con observación |
+| Campos obligatorios                  | El formulario bloquea el guardado con campos vacíos.                                                                                                        | Aprobada        |
+| Latitud fuera de rango               | El formulario rechaza la latitud 91.                                                                                                                        | Aprobada        |
+| Límites de coordenadas               | Acepta latitud 90 y longitud 180; rechaza longitud 181.                                                                                                     | Aprobada        |
+| Navegación por teclado               | El foco es visible y permite recorrer los controles con Tab y Shift + Tab y activar botones con Enter.                                                      | Aprobada        |
+
+### Verificación automática de la copia clonada
+
+- Java y compilador: Temurin 17.0.20.1.
+- Maven verify: BUILD SUCCESS.
+- Pruebas: 14 ejecuciones, cero fallos, cero errores y cero omitidas.
+- Spotless y PMD: aprobados.
+- GitHub Actions: ejecución número 32 aprobada para el commit 438bb79.
+
+### Evidencias y alcance
+
+Carlos compartió registros de terminal y capturas durante la sesión.
+Las capturas respaldan la consulta inicial, la consulta offline, la adaptación
+a tres anchos y el resultado de GitHub Actions. Las demás pruebas manuales
+se registran según su confirmación durante la sesión. Los adjuntos todavía
+no están incorporados al repositorio.
+
+Pendientes: mejorar el ancho del selector a 768 píxeles, comprobar la
+instalación PWA, realizar la revisión de Santiago sobre la versión final
+e integrar y verificar en develop.
+
+Estas pruebas corresponden al demostrador con datos ficticios. No acreditan
+el cumplimiento completo de accesibilidad, PWA ni de todos los requisitos
+del proyecto. El mapa, la autenticación, PostgreSQL y la publicación real
+al servidor siguen pendientes.
+
+Este registro complementa las notas anteriores que indicaban pruebas
+manuales pendientes. No constituye la aprobación de Santiago ni completa
+por sí solo la definición de terminado.

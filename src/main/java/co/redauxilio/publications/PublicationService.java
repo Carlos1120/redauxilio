@@ -30,6 +30,11 @@ public class PublicationService {
       Set.of("REPORTADA", "CONFIRMADA", "VERIFICADA", "EN_REVISION", "DESACTUALIZADA");
   private final List<Entry> publications;
 
+  /**
+   * Carga seis ejemplos en memoria: cuatro activos, uno cerrado y uno oculto. No son registros
+   * persistentes: reiniciar el servidor reconstruye esta lista. El caso oculto permite comprobar
+   * que la API no revela contenido excluido de la consulta pública.
+   */
   public PublicationService() {
     this(
         List.of(
@@ -102,6 +107,7 @@ public class PublicationService {
   }
 
   PublicationService(List<Entry> publications) {
+    // Copia inmutable: evita que quien entregó la lista cambie los datos después de construirla.
     this.publications = List.copyOf(publications);
   }
 
@@ -129,6 +135,11 @@ public class PublicationService {
         closed);
   }
 
+  /**
+   * Devuelve únicamente reportes visibles que cumplan TODOS los filtros activos (combinación AND).
+   * Un filtro nulo o vacío no restringe resultados. Los cerrados requieren includeClosed=true;
+   * solicitar cerrados nunca habilita los ocultos. bounds=null desactiva solo el filtro geográfico.
+   */
   public List<Publication> findPublications(
       String category,
       String operationalStatus,
@@ -138,6 +149,7 @@ public class PublicationService {
     String categoryFilter = normalize(category, CATEGORIES, "Categoría");
     String statusFilter = normalize(operationalStatus, STATUSES, "Estado");
     String confidenceFilter = normalize(confidenceLevel, CONFIDENCE, "Confianza");
+    // La visibilidad se aplica en servidor: ocultar una tarjeta en JavaScript no protege sus datos.
     return publications.stream()
         .filter(Entry::visible)
         .map(Entry::publication)
@@ -152,6 +164,10 @@ public class PublicationService {
         .toList();
   }
 
+  /**
+   * Busca un reporte visible por su identificador, incluso si está cerrado. Oculto e inexistente
+   * responden igual (404) para no revelar por esta ruta la existencia de contenido oculto.
+   */
   public Publication findPublication(long id) {
     return publications.stream()
         .filter(Entry::visible)
@@ -163,13 +179,19 @@ public class PublicationService {
   }
 
   private static String normalize(String value, Set<String> allowed, String label) {
+    // Locale.ROOT mantiene la misma comparación aunque cambie el idioma del sistema operativo.
     String normalized = value == null ? "" : value.trim().toUpperCase(Locale.ROOT);
     if (!normalized.isEmpty() && !allowed.contains(normalized))
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, label + " inválido");
     return normalized;
   }
 
+  /**
+   * Rectángulo geográfico en grados: latitud entre -90 y 90; longitud entre -180 y 180. west > east
+   * representa un área que cruza el meridiano de ±180°, no un error de orden.
+   */
   public record Bounds(double south, double west, double north, double east) {
+    /** Rechaza coordenadas no finitas o fuera de rango antes de ejecutar la consulta. */
     public Bounds {
       if (!Double.isFinite(south)
           || !Double.isFinite(west)
@@ -187,6 +209,7 @@ public class PublicationService {
     }
 
     boolean contains(double latitude, double longitude) {
+      // Al cruzar ±180°, la longitud pertenece al tramo occidental O al oriental del rectángulo.
       return latitude >= south
           && latitude <= north
           && (west <= east
@@ -195,8 +218,14 @@ public class PublicationService {
     }
   }
 
+  // Envoltorio interno: visible controla la consulta; no se expone como campo del JSON público.
   record Entry(Publication publication, boolean visible) {}
 
+  /**
+   * Datos públicos que Spring serializa a JSON. operationalStatus describe la situación del caso;
+   * confidenceLevel describe su respaldo. closed decide la exclusión por defecto y no equivale a
+   * oculto. Los tiempos son cadenas ISO 8601; las coordenadas del demostrador son ficticias.
+   */
   public record Publication(
       long id,
       String category,

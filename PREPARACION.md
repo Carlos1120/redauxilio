@@ -5,7 +5,7 @@ Equipo de dos autorizado por el docente según Carlos. Javier Charry cumple como
 
 ## Objetivo y límites
 
-Incremento: consulta pública de cuatro reportes ficticios con filtro por categoría; borrador textual y coordenadas en IndexedDB; manifiesto y service worker para consulta previamente guardada. No hay mapa, base de datos, fotografías, usuarios, permisos ni publicaciones reales. Los datos están en memoria y son sintéticos. El alcance completo del Word permanece vigente; esta entrega solo inicia su implementación.
+Incremento: consulta pública de cuatro reportes ficticios con filtro por categoría; borrador textual y coordenadas en IndexedDB; manifiesto y service worker para consulta previamente guardada. Este apartado describe la base RA-00. La rama RA-02 añade mapa, filtros y detalle: consultar RA02.md. No hay base de datos, fotografías, usuarios, permisos ni publicaciones reales. Los datos están en memoria y son sintéticos. El alcance completo del Word permanece vigente; esta entrega solo inicia su implementación.
 
 ## Arquitectura
 
@@ -31,7 +31,7 @@ Métricas reales se registrarán en EVIDENCIAS.md después de ejecutar. JUnit/Mo
 ## Próximas tareas
 
 1. Carlos y Santiago ejecutan los comandos y revisan el PR.
-2. Seleccionar proveedor cartográfico y añadir mapa a RA-02.
+2. Validar la propuesta RA-02 con Leaflet y OpenStreetMap, y completar sus pruebas y revisión.
 3. Diseñar esquema PostgreSQL y migraciones antes de publicar datos.
 4. Implementar RA-01 con Spring Security antes de habilitar cualquier escritura.
 5. Consolidar cinco fichas de calidad y doce casos del Taller 5; medir complejidad y densidad de defectos con definiciones explícitas.

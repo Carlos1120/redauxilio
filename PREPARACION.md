@@ -15,7 +15,7 @@ Java mínimo 17 (compatible con Java 21 del equipo), Spring Boot 3.5.16 y Maven 
 
 ## Preparación de trabajo
 
-RA-00 habilita RA-02, RF-01/03/04 y prepara RNF-03/12/14. RA-02 no se completa sin mapa, detalle y restantes criterios. Estimación inicial RA-00: 2–4 horas-persona, provisional; el tiempo de IA no se registra como tiempo humano. Responsables humanos propuestos: Santiago, técnica; Carlos, revisión funcional. Carlos y Santiago revisan y aceptan ESTANDARES.md personalmente.
+RA-00 habilita RA-02, RF-01/03/04 y prepara RNF-03/12/14. RA-02 no se completa sin mapa, detalle y restantes criterios. Estimación inicial RA-00: 2–4 horas-persona, provisional; el tiempo de IA no se registra como tiempo humano. Responsables humanos propuestos: Santiago, técnica; Carlos, revisión funcional. La guía enviada ya está aprobada según Carlos. Conservar los registros personales de aceptación; realizar revisión cruzada del código sobre su versión final.
 
 Antes de la siguiente historia: requisito y criterios explícitos, estimación, dependencias resueltas y prueba prevista. Integración por PR después de revisar evidencia. No marcar Terminado sin revisión humana. No inventar retrospectivas, encuestas o resultados. Mantener historial real del tablero.
 
@@ -40,3 +40,9 @@ Métricas reales se registrarán en EVIDENCIAS.md después de ejecutar. JUnit/Mo
 ## Declaración de uso de IA
 
 Codex de OpenAI apoyó arquitectura, código, pruebas y documentación. Las ejecuciones realizadas por el agente se identifican como tales en EVIDENCIAS.md. Revisión manual de Carlos y Santiago: pendiente. No se declara aceptación ni validación humana que no ocurrió.
+
+## Flujo aprobado
+
+Trabajo desde develop; PR de trabajo hacia develop con squash y mensaje conforme a la guía. Promoción desde develop hacia main preservando el historial. Revisión por el compañero en 24 horas hábiles, sin autoaprobación. WIP: dos tarjetas en progreso, una por persona, y una en revisión. Ante bloqueantes devolver a En progreso con causa y fecha. Terminado solo tras revisión, pruebas de la integración en develop y enlaces a evidencias.
+
+Protecciones de main y develop: mientras no estén configuradas o disponibles en el plan de GitHub, aplicar el control manual documentado: impedir pushes directos, comprobar el revisor y las verificaciones finales antes de integrar.

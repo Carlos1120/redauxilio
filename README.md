@@ -4,7 +4,7 @@ PWA colaborativa de información georreferenciada ante terremotos. Equipo 4: Car
 
 ## Primera versión ejecutable
 
-Consulta pública y filtro de cuatro reportes ficticios; borrador local y base PWA. Sin mapa geográfico, persistencia, autenticación ni publicación al servidor todavía. No usar en una emergencia real. El alcance completo del Word sigue vigente.
+Consulta pública con mapa Leaflet, agrupación y filtros por categoría, estado, confianza y área visible; detalle de reportes ficticios, borrador local y base PWA. La propuesta RA-02 está en validación; sin persistencia, autenticación ni publicación al servidor todavía. No usar en una emergencia real. El alcance completo del Word sigue vigente.
 
 ## Ejecutar en Windows
 
@@ -26,8 +26,9 @@ Maven Wrapper descarga Maven 3.9.11; no exige instalar Maven por separado. Java 
 - `pom.xml`: dependencias y controles de compilación.
 - `RedAuxilioApplication`: inicia el servidor.
 - `publications/PublicationController`: recibe las consultas de pantalla y API.
-- `publications/PublicationService`: valida categoría y filtra datos ficticios.
+- `publications/PublicationService`: valida filtros y área, excluye contenido oculto y entrega datos ficticios.
 - `templates/index.html`: pantalla inicial.
+- `static/map.js`: mapa, agrupación y selección de reportes con Leaflet.
 - `static/app.js`: consulta la API y conserva el borrador en IndexedDB.
 - `static/sw.js`: guarda solo recursos y consultas públicas de demostración, con fecha de almacenamiento; no guarda operaciones de escritura.
 - `PublicationTests`: verifica consulta, categorías inválidas y recursos públicos.
@@ -72,3 +73,7 @@ En Windows sustituir ./mvnw por mvnw.cmd. Activar formato al guardar en los edit
 Crear las ramas de trabajo desde develop: feat/RA-XX-descripcion, fix/RA-XX-descripcion, docs/nombre o chore/nombre. PR hacia develop con revisión del compañero y comprobaciones aprobadas. main recibe únicamente promociones desde develop. Mensaje: tipo(modulo): descripción en infinitivo imperativo [RA-XX]; tipos feat, fix, docs, refactor, test, style y chore. Para tareas transversales, enlazar la tarjeta de gestión en el PR sin inventar una historia funcional.
 
 La rama RA-00 se creó antes de adoptar develop; se conserva su historial y se ajusta el destino del PR. Los commits anteriores son antecedentes y no se reescriben. La aprobación de la guía no equivale a aprobar automáticamente el código ni a completar el DoD.
+
+## Validar RA-02
+
+Leer [RA02.md](RA02.md) para contrato, proveedor, casos de prueba y pendientes. Ejecutar `npm test` además de formato y Maven. El mapa base requiere conexión; la lista sigue disponible si el CDN o la cartografía fallan. Las bibliotecas CDN no se guardan con el service worker.

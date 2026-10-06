@@ -31,4 +31,4 @@ Sin persistencia, autenticación ni publicación real; borrador local no publica
 4. Contrastar DoR/selección y estimación propuesta 6–8 horas-persona con Santiago; no consta acuerdo. No declarar Trello terminado ni DoD completo.
 5. Atender #5 y revisión final #6; integrar cumpliendo estándares.
 
-Lectura mínima: este estado y AGENTS.md; ESTANDARES.md al aplicar normas, RA02.md para aceptación, VALIDACION_WINDOWS.md para ejecución. GUIA_CODIGO.md y .interface-design/system.md solo al estudiar código/diseño. Skills locales redauxilio-windows y redauxilio-entrega; no presumir transferidas otras skills de conversaciones previas.
+Lectura mínima: este estado y AGENTS.md; ESTANDARES.md al aplicar normas, RA02.md para aceptación, VALIDACION_WINDOWS.md para ejecución. GUIA_CODIGO.md y .interface-design/system.md solo al estudiar código/diseño. Skills globales: validar-app-local, preparar-entrega, regresion-ui, validar-rendimiento y verificar-trazabilidad; leen los comandos y criterios de este proyecto. Sustituyen redauxilio-windows y redauxilio-entrega; no presumir transferidas otras skills de conversaciones previas.

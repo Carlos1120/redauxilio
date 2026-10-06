@@ -8,3 +8,13 @@
 - PR hacia develop, revisión real del compañero y comprobaciones sobre la versión final; integración por squash. No inventar aprobaciones, pruebas ni estados del tablero.
 - No descartar cambios, hacer force push, subir secretos ni ampliar el alcance. No delegar por defecto ni trabajar simultáneamente sobre la misma rama/carpeta.
 - Explicar avances en español breve; distinguir resultados del agente, validación humana y pendientes. Actualizar el traspaso al cerrar el bloque.
+
+## Mapa de trabajo
+
+- Aceptación/API: RA02.md; ejecución Windows: VALIDACION_WINDOWS.md; resultados: EVIDENCIAS.md.
+- Servidor: src/main/java/co/redauxilio/publications/PublicationController.java y PublicationService.java.
+- UI: src/main/resources/templates/index.html y src/main/resources/static/{app.js,map.js,app.css}.
+- PWA: src/main/resources/static/sw.js y manifest.webmanifest.
+- Pruebas: src/test/java/co/redauxilio/publications/PublicationTests.java y src/test/js/map.test.cjs.
+- Calidad/versiones: pom.xml, package.json; CI: .github/workflows/verify.yml; PR: .github/PULL_REQUEST_TEMPLATE.md.
+- Consultar comandos en VALIDACION_WINDOWS.md; no cargar todos los archivos del mapa por rutina.

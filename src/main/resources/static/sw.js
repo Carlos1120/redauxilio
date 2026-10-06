@@ -1,5 +1,5 @@
 "use strict";
-const CACHE = "redauxilio-demo-v1";
+const CACHE = "redauxilio-demo-v2";
 const SHELL = ["/", "/app.css", "/app.js", "/manifest.webmanifest", "/icon.svg"];
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(SHELL)));

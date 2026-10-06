@@ -23,7 +23,7 @@ Instantánea del 6 de octubre de 2026 (Colombia). Normas en AGENTS.md y ESTANDAR
 Guía de continuidad visual preparada a petición de Santiago para el PR #8: ESTANDARES_INTERFAZ.md. AGENTS.md y README.md la enlazan; .interface-design/system.md remite a una única dirección Onest/rojo. La guía requiere revisión de Carlos; no modifica la aplicación ni registra su aprobación.
 
 1. Consultar CI y commit final del PR #8; Carlos revisa código, criterios y evidencias conforme al estándar.
-2. Confirmar instalación PWA, desconexión total/reconexión, teclado y accesibilidad sobre el rediseño. Reutilizar solo las evidencias previas sin impacto; no repetir carga del servidor sin nueva incertidumbre.
+2. Santiago confirmó instalación PWA y desconexión/reconexión sobre la sesión de `63b5389`. Codex completó teclado y Lighthouse (100/100 móvil/escritorio), y corrigió la superposición del detalle sobre el borrador. Consultar la última sección de EVIDENCIAS.md; Carlos debe revisar el commit final y comprobar los recursos PWA finales. No atribuir aprobación del PR a Santiago por esta confirmación.
 3. Resolver bloqueantes, completar la revisión y luego integrar por squash con pruebas sobre develop. No declarar DoD ni mover Trello por cuenta del agente.
 
 Servidor de IntelliJ 8080 preservado; puede requerir reinicio para cargar plantillas nuevas. La instancia propia 8081 se usa como vista previa y puede detenerse. Tarjeta RA-02: https://trello.com/c/LYDxDTZT.

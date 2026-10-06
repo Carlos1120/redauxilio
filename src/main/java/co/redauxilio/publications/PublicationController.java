@@ -1,10 +1,13 @@
 package co.redauxilio.publications;
 
 import java.util.List;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.server.ResponseStatusException;
 
 @Controller
 public class PublicationController {
@@ -22,7 +25,27 @@ public class PublicationController {
   @GetMapping("/api/publications")
   @ResponseBody
   public List<PublicationService.Publication> list(
-      @RequestParam(required = false) String category) {
-    return service.findPublications(category);
+      @RequestParam(required = false) String category,
+      @RequestParam(required = false) String operationalStatus,
+      @RequestParam(required = false) String confidenceLevel,
+      @RequestParam(defaultValue = "false") boolean includeClosed,
+      @RequestParam(required = false) Double south,
+      @RequestParam(required = false) Double west,
+      @RequestParam(required = false) Double north,
+      @RequestParam(required = false) Double east) {
+    PublicationService.Bounds bounds = null;
+    if (south != null || west != null || north != null || east != null) {
+      if (south == null || west == null || north == null || east == null)
+        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Área incompleta");
+      bounds = new PublicationService.Bounds(south, west, north, east);
+    }
+    return service.findPublications(
+        category, operationalStatus, confidenceLevel, includeClosed, bounds);
+  }
+
+  @GetMapping("/api/publications/{id}")
+  @ResponseBody
+  public PublicationService.Publication detail(@PathVariable long id) {
+    return service.findPublication(id);
   }
 }

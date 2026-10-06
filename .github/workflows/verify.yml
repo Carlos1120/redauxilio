@@ -21,6 +21,7 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run format:check
+      - run: npm test
       - run: chmod +x mvnw
       - run: ./mvnw -B verify
       - uses: actions/upload-artifact@v7

@@ -59,3 +59,11 @@ Codex de OpenAI generó y comprobó esta base con herramientas automáticas. Car
 ## Ajuste a la guía aprobada
 
 Prettier 3.9.9 y sus seis opciones aprobadas incorporados; npm ci y format:check reproducibles. Formato de JS, CSS, HTML, Markdown, JSON y manifiesto aplicado. Propiedades operationalStatus y confidenceLevel diferenciadas en servidor y cliente; nombres de funciones en inglés con acción y dominio. Configuración compartida de sangría y plantilla de PR con los seis criterios DoR y ocho DoD. Comprobación local repetida después del ajuste: verify aprobado, 14 ejecuciones sin fallos, Spotless y PMD aprobados. La cobertura de esta pequeña base no acredita cobertura de módulos críticos aún no implementados.
+
+## Interfaz con ui-ux-design-pro
+
+Se aplicaron las 12 referencias del ZIP proporcionado por Carlos. Consulta principal, borrador secundario, fichas con estado/confianza/fecha separados, diseño claro, foco visible, campos con ayuda, enlace para saltar al contenido y estados de carga/vacío/error. Sin descarga de fuentes o dependencias de UI. Cache v2 para distinguir los recursos nuevos. Patrón persistido en .interface-design/system.md.
+
+La aprobación automática no reemplaza pruebas reales de teclado, lector de pantalla, instalación ni desconexión/reconexión. La revisión humana final sigue pendiente; no se declara certificación WCAG.
+
+Contraste de pares principales calculado: texto principal 13.47:1, secundario 7.49:1, metadatos 6.09:1, acción 7.90:1, aviso 6.26:1 y conexión 6.39:1. Referencia: https://www.w3.org/TR/WCAG22/ . Se inspeccionó una representación estática del diseño; no equivale a una prueba en navegador. El navegador de esta sesión bloquea archivos locales.

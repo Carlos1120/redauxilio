@@ -1,6 +1,5 @@
 package co.redauxilio.identity;
 
-import java.time.Instant;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -11,9 +10,11 @@ import org.springframework.stereotype.Service;
 @Service
 class CitizenUserDetailsService implements UserDetailsService {
   private final CitizenAccountRepository repository;
+  private final java.time.Clock clock;
 
-  CitizenUserDetailsService(CitizenAccountRepository repository) {
+  CitizenUserDetailsService(CitizenAccountRepository repository, java.time.Clock clock) {
     this.repository = repository;
+    this.clock = clock;
   }
 
   @Override
@@ -22,7 +23,8 @@ class CitizenUserDetailsService implements UserDetailsService {
         repository
             .findByEmail(CitizenAccountService.normalizeEmail(email))
             .orElseThrow(() -> new UsernameNotFoundException("Cuenta no disponible"));
-    boolean locked = account.lockedUntil() != null && Instant.now().isBefore(account.lockedUntil());
+    boolean locked =
+        account.lockedUntil() != null && clock.instant().isBefore(account.lockedUntil());
     return User.withUsername(account.email())
         .password(account.passwordHash())
         .roles("CITIZEN")

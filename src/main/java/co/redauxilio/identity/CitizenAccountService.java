@@ -5,7 +5,6 @@ import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Locale;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,11 +21,6 @@ class CitizenAccountService {
   private final CitizenAccountRepository repository;
   private final PasswordEncoder passwordEncoder;
   private final Clock clock;
-
-  @Autowired
-  CitizenAccountService(CitizenAccountRepository repository, PasswordEncoder passwordEncoder) {
-    this(repository, passwordEncoder, Clock.systemUTC());
-  }
 
   CitizenAccountService(
       CitizenAccountRepository repository, PasswordEncoder passwordEncoder, Clock clock) {

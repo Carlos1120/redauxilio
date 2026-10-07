@@ -14,6 +14,11 @@ import org.springframework.web.filter.OncePerRequestFilter;
 class SessionLifetimeFilter extends OncePerRequestFilter {
   static final String AUTHENTICATED_AT = "redauxilio.authenticatedAt";
   private static final Duration MAXIMUM_LIFETIME = Duration.ofHours(24);
+  private final java.time.Clock clock;
+
+  SessionLifetimeFilter(java.time.Clock clock) {
+    this.clock = clock;
+  }
 
   @Override
   protected void doFilterInternal(
@@ -23,7 +28,7 @@ class SessionLifetimeFilter extends OncePerRequestFilter {
     Object authenticatedAt = session == null ? null : session.getAttribute(AUTHENTICATED_AT);
     if (request.getUserPrincipal() != null
         && authenticatedAt instanceof Instant startedAt
-        && !Instant.now().isBefore(startedAt.plus(MAXIMUM_LIFETIME))) {
+        && !clock.instant().isBefore(startedAt.plus(MAXIMUM_LIFETIME))) {
       session.invalidate();
       response.sendRedirect("/login?expired");
       return;

@@ -20,13 +20,15 @@ Instantánea del 6 de octubre de 2026 (Colombia). Normas en AGENTS.md y ESTANDAR
 
 ## Trabajo actual: RA-01
 
-- Rama `feat/RA-01-acceso-ciudadano` parte del `develop` actualizado después de integrar PR #8 (`bb97f9b`); `git fetch origin` confirmó que la base remota sigue alineada. Se publicó `aa8929f` (`feat(identity): agregar acceso ciudadano inicial [RA-01]`) en `origin/feat/RA-01-acceso-ciudadano`, por autorización explícita de Santiago. No se abrió PR ni se integró; revisión de Carlos pendiente.
+- Rama `feat/RA-01-acceso-ciudadano` parte del `develop` actualizado después de integrar PR #8 (`bb97f9b`). El PR #9 está abierto hacia `develop` y Carlos1120 fue solicitado como revisor. Esta actualización añade pruebas de seguridad RA-01 y corrige expiración de sesión; ver resultados y límites en el apartado final de `EVIDENCIAS.md`.
 - La implementación inicial cubre formulario de registro, acceso y salida, persistencia local H2 con perfil PostgreSQL, BCrypt, bloqueo temporal y expiración absoluta de sesión. Alcance y supuestos: RA01.md.
-- Verificación local: `npm.cmd run format:check`, `npm.cmd test` (9/9) y `mvnw.cmd -B verify` (23/23 Java, Spotless y PMD) aprobados con la base H2 de tests en memoria. La verificación inicial contra el archivo H2 predeterminado chocó con la instancia abierta de IntelliJ; no se modificó esa base. EVIDENCIAS.md registra alcance y límites.
-- Pendientes: pruebas automatizadas de RA-01 (registro, credenciales, duplicado, bloqueo, expiración, acceso directo y CSRF), revisión de Carlos, estimación/confirmación humana y estado sincronizado en Trello. No declarar RA-01 terminada.
+- Verificación local actual: `mvnw.cmd -B verify` con 30 pruebas Java aprobadas, `npm.cmd test` 11/11 y Prettier, Spotless y PMD aprobados. La base de tests H2 está en memoria; la instancia local de IntelliJ no se modificó.
+- Los siete casos automatizados específicos de identidad cubren registro, correo duplicado/normalización, contraseña incorrecta, bloqueo al quinto intento y al límite exacto de 15 min, expiración absoluta de sesión a 24 h, ruta privada/logout y CSRF.
+- Responsive: formulario comprobado a 360×800, 768×1024 y 1366×768. PWA: shell público cargado offline en Edge; ruta de registro excluida de caché. Falta instalación manual de PWA desde Edge/Chrome.
+- Pendientes: revisión/decisión humana de Carlos, CI del nuevo commit, integrar y validar el resultado en `develop`. Santiago dejó Trello en En progreso; no modificarlo ni marcar RA-01 terminada.
 
 Seguir la guía visual existente para nuevos formularios. Santiago autorizó el commit y push del avance actual; esto no autoriza PR, merge ni integración. No subir cuentas ni contraseñas reales. No marcar RA-01 lista hasta ejecutar los casos específicos, completar revisión de Carlos y las comprobaciones sobre develop.
 
-Servidor de IntelliJ 8080 preservado; puede requerir reinicio para cargar plantillas nuevas. La instancia propia 8081 quedó levantada con H2 en memoria y el formulario de registro abierto para Santiago. Tarjeta RA-02: https://trello.com/c/LYDxDTZT.
+Servidor de IntelliJ 8080 preservado; la instancia propia 8081 usa H2 en memoria. No crear cuentas con datos reales. Tarjeta RA-01: https://trello.com/c/25iI3xgM. Tarjeta RA-02: https://trello.com/c/LYDxDTZT.
 
 Lectura mínima: este estado y AGENTS.md; secciones finales de RA02.md/EVIDENCIAS.md; ESTANDARES.md al aplicar reglas.

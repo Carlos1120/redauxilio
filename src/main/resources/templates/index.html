@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="es">
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -15,6 +15,106 @@
   </head>
   <body>
     <a class="skip-link" href="#main-content">Saltar al contenido</a>
+    <dialog
+      id="identity-dialog"
+      aria-labelledby="identity-title"
+      th:attr="data-initial-view=${identityMode}"
+      th:open="${identityMode != 'none'}"
+    >
+      <div class="identity-dialog-heading">
+        <p class="eyebrow">ACCESO CIUDADANO</p>
+        <button id="identity-close" type="button" aria-label="Cerrar acceso">×</button>
+      </div>
+      <section class="identity-panel" data-access-panel="login">
+        <h2 id="identity-title">Inicia sesión</h2>
+        <p>Ingresa con el correo asociado a tu cuenta.</p>
+        <p class="identity-message" role="status" th:if="${param.error}">
+          No fue posible iniciar sesión. Revisa tus datos o intenta de nuevo más tarde.
+        </p>
+        <p class="identity-message" role="status" th:if="${param.signedout}">Cerraste la sesión.</p>
+        <p class="identity-message" role="status" th:if="${registered}">
+          Cuenta creada. Ya puedes iniciar sesión.
+        </p>
+        <form th:action="@{/login}" method="post" class="identity-form">
+          <label for="identity-email">Correo electrónico</label>
+          <input
+            id="identity-email"
+            name="username"
+            type="email"
+            autocomplete="username"
+            required
+          />
+          <label for="identity-password">Contraseña</label>
+          <input
+            id="identity-password"
+            name="password"
+            type="password"
+            autocomplete="current-password"
+            required
+          />
+          <button class="identity-submit" type="submit">Iniciar sesión</button>
+        </form>
+        <p class="identity-footnote">
+          ¿Aún no tienes cuenta?
+          <button class="identity-switch" type="button" data-show-view="register">
+            Regístrate
+          </button>
+        </p>
+      </section>
+      <section class="identity-panel" data-access-panel="register">
+        <h2 id="register-title">Crea tu cuenta</h2>
+        <p>Usaremos tu correo para identificar tu cuenta.</p>
+        <form
+          th:action="@{/register}"
+          th:object="${registrationForm}"
+          method="post"
+          class="identity-form"
+        >
+          <div class="identity-message" role="alert" th:if="${#fields.hasGlobalErrors()}">
+            <p th:each="error : ${#fields.globalErrors()}" th:text="${error}"></p>
+          </div>
+          <label for="displayName">Nombre para mostrar</label>
+          <input th:field="*{displayName}" autocomplete="name" maxlength="80" required />
+          <p
+            class="field-error"
+            th:if="${#fields.hasErrors('displayName')}"
+            th:errors="*{displayName}"
+          ></p>
+          <label for="email">Correo electrónico</label>
+          <input th:field="*{email}" type="email" autocomplete="email" maxlength="254" required />
+          <p class="field-error" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></p>
+          <label for="password">Contraseña</label>
+          <input
+            th:field="*{password}"
+            type="password"
+            autocomplete="new-password"
+            minlength="12"
+            maxlength="72"
+            required
+          />
+          <small>Usa al menos 12 caracteres.</small>
+          <p
+            class="field-error"
+            th:if="${#fields.hasErrors('password')}"
+            th:errors="*{password}"
+          ></p>
+          <button class="identity-submit" type="submit">Crear cuenta</button>
+        </form>
+        <p class="identity-footnote">
+          ¿Ya tienes cuenta?
+          <button class="identity-switch" type="button" data-show-view="login">
+            Inicia sesión
+          </button>
+        </p>
+      </section>
+      <section class="identity-panel" data-access-panel="account">
+        <h2 id="account-title">Sesión iniciada</h2>
+        <p>Tu cuenta ciudadana está activa.</p>
+        <form th:action="@{/logout}" method="post" class="identity-form">
+          <button class="identity-submit" type="submit">Cerrar sesión</button>
+        </form>
+      </section>
+    </dialog>
     <header class="site-header">
       <div class="header-content">
         <a class="brand" href="#main-content"
@@ -33,6 +133,18 @@
         </nav>
         <a class="header-action" href="#draft-section">＋ Nuevo borrador</a>
         <span id="connection" class="connection-status" role="status">Comprobando conexión</span>
+        <button
+          id="identity-open"
+          class="identity-trigger"
+          type="button"
+          aria-label="Acceso ciudadano"
+          aria-haspopup="dialog"
+          aria-controls="identity-dialog"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M20 21a8 8 0 0 0-16 0M12 13a5 5 0 1 0 0-10 5 5 0 0 0 0 10Z" />
+          </svg>
+        </button>
       </div>
     </header>
     <main id="main-content" tabindex="-1">

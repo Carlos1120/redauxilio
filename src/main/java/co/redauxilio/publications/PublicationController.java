@@ -21,12 +21,6 @@ public class PublicationController {
     this.service = service;
   }
 
-  /** Devuelve el nombre de la plantilla que Spring renderiza como página inicial. */
-  @GetMapping("/")
-  public String home() {
-    return "index";
-  }
-
   /**
    * Consulta reportes combinando los filtros enviados por el navegador. Sin límites geográficos
    * consulta cualquier ubicación; si se envía un límite, exige los cuatro para definir el área. Los

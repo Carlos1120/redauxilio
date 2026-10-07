@@ -45,7 +45,8 @@ self.addEventListener("fetch", (event) => {
   // La lista permitida evita capturar futuras rutas privadas o enviar mapas externos a esta caché.
   if (event.request.method !== "GET" || url.origin !== self.location.origin) return;
   const publicQuery = url.pathname === "/api/publications";
-  if (!publicQuery && !SHELL.includes(url.pathname)) return;
+  const publicShell = SHELL.includes(url.pathname) && !(url.pathname === "/" && url.search);
+  if (!publicQuery && !publicShell) return;
   event.respondWith(
     (async () => {
       const cache = await caches.open(CACHE);

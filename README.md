@@ -4,7 +4,7 @@ PWA colaborativa de información georreferenciada ante terremotos. Equipo 4: Car
 
 ## Primera versión ejecutable
 
-Consulta pública con mapa Leaflet, agrupación y filtros por categoría, estado, confianza y área visible; detalle de reportes ficticios, borrador local y base PWA. La propuesta RA-02 está en validación; sin persistencia, autenticación ni publicación al servidor todavía. No usar en una emergencia real. El alcance completo del Word sigue vigente.
+Consulta pública con mapa Leaflet, agrupación y filtros por categoría, estado, confianza y área visible; detalle de reportes ficticios, borrador local y base PWA. RA-02 está integrada en develop. RA-01 agrega registro y acceso ciudadano; el borrador no publica reportes al servidor. No usar en una emergencia real. El alcance completo del Word sigue vigente.
 
 ## Ejecutar en Windows
 
@@ -19,7 +19,11 @@ Consulta pública con mapa Leaflet, agrupación y filtros por categoría, estado
 
 `chmod +x mvnw`, después `./mvnw verify` y `./mvnw spring-boot:run`.
 
-Maven Wrapper descarga Maven 3.9.11; no exige instalar Maven por separado. Java mínimo 17. Spring Boot 3.5.16. Puerto configurable por variable PORT. No se necesita PostgreSQL para este incremento de datos ficticios.
+Maven Wrapper descarga Maven 3.9.11; no exige instalar Maven por separado. Java mínimo 17. Spring Boot 3.5.16. Puerto configurable por variable PORT. El modo local usa una base H2 persistente bajo `data/`, excluida de Git. Para desplegar, activar el perfil `prod` y definir `DB_URL`, `DB_USERNAME`, `DB_PASSWORD` y `SESSION_COOKIE_SECURE=true` con PostgreSQL; nunca guardar secretos en el repositorio.
+
+## Acceso ciudadano (RA-01)
+
+El correo normalizado identifica la cuenta. La contraseña requiere al menos 12 caracteres, se conserva como hash BCrypt con sal aleatoria y no se registra en texto. Cinco intentos fallidos bloquean esa cuenta durante 15 minutos. La sesión rota su identificador al entrar, usa cookie HttpOnly/SameSite=Lax y termina al cumplir 24 horas. Formularios conservan protección CSRF. El registro no valida que el correo pertenezca a la persona ni habilita todavía publicaciones.
 
 ## Entender el código
 

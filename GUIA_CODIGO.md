@@ -1,6 +1,6 @@
 # Cómo leer el código de RedAuxilio
 
-Esta guía explica la implementación actual de RA-00 y la propuesta RA-02. El código y las pruebas son la referencia: todavía se utilizan datos ficticios en memoria, sin base de datos del servidor ni autenticación. Los comentarios explicativos están en español; los identificadores siguen en inglés según ESTANDARES.md.
+Esta guía explica la base RA-00, RA-02 integrada y el inicio de implementación de RA-01. La consulta geográfica conserva datos ficticios en memoria; RA-01 agrega cuentas persistidas y autenticación en la rama de trabajo. Los comentarios explicativos están en español; los identificadores siguen en inglés según ESTANDARES.md.
 
 ## Orden para empezar
 
@@ -10,6 +10,7 @@ Esta guía explica la implementación actual de RA-00 y la propuesta RA-02. El c
 | `RedAuxilioApplication.java`                         | `main` inicia Spring Boot. Spring construye y conecta los objetos que tienen anotaciones como `@Controller` y `@Service`.                                                                                                                         |
 | `publications/PublicationController.java`            | Entrada de las peticiones. `/` devuelve la plantilla `index`; `/api/publications` devuelve la consulta JSON; `/api/publications/{id}` devuelve un detalle visible.                                                                                |
 | `publications/PublicationService.java`               | Valida filtros y aplica las reglas de visibilidad, cierre y área. Mantiene seis ejemplos: cuatro activos, un cerrado y un oculto.                                                                                                                 |
+| `identity/`                                          | Contiene registro, validación de credenciales, contador de intentos fallidos, sesiones y páginas de acceso de RA-01.                                                                                                                              |
 | `templates/index.html`                               | Define estructura, etiquetas, controles y diálogo. Los `id` conectan cada elemento con `getElement` en JavaScript. Carga Leaflet, `map.js` y `app.js` mediante scripts `defer`, en orden.                                                         |
 | `static/app.js`                                      | Coordina eventos, consulta HTTP, lista, diálogo y borrador local. Empieza por `loadPublications`, `renderPublications` y `executeDraftOperation`.                                                                                                 |
 | `static/map.js`                                      | Encapsula Leaflet: dibujo, agrupación, área visible y restablecimiento. Notifica acciones a `app.js`; no consulta la API.                                                                                                                         |

@@ -20,7 +20,7 @@ Instantánea del 6 de octubre de 2026 (Colombia). Normas en AGENTS.md y ESTANDAR
 
 ## Trabajo actual: RA-01
 
-- Rama `feat/RA-01-acceso-ciudadano` parte del `develop` actualizado después de integrar PR #8 (`bb97f9b`); `git fetch origin` confirmó que la base remota sigue alineada. Se preparan commit y push explícitamente autorizados por Santiago para que Carlos revise el avance; no se abrirá PR ni se integrará sin una instrucción posterior.
+- Rama `feat/RA-01-acceso-ciudadano` parte del `develop` actualizado después de integrar PR #8 (`bb97f9b`); `git fetch origin` confirmó que la base remota sigue alineada. Se publicó `aa8929f` (`feat(identity): agregar acceso ciudadano inicial [RA-01]`) en `origin/feat/RA-01-acceso-ciudadano`, por autorización explícita de Santiago. No se abrió PR ni se integró; revisión de Carlos pendiente.
 - La implementación inicial cubre formulario de registro, acceso y salida, persistencia local H2 con perfil PostgreSQL, BCrypt, bloqueo temporal y expiración absoluta de sesión. Alcance y supuestos: RA01.md.
 - Verificación local: `npm.cmd run format:check`, `npm.cmd test` (9/9) y `mvnw.cmd -B verify` (23/23 Java, Spotless y PMD) aprobados con la base H2 de tests en memoria. La verificación inicial contra el archivo H2 predeterminado chocó con la instancia abierta de IntelliJ; no se modificó esa base. EVIDENCIAS.md registra alcance y límites.
 - Pendientes: pruebas automatizadas de RA-01 (registro, credenciales, duplicado, bloqueo, expiración, acceso directo y CSRF), revisión de Carlos, estimación/confirmación humana y estado sincronizado en Trello. No declarar RA-01 terminada.

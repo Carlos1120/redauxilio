@@ -379,6 +379,8 @@ Se conservan sin repetir las suites Java/Node y RNF-01 anteriores porque la corr
 
 Rama `feat/RA-01-acceso-ciudadano`, basada en `develop` posterior a PR #8 (`bb97f9bdced4e031bd00d8916c0f5caa80dfd1fc`). Santiago autorizó implementar y publicar este avance para revisión de Carlos. Los resultados siguientes fueron obtenidos por Codex en Windows con Corretto 21.0.10; no son validación humana.
 
+Versión funcional publicada: `aa8929f` (`feat(identity): agregar acceso ciudadano inicial [RA-01]`). Esta publicación crea una rama remota para revisión; no abre un PR, integra cambios ni cierra la historia.
+
 Se agregaron formularios Thymeleaf integrados en un diálogo de la consulta para registro, inicio/cierre de sesión y cuenta; Spring Security con CSRF por defecto y rutas autenticadas por defecto; cuentas persistidas en H2 local y configuración PostgreSQL bajo el perfil `prod`; contraseñas BCrypt, contador y bloqueo de 15 minutos después de cinco credenciales erradas y vencimiento absoluto de sesión a las 24 horas. La consulta pública permanece accesible anónimamente. Supuestos y criterios aún por comprobar están en RA01.md.
 
 | Comprobación                                                                                    | Resultado                                                                                                                                                          |

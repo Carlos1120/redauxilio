@@ -4,11 +4,12 @@
  * Intenta primero la red; solo ante un fallo de red utiliza una copia previamente guardada.
  * No almacena borradores, operaciones de escritura, bibliotecas CDN ni cartografía externa.
  */
-const CACHE = "redauxilio-demo-v6";
+const CACHE = "redauxilio-demo-v7";
 const SHELL = [
   "/",
   "/app.css",
   "/app.js",
+  "/identity-forms.js",
   "/map.js",
   "/manifest.webmanifest",
   "/icon.svg",
@@ -23,7 +24,17 @@ const SHELL = [
 ];
 self.addEventListener("install", (event) => {
   // waitUntil mantiene la instalación abierta hasta guardar los recursos iniciales de la pantalla.
-  event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(SHELL)));
+  event.waitUntil(
+    caches.open(CACHE).then(async (cache) => {
+      await cache.addAll(SHELL.filter((path) => path !== "/"));
+      const response = await fetch(new URL("/", self.location.origin));
+      if (!response.ok) throw new Error("No se pudo guardar la pantalla pública inicial.");
+      await cache.put(
+        new URL("/", self.location.origin).href,
+        await removeCachedCsrfTokens(response),
+      );
+    }),
+  );
 });
 self.addEventListener("activate", (event) => {
   // Elimina únicamente versiones anteriores de nuestra caché; no otras cachés del mismo origen.
@@ -55,7 +66,9 @@ self.addEventListener("fetch", (event) => {
         if (response.ok) {
           // Una respuesta tiene un cuerpo consumible una vez: clona para guardar y devolver por separado.
           let stored = response.clone();
-          if (publicQuery) {
+          if (url.pathname === "/") {
+            stored = await removeCachedCsrfTokens(response);
+          } else if (publicQuery) {
             const headers = new Headers(response.headers);
             // Marca la copia, no la respuesta de red, para que app.js pueda mostrar su fecha al recuperarla.
             headers.set("X-RedAuxilio-Saved-At", new Date().toISOString());
@@ -82,3 +95,23 @@ self.addEventListener("fetch", (event) => {
     })(),
   );
 });
+
+/** Quita los tokens de sesión de la copia offline; identity-forms.js obtiene uno vigente antes del POST. */
+async function removeCachedCsrfTokens(response) {
+  const html = await response.clone().text();
+  const sanitized = html.replace(
+    /(<input\b(?=[^>]*\bname=["']_csrf["'])[^>]*)(>)/gi,
+    (match, input, close) => {
+      const withoutToken = input.replace(/\svalue=(["']).*?\1/i, ' value=""');
+      return `${withoutToken}${close}`;
+    },
+  );
+  const headers = new Headers(response.headers);
+  headers.delete("Content-Length");
+  headers.delete("Content-Encoding");
+  return new Response(sanitized, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
+}

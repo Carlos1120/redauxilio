@@ -2,6 +2,7 @@ package co.redauxilio.identity;
 
 import jakarta.servlet.http.HttpSession;
 import java.time.Clock;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -46,7 +47,8 @@ class IdentitySecurityConfiguration {
       DaoAuthenticationProvider authenticationProvider,
       AuthenticationSuccessHandler loginSuccessHandler,
       AuthenticationFailureHandler loginFailureHandler,
-      SessionLifetimeFilter sessionLifetimeFilter)
+      SessionLifetimeFilter sessionLifetimeFilter,
+      @Value("${redauxilio.security.force-https:false}") boolean forceHttps)
       throws Exception {
     http.authorizeHttpRequests(
             authorize ->
@@ -57,6 +59,7 @@ class IdentitySecurityConfiguration {
                         "/login",
                         "/register",
                         "/error",
+                        "/csrf",
                         "/favicon.ico",
                         "/app.css",
                         "/app.js",
@@ -82,6 +85,7 @@ class IdentitySecurityConfiguration {
         .sessionManagement(
             session -> session.sessionFixation(fixation -> fixation.changeSessionId()))
         .addFilterAfter(sessionLifetimeFilter, SecurityContextHolderAwareRequestFilter.class);
+    if (forceHttps) http.requiresChannel(channel -> channel.anyRequest().requiresSecure());
     return http.build();
   }
 

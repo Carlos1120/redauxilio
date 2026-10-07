@@ -22,10 +22,10 @@ Instantánea del 6 de octubre de 2026 (Colombia). Normas en AGENTS.md y ESTANDAR
 
 - Rama `feat/RA-01-acceso-ciudadano` parte del `develop` actualizado después de integrar PR #8 (`bb97f9b`). El PR #9 está abierto hacia `develop` y Carlos1120 fue solicitado como revisor. Esta actualización añade pruebas de seguridad RA-01 y corrige expiración de sesión; ver resultados y límites en el apartado final de `EVIDENCIAS.md`.
 - La implementación inicial cubre formulario de registro, acceso y salida, persistencia local H2 con perfil PostgreSQL, BCrypt, bloqueo temporal y expiración absoluta de sesión. Alcance y supuestos: RA01.md.
-- Verificación local actual: `mvnw.cmd -B verify` con 30 pruebas Java aprobadas, `npm.cmd test` 11/11 y Prettier, Spotless y PMD aprobados. La base de tests H2 está en memoria; la instancia local de IntelliJ no se modificó.
-- Los siete casos automatizados específicos de identidad cubren registro, correo duplicado/normalización, contraseña incorrecta, bloqueo al quinto intento y al límite exacto de 15 min, expiración absoluta de sesión a 24 h, ruta privada/logout y CSRF.
-- Responsive: formulario comprobado a 360×800, 768×1024 y 1366×768. PWA: shell público cargado offline en Edge; ruta de registro excluida de caché. Falta instalación manual de PWA desde Edge/Chrome.
-- Pendientes: revisión/decisión humana de Carlos, CI del nuevo commit, integrar y validar el resultado en `develop`. Santiago dejó Trello en En progreso; no modificarlo ni marcar RA-01 terminada.
+- Respuesta al `REQUEST_CHANGES` de Carlos sobre `422ab2a`: expiración de sesión en rutas públicas corregida; copia del shell sin token CSRF y renovación antes del POST; HTTPS obligatorio en `prod`; correlation-id en cabecera, MDC y logs de errores. Detalle en el apartado del 7 de octubre de `EVIDENCIAS.md`.
+- Verificación de la corrección: `mvnw.cmd -B verify` BUILD SUCCESS (37 Java: 12 identidad, 2 HTTPS, 22 publicaciones, 1 rendimiento; Spotless y PMD); `npm.cmd test` 16/16; Prettier y `git diff --check` aprobados. H2 de tests en memoria; base de IntelliJ intacta.
+- Las pruebas simulan offline → reconexión con el service worker y script real; no son instalación PWA manual ni prueba en Chrome/Edge de escritorio. HTTPS se comprobó con MockMvc, incluido `X-Forwarded-Proto`, no contra un proxy productivo real.
+- Pendientes: registrar un nuevo commit y actualizar el PR #9, CI de ese HEAD, nueva revisión/decisión de Carlos, instalación manual PWA e integración/validación final en `develop`. Santiago/Carlos dejaron Trello En progreso; no tocar la tarjeta ni declarar RA-01 terminada.
 
 Seguir la guía visual existente para nuevos formularios. Santiago autorizó el commit y push del avance actual; esto no autoriza PR, merge ni integración. No subir cuentas ni contraseñas reales. No marcar RA-01 lista hasta ejecutar los casos específicos, completar revisión de Carlos y las comprobaciones sobre develop.
 

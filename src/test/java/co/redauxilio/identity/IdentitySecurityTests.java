@@ -2,16 +2,21 @@ package co.redauxilio.identity;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
@@ -26,6 +31,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
+import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
@@ -41,6 +48,7 @@ class IdentitySecurityTests {
   @Autowired private MockMvc mvc;
   @Autowired private CitizenAccountRepository accounts;
   @Autowired private PasswordEncoder passwordEncoder;
+  @Autowired private ObjectMapper objectMapper;
   @Autowired private MutableClock clock;
 
   @BeforeEach
@@ -211,8 +219,125 @@ class IdentitySecurityTests {
     clock.setInstant(TEST_INSTANT.plus(Duration.ofHours(24)));
     mvc.perform(get("/account").session(session))
         .andExpect(status().is3xxRedirection())
-        .andExpect(redirectedUrl("/login?expired"));
+        .andExpect(redirectedUrl("http://localhost/login"));
     assertTrue(session.isInvalid());
+  }
+
+  @Test
+  void expiredSessionDoesNotInterruptPublicHome() throws Exception {
+    MockHttpSession session = createAuthenticatedSession("expired-home");
+    clock.setInstant(TEST_INSTANT.plus(Duration.ofHours(24)));
+
+    mvc.perform(get("/").session(session))
+        .andExpect(status().isOk())
+        .andExpect(view().name("index"))
+        .andExpect(
+            org.springframework.test.web.servlet.result.MockMvcResultMatchers.model()
+                .attribute("identityMode", "none"));
+
+    assertTrue(session.isInvalid());
+  }
+
+  @Test
+  void expiredSessionDoesNotReplacePublicationsJsonWithLoginHtml() throws Exception {
+    MockHttpSession session = createAuthenticatedSession("expired-api");
+    clock.setInstant(TEST_INSTANT.plus(Duration.ofHours(24)));
+
+    mvc.perform(get("/api/publications").session(session))
+        .andExpect(status().isOk())
+        .andExpect(
+            content()
+                .contentTypeCompatibleWith(org.springframework.http.MediaType.APPLICATION_JSON))
+        .andExpect(jsonPath("$").isArray());
+
+    assertTrue(session.isInvalid());
+  }
+
+  @Test
+  void csrfRefreshEndpointIsNotCachedAndItsTokenAuthenticates() throws Exception {
+    String email = uniqueEmail("fresh-csrf");
+    register(email);
+    MvcResult tokenResult =
+        mvc.perform(get("/csrf"))
+            .andExpect(status().isOk())
+            .andExpect(
+                org.springframework.test.web.servlet.result.MockMvcResultMatchers.header()
+                    .string("Cache-Control", "no-store"))
+            .andExpect(jsonPath("$.parameterName").value("_csrf"))
+            .andExpect(jsonPath("$.token").isNotEmpty())
+            .andReturn();
+    String token =
+        objectMapper.readTree(tokenResult.getResponse().getContentAsString()).get("token").asText();
+    MockHttpSession session = (MockHttpSession) tokenResult.getRequest().getSession(false);
+    assertNotNull(session);
+
+    mvc.perform(
+            post("/login")
+                .session(session)
+                .param("_csrf", token)
+                .param("username", email)
+                .param("password", VALID_PASSWORD))
+        .andExpect(status().is3xxRedirection())
+        .andExpect(redirectedUrl("/?access=account"));
+  }
+
+  @Test
+  void responsesCarrySafeCorrelationIdsAndClearRequestContext() throws Exception {
+    String suppliedId = "a2320f1b-df0a-4788-885f-b023ed483d1a";
+    mvc.perform(get("/api/publications").header("X-Correlation-ID", suppliedId))
+        .andExpect(status().isOk())
+        .andExpect(
+            org.springframework.test.web.servlet.result.MockMvcResultMatchers.header()
+                .string("X-Correlation-ID", suppliedId));
+    assertNull(org.slf4j.MDC.get(CorrelationIdFilter.MDC_KEY));
+
+    MvcResult invalidId =
+        mvc.perform(get("/api/publications").header("X-Correlation-ID", "no-id"))
+            .andExpect(status().isOk())
+            .andReturn();
+    String generatedId = invalidId.getResponse().getHeader("X-Correlation-ID");
+    assertNotNull(generatedId);
+    assertNotEquals("no-id", generatedId);
+    assertEquals(generatedId, java.util.UUID.fromString(generatedId).toString());
+    assertNull(org.slf4j.MDC.get(CorrelationIdFilter.MDC_KEY));
+  }
+
+  @Test
+  void correlationIdRemainsInServerLogContextDuringErrorsAndIsClearedAfterward() {
+    String correlationId = "a2320f1b-df0a-4788-885f-b023ed483d1a";
+    MockHttpServletRequest request = new MockHttpServletRequest();
+    request.setMethod("GET");
+    request.setRequestURI("/solicitud-de-prueba");
+    request.addHeader("X-Correlation-ID", correlationId);
+    MockHttpServletResponse response = new MockHttpServletResponse();
+
+    assertThrows(
+        jakarta.servlet.ServletException.class,
+        () ->
+            new CorrelationIdFilter()
+                .doFilterInternal(
+                    request,
+                    response,
+                    (requestInChain, responseInChain) -> {
+                      assertEquals(correlationId, org.slf4j.MDC.get(CorrelationIdFilter.MDC_KEY));
+                      throw new jakarta.servlet.ServletException("fallo sintético");
+                    }));
+    assertEquals(correlationId, response.getHeader("X-Correlation-ID"));
+    assertNull(org.slf4j.MDC.get(CorrelationIdFilter.MDC_KEY));
+  }
+
+  private MockHttpSession createAuthenticatedSession(String prefix) throws Exception {
+    String email = uniqueEmail(prefix);
+    register(email);
+    MvcResult login =
+        mvc.perform(
+                post("/login")
+                    .with(csrf())
+                    .param("username", email)
+                    .param("password", VALID_PASSWORD))
+            .andExpect(status().is3xxRedirection())
+            .andReturn();
+    return (MockHttpSession) login.getRequest().getSession(false);
   }
 
   @Test

@@ -470,4 +470,4 @@ No se intentó registrar con los datos de la captura. La explicación de duplica
 
 ### Estado remoto de RA-01 — 8 de octubre de 2026
 
-GitHub marca el [PR #9](https://github.com/Carlos1120/redauxilio/pull/9) como integrado en `develop` el 8 de octubre. Los cambios de perfil y refinamiento se preservaron y trasladaron a `feat/RA-01-perfil-ciudadano`, basada en `origin/develop` `12d7939`; no forman parte del PR anterior. Esto confirma la integración del PR, pero no las pruebas post-merge en `develop`, la instalación manual PWA ni la validación de los cambios locales. No se modificó Trello.
+GitHub marca el [PR #9](https://github.com/Carlos1120/redauxilio/pull/9) como integrado en `develop` el 8 de octubre. Los cambios de perfil y refinamiento se preservaron y trasladaron a `feat/RA-01-perfil-ciudadano`, basada en `origin/develop` `12d7939`; el commit `3673ad6` está publicado en `origin`. Estos cambios no forman parte del PR anterior y aún no tienen PR de seguimiento. Esto confirma la integración del PR #9, pero no las pruebas post-merge en `develop`, la instalación manual PWA ni la validación humana del cambio nuevo. No se modificó Trello.

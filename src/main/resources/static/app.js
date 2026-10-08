@@ -80,16 +80,6 @@ const reportMap = window.RedAuxilioMap?.create(
 );
 getElement("reset-map").disabled = !reportMap;
 getElement("reset-map").addEventListener("click", () => reportMap?.reset());
-function updateConnectionStatus() {
-  // onLine indica conectividad del navegador; no garantiza que servidor o proveedor respondan.
-  getElement("connection").dataset.offline = String(!navigator.onLine);
-  getElement("connection").textContent = navigator.onLine
-    ? "Conexión de red disponible"
-    : "Sin conexión · consulta la caché";
-}
-window.addEventListener("online", updateConnectionStatus);
-window.addEventListener("offline", updateConnectionStatus);
-updateConnectionStatus();
 function createReportElement(tag, className, text) {
   const element = document.createElement(tag);
   element.className = className;
@@ -133,7 +123,8 @@ function renderPublications(items) {
       fact.append(createReportElement("dt", "", label), createReportElement("dd", "", value));
       facts.append(fact);
     }
-    const date = createReportElement("p", "report-date", "Fecha del reporte: ");
+    // La ficha muestra la última actualización de la API, no una fecha de verificación.
+    const date = createReportElement("p", "report-date", "Actualizado: ");
     const timestamp = createReportElement(
       "time",
       "",
@@ -350,7 +341,10 @@ function setIdentityView(view) {
     panel.hidden = panel.dataset.accessPanel !== activeView;
   }
   const title = identityDialog.querySelector(`[data-access-panel="${activeView}"] h2`);
-  if (title?.id) identityDialog.setAttribute("aria-labelledby", title.id);
+  if (title?.id) {
+    identityDialog.setAttribute("aria-labelledby", title.id);
+    title.tabIndex = -1;
+  }
 }
 setIdentityView(identityDialog.dataset.initialView);
 if (identityDialog.open) {
@@ -358,8 +352,22 @@ if (identityDialog.open) {
   identityDialog.showModal();
 }
 getElement("identity-open").addEventListener("click", () => {
-  setIdentityView("login");
+  setIdentityView(
+    getElement("identity-open").dataset.authenticated === "true" ? "account" : "login",
+  );
   identityDialog.showModal();
+});
+window.addEventListener("redauxilio:identity-change", (event) => {
+  const { authenticated, message } = event.detail;
+  window.RedAuxilioIdentityStatus?.setAuthenticated(authenticated);
+  setIdentityView(authenticated ? "account" : "login");
+  const status = getElement("identity-action-message");
+  status.textContent = message;
+  status.hidden = false;
+  if (!identityDialog.open) identityDialog.showModal();
+  identityDialog
+    .querySelector(`[data-access-panel="${authenticated ? "account" : "login"}"] h2`)
+    ?.focus();
 });
 getElement("identity-close").addEventListener("click", () => identityDialog.close());
 for (const button of identityDialog.querySelectorAll("[data-show-view]")) {

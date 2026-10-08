@@ -2,6 +2,8 @@ package co.redauxilio.identity;
 
 import jakarta.validation.Valid;
 import org.springframework.dao.DuplicateKeyException;
+import org.springframework.http.CacheControl;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
@@ -11,6 +13,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 /** Presenta formularios de acceso y delega el registro en el servicio de cuentas. */
@@ -31,6 +34,7 @@ class IdentityPageController {
     String identityMode = allowedIdentityMode(access);
     if ("account".equals(identityMode) && citizen == null) identityMode = "login";
     model.addAttribute("identityMode", identityMode);
+    model.addAttribute("authenticated", citizen != null);
     return "index";
   }
 
@@ -49,20 +53,23 @@ class IdentityPageController {
       @Valid @ModelAttribute("registrationForm") RegistrationForm form,
       BindingResult bindingResult,
       Model model,
-      RedirectAttributes redirectAttributes) {
+      RedirectAttributes redirectAttributes,
+      @AuthenticationPrincipal UserDetails citizen) {
     if (bindingResult.hasErrors()) {
-      setRegistrationErrorView(model);
+      setRegistrationErrorView(model, citizen);
       return "index";
     }
     try {
       accounts.register(form.getEmail(), form.getDisplayName(), form.getPassword());
     } catch (DuplicateKeyException exception) {
-      bindingResult.reject("registration.failed", "No fue posible crear la cuenta con esos datos.");
-      setRegistrationErrorView(model);
+      bindingResult.reject(
+          "registration.duplicate",
+          "El correo podría estar asociado a una cuenta. Inicia sesión o prueba con otro correo.");
+      setRegistrationErrorView(model, citizen);
       return "index";
     } catch (IllegalArgumentException exception) {
       bindingResult.reject("registration.failed", exception.getMessage());
-      setRegistrationErrorView(model);
+      setRegistrationErrorView(model, citizen);
       return "index";
     }
     redirectAttributes.addFlashAttribute("registered", true);
@@ -74,6 +81,15 @@ class IdentityPageController {
     return "redirect:/?access=account";
   }
 
+  /** Expone únicamente nombre y correo de la cuenta autenticada para el panel de perfil. */
+  @GetMapping(path = "/api/account", produces = "application/json")
+  @ResponseBody
+  ResponseEntity<CitizenProfile> profile(@AuthenticationPrincipal UserDetails citizen) {
+    return ResponseEntity.ok()
+        .cacheControl(CacheControl.noStore())
+        .body(accounts.findProfile(citizen.getUsername()));
+  }
+
   private String allowedIdentityMode(String access) {
     return switch (access == null ? "" : access) {
       case "login", "register", "account" -> access;
@@ -81,7 +97,8 @@ class IdentityPageController {
     };
   }
 
-  private void setRegistrationErrorView(Model model) {
+  private void setRegistrationErrorView(Model model, UserDetails citizen) {
     model.addAttribute("identityMode", "register");
+    model.addAttribute("authenticated", citizen != null);
   }
 }

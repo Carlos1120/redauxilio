@@ -14,8 +14,9 @@ function loadWorker(fetchImpl = async () => new Response("contenido de prueba", 
     addEventListener: (type, listener) => listeners.set(type, listener),
   };
   const entries = new Map();
+  const precached = [];
   const cache = {
-    addAll: async () => {},
+    addAll: async (paths) => precached.push(...paths),
     put: async (request, response) =>
       entries.set(typeof request === "string" ? request : request.url, response.clone()),
     match: async (request) =>
@@ -37,7 +38,7 @@ function loadWorker(fetchImpl = async () => new Response("contenido de prueba", 
   };
   const source = fs.readFileSync(path.join(__dirname, "../../main/resources/static/sw.js"), "utf8");
   vm.runInNewContext(source, context, { filename: "sw.js" });
-  return { listeners, entries };
+  return { listeners, entries, precached };
 }
 
 function fetchEvent(worker, url, method = "GET") {
@@ -60,6 +61,15 @@ test("la consulta pública sin parámetros queda bajo la estrategia de caché", 
   assert.equal(await response.text(), "contenido de prueba");
 });
 
+test("el shell precarga el script que mantiene el indicador de sesión y conexión", async () => {
+  const worker = loadWorker();
+  let installation;
+  worker.listeners.get("install")({ waitUntil: (promise) => (installation = promise) });
+  await installation;
+
+  assert.ok(worker.precached.includes("/identity-status.js"));
+});
+
 test("el service worker no intercepta pantallas de acceso ni escrituras", () => {
   const worker = loadWorker();
   assert.equal(fetchEvent(worker, "http://localhost:8081/?access=register"), undefined);
@@ -75,7 +85,7 @@ test("la copia offline del shell no conserva tokens CSRF de la sesión anterior"
   const worker = loadWorker(async () => {
     if (!isOnline) throw new Error("sin conexión");
     return new Response(
-      '<form method="post"><input type="hidden" name="_csrf" value="token-antiguo"></form>',
+      '<button data-authenticated="true"></button><form method="post"><input type="hidden" name="_csrf" value="token-antiguo"></form>',
       { status: 200, headers: { "Content-Type": "text/html", "Content-Length": "101" } },
     );
   });
@@ -85,6 +95,7 @@ test("la copia offline del shell no conserva tokens CSRF de la sesión anterior"
   const cached = worker.entries.get("http://localhost:8081/").clone();
   const offlineHtml = await cached.text();
   assert.doesNotMatch(offlineHtml, /token-antiguo/);
+  assert.match(offlineHtml, /data-authenticated="false"/);
   assert.match(offlineHtml, /name="_csrf" value=""/);
   assert.equal(cached.headers.get("content-length"), null);
 
@@ -145,7 +156,11 @@ test("flujo offline → reconexión renueva CSRF antes de permitir login", async
       querySelectorAll: () => [form],
       getElementById: () => message,
     },
-    navigator: { get onLine() { return isOnline; } },
+    navigator: {
+      get onLine() {
+        return isOnline;
+      },
+    },
     fetch: async (url, options) => {
       assert.equal(url, "/csrf");
       assert.equal(options.cache, "no-store");

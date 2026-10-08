@@ -12,6 +12,7 @@
     <script src="/vendor/leaflet/leaflet.js" defer></script>
     <script src="/map.js" defer></script>
     <script src="/identity-forms.js" defer></script>
+    <script src="/identity-status.js" defer></script>
     <script src="/app.js" defer></script>
   </head>
   <body>
@@ -26,6 +27,7 @@
         <p class="eyebrow">ACCESO CIUDADANO</p>
         <button id="identity-close" type="button" aria-label="Cerrar acceso">×</button>
       </div>
+      <p id="identity-action-message" class="identity-message" role="status" hidden></p>
       <p id="identity-csrf-message" class="identity-message" role="status" hidden></p>
       <section class="identity-panel" data-access-panel="login">
         <h2 id="identity-title">Inicia sesión</h2>
@@ -110,8 +112,18 @@
         </p>
       </section>
       <section class="identity-panel" data-access-panel="account">
-        <h2 id="account-title">Sesión iniciada</h2>
-        <p>Tu cuenta ciudadana está activa.</p>
+        <h2 id="account-title">Mi cuenta</h2>
+        <p id="account-load-message" role="status">Tu cuenta ciudadana está activa.</p>
+        <dl class="identity-profile" aria-label="Perfil ciudadano">
+          <div>
+            <dt>Nombre</dt>
+            <dd id="account-name">Cargando perfil…</dd>
+          </div>
+          <div>
+            <dt>Correo de la cuenta</dt>
+            <dd id="account-email">Cargando perfil…</dd>
+          </div>
+        </dl>
         <form th:action="@{/logout}" method="post" class="identity-form">
           <button class="identity-submit" type="submit">Cerrar sesión</button>
         </form>
@@ -134,19 +146,23 @@
           ><a href="#draft-section">Borrador</a>
         </nav>
         <a class="header-action" href="#draft-section">＋ Nuevo borrador</a>
-        <span id="connection" class="connection-status" role="status">Comprobando conexión</span>
-        <button
-          id="identity-open"
-          class="identity-trigger"
-          type="button"
-          aria-label="Acceso ciudadano"
-          aria-haspopup="dialog"
-          aria-controls="identity-dialog"
-        >
-          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-            <path d="M20 21a8 8 0 0 0-16 0M12 13a5 5 0 1 0 0-10 5 5 0 0 0 0 10Z" />
-          </svg>
-        </button>
+        <div class="identity-controls">
+          <span id="connection-indicator" class="connection-indicator" aria-hidden="true"></span>
+          <span id="connection" class="sr-only" role="status" aria-live="polite"></span>
+          <button
+            id="identity-open"
+            class="identity-trigger"
+            type="button"
+            aria-label="Acceso ciudadano"
+            aria-haspopup="dialog"
+            aria-controls="identity-dialog"
+            th:attr="data-authenticated=${authenticated}"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="M20 21a8 8 0 0 0-16 0M12 13a5 5 0 1 0 0-10 5 5 0 0 0 0 10Z" />
+            </svg>
+          </button>
+        </div>
       </div>
     </header>
     <main id="main-content" tabindex="-1">

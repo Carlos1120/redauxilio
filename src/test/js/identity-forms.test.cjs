@@ -80,3 +80,83 @@ test("si no se puede obtener un token fresco, no envía el token almacenado", as
   assert.equal(form.message.hidden, false);
   assert.match(form.message.textContent, /Conéctate a Internet/);
 });
+
+test("login y logout usan CSRF y actualizan sesión sin navegación completa", async () => {
+  for (const [action, destination, authenticated] of [
+    ["/login", "http://localhost/?access=account", true],
+    ["/logout", "http://localhost/?access=login&signedout", false],
+  ]) {
+    const listeners = new Map();
+    const events = [];
+    const csrfField = { value: "token-antiguo" };
+    const message = { textContent: "", hidden: true };
+    const form = {
+      action: `http://localhost${action}`,
+      dataset: {},
+      reset() {},
+      addEventListener: (name, callback) => listeners.set(name, callback),
+      querySelector: (selector) =>
+        selector === 'input[name="_csrf"]'
+          ? csrfField
+          : selector === 'input[type="password"]'
+            ? { value: "secreto" }
+            : null,
+      requestSubmit: async () => listeners.get("submit")({ preventDefault() {}, submitter: null }),
+    };
+    const context = {
+      document: {
+        querySelectorAll: () => [form],
+        getElementById: () => message,
+      },
+      navigator: { onLine: true },
+      window: {
+        location: { origin: "http://localhost" },
+        dispatchEvent: (event) => events.push(event),
+      },
+      CustomEvent: class CustomEvent {
+        constructor(type, options) {
+          this.type = type;
+          this.detail = options.detail;
+        }
+      },
+      FormData: class FormDataMock {
+        [Symbol.iterator]() {
+          return [
+            ["username", "prueba@example.test"],
+            ["_csrf", csrfField.value],
+          ][Symbol.iterator]();
+        }
+      },
+      URL,
+      URLSearchParams,
+      fetch: async (url, options) => {
+        if (url === "/csrf")
+          return {
+            ok: true,
+            json: async () => ({ parameterName: "_csrf", token: "token-fresco" }),
+          };
+        assert.equal(options.method, "POST");
+        assert.equal(options.credentials, "same-origin");
+        assert.match(String(options.body), /token-fresco/);
+        return { ok: true, url: destination };
+      },
+    };
+    const source = fs.readFileSync(
+      path.join(__dirname, "../../main/resources/static/identity-forms.js"),
+      "utf8",
+    );
+    vm.runInNewContext(source, context, { filename: "identity-forms.js" });
+    let navigationPrevented = false;
+    await listeners.get("submit")({
+      preventDefault: () => {
+        navigationPrevented = true;
+      },
+      submitter: null,
+    });
+
+    assert.equal(navigationPrevented, true);
+    assert.equal(events[0].type, "redauxilio:identity-change");
+    assert.equal(events[0].detail.authenticated, authenticated);
+    assert.equal(message.hidden, true);
+  }
+});

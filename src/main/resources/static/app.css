@@ -1139,6 +1139,62 @@ main {
   box-shadow: 0 3px 20px rgb(28 20 20 / 14%);
   overflow-y: auto;
 }
+
+/* Formularios de acceso integrados en la interfaz principal del mapa. */
+.identity-form {
+  display: grid;
+  gap: 10px;
+  margin-top: 24px;
+}
+.identity-form label {
+  margin-top: 8px;
+  color: #1c1414;
+  font-weight: 700;
+}
+.identity-form input {
+  min-height: 48px;
+  padding: 10px 12px;
+  border: 1px solid #9c8e8e;
+  border-radius: 10px;
+  background: #fff;
+  color: #1c1414;
+  font: inherit;
+}
+.identity-form input:focus-visible,
+.identity-form button:focus-visible {
+  outline: 3px solid #d7262e;
+  outline-offset: 3px;
+}
+.identity-submit {
+  min-height: 48px;
+  margin-top: 12px;
+  padding: 12px 16px;
+  border: 0;
+  border-radius: 10px;
+  background: #d7262e;
+  color: #fff;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+}
+.identity-submit:hover {
+  background: #a3151c;
+}
+.identity-message {
+  padding: 12px 14px;
+  border-left: 4px solid #d7262e;
+  border-radius: 8px;
+  background: #f5f1f1;
+  color: #1c1414;
+}
+.field-error {
+  margin: 0;
+  color: #a3151c;
+  font-weight: 600;
+}
+.identity-footnote {
+  margin-top: 22px;
+}
 .detail-top {
   display: flex;
   align-items: center;
@@ -1342,5 +1398,108 @@ footer {
   }
   .draft-section {
     margin: 24px 16px;
+  }
+}
+.identity-trigger {
+  display: grid;
+  width: 38px;
+  min-width: 38px;
+  min-height: 38px;
+  padding: 8px;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: #f5f1f1;
+  color: #5a4e4e;
+}
+.identity-trigger:hover {
+  background: #fdecec;
+  color: #a3151c;
+}
+.identity-trigger svg {
+  width: 21px;
+  height: 21px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+}
+#identity-dialog {
+  width: min(440px, calc(100% - 28px));
+  max-width: none;
+  max-height: calc(100dvh - 28px);
+  padding: 24px;
+  border: 1px solid #e9dede;
+  border-radius: 18px;
+  background: #fff;
+  color: #1c1414;
+  box-shadow: 0 18px 60px rgb(28 20 20 / 22%);
+  overflow-y: auto;
+}
+#identity-dialog::backdrop {
+  background: rgb(28 20 20 / 48%);
+  backdrop-filter: blur(2px);
+}
+#identity-dialog .identity-dialog-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+#identity-dialog .identity-dialog-heading .eyebrow {
+  color: #a3151c;
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+#identity-dialog #identity-close {
+  width: 36px;
+  min-width: 36px;
+  min-height: 36px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: #f5f1f1;
+  color: #1c1414;
+  font-size: 1.3rem;
+}
+#identity-dialog .identity-panel[hidden] {
+  display: none !important;
+}
+#identity-dialog .identity-panel h2 {
+  margin: 0 0 8px;
+  font-size: clamp(1.55rem, 4vw, 1.9rem);
+  line-height: 1.2;
+}
+#identity-dialog .identity-panel > p:not(.identity-message, .identity-footnote) {
+  color: #5a4e4e;
+}
+#identity-dialog .identity-form {
+  margin-top: 20px;
+}
+#identity-dialog .identity-footnote {
+  margin-bottom: 0;
+  color: #5a4e4e;
+}
+#identity-dialog .identity-switch {
+  display: inline;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #a3151c;
+  font: inherit;
+  font-weight: 750;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+#identity-dialog .identity-switch:hover {
+  background: transparent;
+  color: #6e0f14;
+}
+@media (max-width: 520px) {
+  #identity-dialog {
+    padding: 20px;
   }
 }

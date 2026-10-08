@@ -341,6 +341,33 @@ executeDraftOperation("readonly", (store) => store.get("current"))
   .catch(() => {
     getElement("draft-message").textContent = "Almacenamiento local no disponible.";
   });
+const identityDialog = getElement("identity-dialog");
+function setIdentityView(view) {
+  const allowedViews = ["login", "register", "account"];
+  const activeView = allowedViews.includes(view) ? view : "login";
+  identityDialog.dataset.initialView = activeView;
+  for (const panel of identityDialog.querySelectorAll("[data-access-panel]")) {
+    panel.hidden = panel.dataset.accessPanel !== activeView;
+  }
+  const title = identityDialog.querySelector(`[data-access-panel="${activeView}"] h2`);
+  if (title?.id) identityDialog.setAttribute("aria-labelledby", title.id);
+}
+setIdentityView(identityDialog.dataset.initialView);
+if (identityDialog.open) {
+  identityDialog.close();
+  identityDialog.showModal();
+}
+getElement("identity-open").addEventListener("click", () => {
+  setIdentityView("login");
+  identityDialog.showModal();
+});
+getElement("identity-close").addEventListener("click", () => identityDialog.close());
+for (const button of identityDialog.querySelectorAll("[data-show-view]")) {
+  button.addEventListener("click", () => setIdentityView(button.dataset.showView));
+}
+identityDialog.addEventListener("click", (event) => {
+  if (event.target === identityDialog) identityDialog.close();
+});
 // El registro habilita caché de recursos/consultas; el primer acceso aún necesita descargar recursos.
 if ("serviceWorker" in navigator)
   navigator.serviceWorker.register("/sw.js").catch(() => {

@@ -471,3 +471,9 @@ No se intentó registrar con los datos de la captura. La explicación de duplica
 ### Estado remoto de RA-01 — 8 de octubre de 2026
 
 GitHub marca el [PR #9](https://github.com/Carlos1120/redauxilio/pull/9) como integrado en `develop` el 8 de octubre. Los cambios de perfil y refinamiento se preservaron y trasladaron a `feat/RA-01-perfil-ciudadano`, basada en `origin/develop` `12d7939`; el commit `3673ad6` está publicado en `origin`. Estos cambios no forman parte del PR anterior y aún no tienen PR de seguimiento. Esto confirma la integración del PR #9, pero no las pruebas post-merge en `develop`, la instalación manual PWA ni la validación humana del cambio nuevo. No se modificó Trello.
+
+## Corrección de controles táctiles RA-02 — 14 de octubre de 2026
+
+Codex revisó `origin/develop` `125d93a` en un checkout aislado, rama `fix/RA-02-controles-tactiles`, con Edge y un servidor local en `localhost:18084` sobre H2 en memoria. La inspección detectó el enlace del logotipo de 28 px de alto y los enlaces de atribución Leaflet/OpenStreetMap de 16 px. La casilla «Incluir casos cerrados» mide 20 px, pero su etiqueta pulsable mide 48 px. Los demás controles visibles medidos alcanzaron al menos 44×44 px en 360×800, 768×1024 y 1366×768.
+
+Tras el ajuste de CSS, el logotipo y los enlaces de atribución alcanzan 44 px de alto en los tres tamaños. A 360 y 768 px se separaron la leyenda, el zoom, el botón de restablecer y la atribución; se comprobaron sus rectángulos y se inspeccionó visualmente la vista móvil. `mvnw.cmd -B verify` con Corretto 21.0.10: BUILD SUCCESS; `npm.cmd test`: 23/23; `npm.cmd run format:check` y `git diff --check`: aprobados. Esta es una comprobación del agente, no una revisión humana ni una auditoría completa de accesibilidad. La observación anterior de controles de 38 px no se reprodujo en esta base.

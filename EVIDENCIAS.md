@@ -480,9 +480,11 @@ El PR #10 se integró por squash como `125d93a315c4bee50e2af747cb6c5106373c0cc9`
 
 La [tarjeta RA-01](https://trello.com/c/25iI3xgM) ya estaba en Terminado al consultarla; su descripción conservaba un estado antiguo del PR #9. Codex actualizó la descripción con los enlaces del PR #10, la revisión humana y la CI posterior al merge, sin atribuirse la decisión previa de moverla a Terminado.
 
-## RA-03: implementación local — 14 de octubre de 2026 (Colombia)
+## RA-03: implementación y PR en borrador — 14 de octubre de 2026 (Colombia)
 
 Sobre `feat/RA-03-publicacion-georreferenciada` desde `develop` `125d93a`, Codex implementó creación autenticada y transaccional de puntos/vías, límite de cinco por cuenta y hora con bloqueo de la cuenta, consulta pública sin autor, ubicación manual/mapa/GPS y búsqueda a petición mediante proxy Nominatim. El service worker precarga el nuevo formulario sin interceptar POST. `RA03.md` delimita el alcance y las decisiones de Santiago.
+
+La rama se publicó y se abrió el [PR #11 en borrador](https://github.com/Carlos1120/redauxilio/pull/11) hacia `develop`; no hay aprobación ni integración en esta evidencia. La CI del PR estaba en curso al abrirlo.
 
 Comprobación del agente en Windows con Corretto 21.0.10 y Node 24.16.0: `mvnw.cmd spotless:apply verify` **BUILD SUCCESS**, 46 pruebas Java, Spotless y PMD; `npm.cmd test` **23/23**; `npm.cmd run format:check` y `git diff --check` aprobaron. Las pruebas nuevas cubren autenticación/CSRF, validación y ausencia de fila parcial, persistencia, visibilidad, dos cuentas, cupo secuencial y concurrente; un proveedor HTTP local cubre caché, separación temporal de consultas y fallo de búsqueda sin llamar a Nominatim público.
 

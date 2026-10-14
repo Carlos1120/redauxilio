@@ -1,10 +1,19 @@
 package co.redauxilio.publications;
 
+import java.net.URI;
 import java.util.List;
+import java.util.Map;
+import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.server.ResponseStatusException;
@@ -16,9 +25,11 @@ import org.springframework.web.server.ResponseStatusException;
 @Controller
 public class PublicationController {
   private final PublicationService service;
+  private final PublicationCreationService creation;
 
-  public PublicationController(PublicationService service) {
+  public PublicationController(PublicationService service, PublicationCreationService creation) {
     this.service = service;
+    this.creation = creation;
   }
 
   /**
@@ -52,5 +63,33 @@ public class PublicationController {
   @ResponseBody
   public PublicationService.Publication detail(@PathVariable long id) {
     return service.findPublication(id);
+  }
+
+  /**
+   * Publica solo con una cuenta autenticada; devuelve el mismo objeto que lista, mapa y detalle.
+   */
+  @PostMapping(
+      path = "/api/publications",
+      consumes = "application/json",
+      produces = "application/json")
+  @ResponseBody
+  public ResponseEntity<PublicationService.Publication> create(
+      @AuthenticationPrincipal UserDetails citizen, @RequestBody CreatePublicationRequest request) {
+    long id = creation.create(citizen.getUsername(), request);
+    return ResponseEntity.created(URI.create("/api/publications/" + id))
+        .cacheControl(CacheControl.noStore())
+        .body(service.findPublication(id));
+  }
+
+  /** Expone solo errores de validación conocidos; nunca una traza o una excepción de base. */
+  @ExceptionHandler(ResponseStatusException.class)
+  @ResponseBody
+  ResponseEntity<Map<String, String>> publicationError(ResponseStatusException exception) {
+    return ResponseEntity.status(exception.getStatusCode())
+        .cacheControl(CacheControl.noStore())
+        .body(
+            Map.of(
+                "message",
+                exception.getReason() == null ? "Solicitud inválida" : exception.getReason()));
   }
 }

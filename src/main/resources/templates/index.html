@@ -14,6 +14,7 @@
     <script src="/identity-forms.js" defer></script>
     <script src="/identity-status.js" defer></script>
     <script src="/app.js" defer></script>
+    <script src="/publication-form.js" defer></script>
   </head>
   <body>
     <a class="skip-link" href="#main-content">Saltar al contenido</a>
@@ -143,9 +144,9 @@
         </label>
         <nav aria-label="Secciones">
           <a href="#map-title">Mapa</a><a href="#publications">Reportes</a
-          ><a href="#draft-section">Borrador</a>
+          ><a href="#draft-section">Publicar</a>
         </nav>
-        <a class="header-action" href="#draft-section">＋ Nuevo borrador</a>
+        <a class="header-action" href="#draft-section">＋ Nueva publicación</a>
         <div class="identity-controls">
           <span id="connection-indicator" class="connection-indicator" aria-hidden="true"></span>
           <span id="connection" class="sr-only" role="status" aria-live="polite"></span>
@@ -174,10 +175,10 @@
       <aside class="notice notice-demo" aria-label="Aviso de demostración">
         <span class="notice-icon" aria-hidden="true">!</span>
         <div>
-          <strong>DEMOSTRACIÓN · reportes y ubicaciones ficticios</strong>
+          <strong>DEMOSTRACIÓN · información comunitaria sin verificar</strong>
           <p>
-            Todos los reportes de esta versión son ficticios. Esta versión no publica reportes ni
-            muestra información oficial. No la uses para tomar decisiones durante una emergencia.
+            Los reportes iniciales son ficticios. Las publicaciones de cuentas son comunitarias y no
+            tienen verificación oficial. No la uses para tomar decisiones durante una emergencia.
           </p>
         </div>
       </aside>
@@ -306,28 +307,104 @@
           </dialog>
         </section>
         <section id="draft-section" class="draft-section" aria-labelledby="draft-title">
-          <p class="eyebrow">SOLO EN TU DISPOSITIVO</p>
-          <h2 id="draft-title">Prepara un borrador</h2>
+          <p class="eyebrow">PUBLICACIÓN CIUDADANA</p>
+          <h2 id="draft-title">Prepara un punto o una vía</h2>
           <p id="draft-help">
-            Borrador local de demostración. Solo se guarda en este navegador. No crea una
-            publicación. Usa información ficticia.
+            Guarda un borrador solo en este navegador o inicia sesión para publicarlo. No incluyas
+            documentos personales, historias médicas, domicilios privados ni datos de contacto.
           </p>
           <form id="draft-form" aria-describedby="draft-help">
+            <div class="publication-fields">
+              <div class="field">
+                <label for="publication-category">Tipo de publicación</label>
+                <select id="publication-category">
+                  <option value="ASSISTANCE">Punto de asistencia</option>
+                  <option value="ROAD">Vía afectada</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="publication-title">Nombre del punto o tramo de la vía</label>
+                <input id="publication-title" maxlength="120" autocomplete="off" />
+              </div>
+              <div id="assistance-fields" class="publication-specific">
+                <div class="field">
+                  <label for="assistance-subtype">Subtipo del punto</label>
+                  <select id="assistance-subtype">
+                    <option value="SHELTER">Refugio</option>
+                    <option value="COLLECTION">Centro de acopio</option>
+                    <option value="MEDICAL_CENTER">Centro médico</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="assistance-status">Disponibilidad</label>
+                  <select id="assistance-status">
+                    <option value="DISPONIBLE">Disponible</option>
+                    <option value="CAPACIDAD LIMITADA">Capacidad limitada</option>
+                    <option value="LLENO">Lleno</option>
+                  </select>
+                </div>
+              </div>
+              <div id="road-fields" class="publication-specific" hidden>
+                <div class="field">
+                  <label for="road-impact">Tipo de afectación</label>
+                  <select id="road-impact">
+                    <option value="DERRUMBE">Derrumbe</option>
+                    <option value="INUNDACIÓN">Inundación</option>
+                    <option value="DAÑO ESTRUCTURAL">Daño estructural</option>
+                    <option value="OTRO">Otro</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="road-status">Transitabilidad</label>
+                  <select id="road-status">
+                    <option value="BLOQUEADA">Bloqueada</option>
+                    <option value="PARCIALMENTE HABILITADA">Parcialmente habilitada</option>
+                    <option value="HABILITADA">Habilitada</option>
+                  </select>
+                </div>
+              </div>
+            </div>
             <div class="field">
               <label for="draft-text">¿Qué quieres reportar?</label
               ><textarea
                 id="draft-text"
                 maxlength="1000"
-                required
-                placeholder="Describe un reporte ficticio…"
+                placeholder="Describe la situación sin datos personales…"
                 aria-describedby="description-help"
               ></textarea
               ><small id="description-help"
-                >Hasta 1000 caracteres. No incluyas datos personales reales.</small
+                >Hasta 1000 caracteres. No incluyas datos personales.</small
               >
             </div>
             <fieldset>
-              <legend>Ubicación del borrador</legend>
+              <legend>Ubicación de la publicación</legend>
+              <div class="field">
+                <label for="publication-location">Sector o lugar público</label>
+                <input id="publication-location" maxlength="160" autocomplete="off" />
+              </div>
+              <div class="location-actions">
+                <button type="button" id="select-location" class="secondary-button">
+                  Señalar en mapa
+                </button>
+                <button type="button" id="use-device-location" class="secondary-button">
+                  Usar mi ubicación
+                </button>
+              </div>
+              <div class="field">
+                <label for="place-query">Buscar lugar o dirección pública</label>
+                <div class="location-search">
+                  <input id="place-query" type="search" maxlength="160" />
+                  <button type="button" id="search-place" class="secondary-button">Buscar</button>
+                </div>
+                <small
+                  >La consulta se envía a OpenStreetMap Nominatim. No busques domicilios
+                  privados.</small
+                >
+              </div>
+              <ul id="place-results" class="place-results" aria-label="Lugares encontrados"></ul>
+              <p id="location-message" role="status" aria-live="polite">
+                Puedes escribir coordenadas o elegir un punto en el mapa.
+              </p>
               <div class="coordinate-fields">
                 <div class="field">
                   <label for="latitude">Latitud</label
@@ -337,7 +414,6 @@
                     min="-90"
                     max="90"
                     step="any"
-                    required
                     aria-describedby="latitude-help"
                   /><small id="latitude-help">Entre −90 y 90</small>
                 </div>
@@ -349,7 +425,6 @@
                     min="-180"
                     max="180"
                     step="any"
-                    required
                     aria-describedby="longitude-help"
                   /><small id="longitude-help">Entre −180 y 180</small>
                 </div>
@@ -357,13 +432,14 @@
             </fieldset>
             <div class="draft-actions">
               <button type="submit">Guardar borrador</button
+              ><button type="button" id="publish-report">Publicar con mi cuenta</button
               ><button type="button" id="discard" class="secondary-button">
                 Descartar borrador
               </button>
             </div>
           </form>
           <p id="draft-message" class="draft-message" role="status" aria-live="polite">
-            El borrador no se envía al servidor.
+            Guardar borrador no lo publica. La publicación necesita respuesta del servidor.
           </p>
         </section>
       </div>

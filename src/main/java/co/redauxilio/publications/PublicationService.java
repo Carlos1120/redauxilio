@@ -3,11 +3,15 @@ package co.redauxilio.publications;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import java.util.stream.Stream;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-/** Consulta sintética; controla visibilidad y cierre antes de devolver datos públicos. */
+/**
+ * Combina ejemplos y publicaciones persistidas; controla visibilidad y cierre antes de responder.
+ */
 @Service
 public class PublicationService {
   private static final Set<String> CATEGORIES =
@@ -29,6 +33,7 @@ public class PublicationService {
   private static final Set<String> CONFIDENCE =
       Set.of("REPORTADA", "CONFIRMADA", "VERIFICADA", "EN_REVISION", "DESACTUALIZADA");
   private final List<Entry> publications;
+  private CitizenPublicationRepository citizenPublications;
 
   /**
    * Carga seis ejemplos en memoria: cuatro activos, uno cerrado y uno oculto. No son registros
@@ -111,6 +116,20 @@ public class PublicationService {
     this.publications = List.copyOf(publications);
   }
 
+  /** En producción agrega los reportes persistidos; la instancia sintética de carga no usa base. */
+  @Autowired(required = false)
+  void setCitizenPublications(CitizenPublicationRepository repository) {
+    this.citizenPublications = repository;
+  }
+
+  private Stream<Publication> visiblePublications() {
+    Stream<Publication> examples =
+        publications.stream().filter(Entry::visible).map(Entry::publication);
+    return citizenPublications == null
+        ? examples
+        : Stream.concat(examples, citizenPublications.findVisible().stream());
+  }
+
   private static Publication sample(
       long id,
       String category,
@@ -150,9 +169,7 @@ public class PublicationService {
     String statusFilter = normalize(operationalStatus, STATUSES, "Estado");
     String confidenceFilter = normalize(confidenceLevel, CONFIDENCE, "Confianza");
     // La visibilidad se aplica en servidor: ocultar una tarjeta en JavaScript no protege sus datos.
-    return publications.stream()
-        .filter(Entry::visible)
-        .map(Entry::publication)
+    return visiblePublications()
         .filter(p -> includeClosed || !p.closed())
         .filter(p -> categoryFilter.isEmpty() || p.category().equals(categoryFilter))
         .filter(
@@ -169,9 +186,7 @@ public class PublicationService {
    * responden igual (404) para no revelar por esta ruta la existencia de contenido oculto.
    */
   public Publication findPublication(long id) {
-    return publications.stream()
-        .filter(Entry::visible)
-        .map(Entry::publication)
+    return visiblePublications()
         .filter(p -> p.id() == id)
         .findFirst()
         .orElseThrow(
@@ -238,5 +253,38 @@ public class PublicationService {
       double longitude,
       String description,
       String createdAt,
-      boolean closed) {}
+      boolean closed,
+      String assistanceSubtype,
+      String impactType) {
+    /** Mantiene el contrato de construcción de los seis ejemplos y de la prueba de carga. */
+    public Publication(
+        long id,
+        String category,
+        String title,
+        String location,
+        String operationalStatus,
+        String confidenceLevel,
+        String updatedAt,
+        double latitude,
+        double longitude,
+        String description,
+        String createdAt,
+        boolean closed) {
+      this(
+          id,
+          category,
+          title,
+          location,
+          operationalStatus,
+          confidenceLevel,
+          updatedAt,
+          latitude,
+          longitude,
+          description,
+          createdAt,
+          closed,
+          null,
+          null);
+    }
+  }
 }

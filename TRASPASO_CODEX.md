@@ -1,5 +1,13 @@
 # RedAuxilio: estado para continuar
 
+## Estado comprobado el 13 de octubre de 2026 (Colombia)
+
+Actualización del 14 de octubre: RA-03 está implementada localmente en `feat/RA-03-publicacion-georreferenciada`; 46 pruebas Java, 23 JS, Spotless, PMD, Prettier y diff aprobaron. Edge headless local verificó 360/768/1366 px sin desbordamiento, campos por categoría, borrador parcial, rechazo visual sin sesión y recuperación tras un fallo de red simulado. Detalle y límites en RA03.md y EVIDENCIAS.md. Faltan revisión humana de Carlos, CI y validación tras integración; no marcar RA-03 como Terminado antes de ellas.
+
+- `origin/develop` está en `125d93a`: el [PR #10](https://github.com/Carlos1120/redauxilio/pull/10) de perfil/acceso se integró por squash. Carlos aprobó el HEAD `008ff56`; CI del PR y CI post-integración en `develop` aprobaron. El árbol de archivos del squash coincide con el HEAD aprobado. Detalle en RA01.md y EVIDENCIAS.md.
+- La tarjeta RA-01 se comprobó en Terminado y su descripción se actualizó con PR, revisión y CI actuales. Los apartados históricos que siguen describen estados anteriores; no usarlos como estado vigente del checkout o de GitHub.
+- La siguiente historia prioritaria es [RA-03](https://trello.com/c/bCMIjnzc). Santiago indicó usar sus criterios como alcance, eligió Nominatim público para la demostración y confirmó 24–32 horas-persona propias efectivas hasta el 19 de octubre. Preparación, límites y criterios en RA03.md; la DoD y la revisión de Carlos siguen pendientes.
+
 Instantánea del 6 de octubre de 2026 (Colombia). Normas en AGENTS.md y ESTANDARES.md; contrato en RA02.md; evidencia automática y humana separada en EVIDENCIAS.md.
 
 ## Estado actual

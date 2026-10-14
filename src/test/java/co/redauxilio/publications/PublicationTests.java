@@ -152,13 +152,20 @@ class PublicationTests {
         .andExpect(
             content()
                 .string(
-                    org.hamcrest.Matchers.containsString(
-                        "Todos los reportes de esta versión son ficticios")));
+                    org.hamcrest.Matchers.containsString("Los reportes iniciales son ficticios")));
   }
 
   @ParameterizedTest
   @ValueSource(
-      strings = {"/app.js", "/map.js", "/app.css", "/sw.js", "/manifest.webmanifest", "/icon.svg"})
+      strings = {
+        "/app.js",
+        "/map.js",
+        "/publication-form.js",
+        "/app.css",
+        "/sw.js",
+        "/manifest.webmanifest",
+        "/icon.svg"
+      })
   void servesPwaAssets(String path) throws Exception {
     mvc.perform(get(path)).andExpect(status().isOk());
   }

@@ -4,14 +4,15 @@
  * Intenta primero la red; solo ante un fallo de red utiliza una copia previamente guardada.
  * No almacena borradores, operaciones de escritura, bibliotecas CDN ni cartografía externa.
  */
-// La versión 11 actualiza la cuenta ciudadana y conserva la recuperación offline de recursos propios.
-const CACHE = "redauxilio-demo-v11";
+// La versión 12 incluye el formulario de publicaciones sin guardar respuestas privadas.
+const CACHE = "redauxilio-demo-v12";
 const SHELL = [
   "/",
   "/app.css",
   "/app.js",
   "/identity-forms.js",
   "/identity-status.js",
+  "/publication-form.js",
   "/map.js",
   "/manifest.webmanifest",
   "/icon.svg",

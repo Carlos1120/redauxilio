@@ -66,6 +66,15 @@ if (typeof window !== "undefined") {
       const layer = L.layerGroup().addTo(map);
       const markers = new Map();
       let items = [];
+      let locationSelection = null;
+      // El modo de selección existe solo después de pulsar el botón del formulario.
+      map.on("click", ({ latlng }) => {
+        if (!locationSelection) return;
+        const selected = locationSelection;
+        locationSelection = null;
+        map.getContainer().classList.remove("map-selecting-location");
+        selected(latlng.lat, latlng.lng);
+      });
       const symbols = { ASSISTANCE: "⌂", ROAD: "↔", MISSING_PERSON: "?", HELP_REQUEST: "!" };
       function redraw() {
         // Conserva grupos con los mismos datos para no cerrar su popup al consultar tras autoPan.
@@ -165,6 +174,14 @@ if (typeof window !== "undefined") {
         },
         reset() {
           map.setView([4.145, -73.625], 13, { animate: false });
+        },
+        selectLocation(callback) {
+          locationSelection = callback;
+          map.getContainer().classList.add("map-selecting-location");
+          map.getContainer().scrollIntoView({ block: "center" });
+        },
+        focusOn(latitude, longitude) {
+          map.setView([latitude, longitude], 16, { animate: false });
         },
       };
     },

@@ -4,8 +4,8 @@
  * Intenta primero la red; solo ante un fallo de red utiliza una copia previamente guardada.
  * No almacena borradores, operaciones de escritura, bibliotecas CDN ni cartografía externa.
  */
-// La versión 12 incluye el formulario de publicaciones sin guardar respuestas privadas.
-const CACHE = "redauxilio-demo-v12";
+// La versión 13 recupera la pantalla pública si una URL de acceso se recarga sin red.
+const CACHE = "redauxilio-demo-v13";
 const SHELL = [
   "/",
   "/app.css",
@@ -60,13 +60,15 @@ self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET" || url.origin !== self.location.origin) return;
   const publicQuery = url.pathname === "/api/publications";
   const publicShell = SHELL.includes(url.pathname) && !(url.pathname === "/" && url.search);
-  if (!publicQuery && !publicShell) return;
+  const rootNavigation = url.pathname === "/" && event.request.mode === "navigate";
+  if (!publicQuery && !publicShell && !rootNavigation) return;
   event.respondWith(
     (async () => {
       const cache = await caches.open(CACHE);
       try {
         const response = await fetch(event.request);
-        if (response.ok) {
+        // Las variantes ?access= pueden incluir datos de sesión y nunca se guardan.
+        if (response.ok && (publicQuery || publicShell)) {
           // Una respuesta tiene un cuerpo consumible una vez: clona para guardar y devolver por separado.
           let stored = response.clone();
           if (url.pathname === "/") {
@@ -86,7 +88,11 @@ self.addEventListener("fetch", (event) => {
       } catch {
         // La clave conserva filtros y área de la URL: otra consulta podría no tener copia guardada.
         // HTTP 400/500 no entra aquí: fetch devuelve esos errores al navegador sin ocultarlos con caché.
-        const cached = await cache.match(event.request);
+        // Una recarga privada sin red usa solo el shell público ya saneado.
+        const cached =
+          rootNavigation && url.search
+            ? await cache.match(new URL("/", self.location.origin).href)
+            : await cache.match(event.request);
         return (
           cached ||
           new Response("Consulta no disponible sin conexión", {

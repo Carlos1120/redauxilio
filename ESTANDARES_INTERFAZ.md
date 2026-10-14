@@ -20,7 +20,7 @@ Usar variables CSS de `app.css` en componentes nuevos. No crear una paleta propi
 | Paneles y campos de información    | `#ffffff`             | Usar superficie blanca del componente existente         |
 | Texto principal                    | `#1c1414`             | `--color-report-ink`                                    |
 | Texto secundario                   | `#5a4e4e`             | `--color-report-secondary`                              |
-| Metadatos actuales                 | `#8a7f7f`             | `--color-report-tertiary`                               |
+| Metadatos legibles                 | `#6f6060`             | `--color-report-tertiary`                               |
 | Bordes                             | `#d8cdcd` / `#e9dede` | `--color-report-border`, `--color-report-border-subtle` |
 | Borde de controles                 | `#c9bcbc`             | `--color-control-border`                                |
 | Foco                               | `#d7262e`             | `--color-focus`                                         |
@@ -92,6 +92,22 @@ Mantener Spring Boot, Thymeleaf, JavaScript/CSS propios, Leaflet, manifiesto y s
 La franja roja actual identifica datos ficticios y no anuncia un sismo activo. Nunca mostrar «publicado» por guardar un borrador. Conservar la distinción entre estado operativo y confianza. Textos en español claro; evitar terminología interna del código en los mensajes para visitantes.
 
 ## 9. Lista de revisión para cada cambio de interfaz
+
+### Ajuste local de legibilidad — 8 de octubre de 2026
+
+Propuesta B de Open Design con ajustes de A, solicitada por Santiago para revisión visual;
+pendiente de revisión del compañero e integración. Conserva la dirección Onest/rojo/mapa.
+El panel de consulta usa 376 px en escritorio/tableta y márgenes interiores de 12 px;
+las fichas usan radio de panel, relleno de 12 px, títulos de 18 px y metadatos de 12 px.
+Categoría aparece en una insignia roja suave; estado operativo y confianza se agrupan
+en superficies cálidas paralelas en escritorio y apiladas en móvil. La selección rápida
+usa el rojo de marca. Las fichas muestran fecha de actualización desde la misma API.
+El token terciario se oscurece a `#6f6060`; no usar el gris anterior en texto esencial.
+Filtros, acceso al detalle, zoom y cierres tienen un área de al menos 44×44 px.
+En móvil se conserva el mapa antes de la lista y el detalle modal. La caché v10 renueva
+los recursos de esta presentación; no modifica almacenamiento de borradores ni autenticación.
+
+### Comprobaciones
 
 - [ ] Reutiliza fuente, tokens y componentes; no introduce otra paleta o biblioteca.
 - [ ] Conserva jerarquía, significado de estados y contrato funcional.

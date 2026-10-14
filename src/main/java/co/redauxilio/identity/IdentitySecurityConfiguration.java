@@ -63,6 +63,8 @@ class IdentitySecurityConfiguration {
                         "/favicon.ico",
                         "/app.css",
                         "/app.js",
+                        "/identity-forms.js",
+                        "/identity-status.js",
                         "/map.js",
                         "/sw.js",
                         "/manifest.webmanifest",

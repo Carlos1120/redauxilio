@@ -4,12 +4,14 @@
  * Intenta primero la red; solo ante un fallo de red utiliza una copia previamente guardada.
  * No almacena borradores, operaciones de escritura, bibliotecas CDN ni cartografía externa.
  */
-const CACHE = "redauxilio-demo-v7";
+// La versión 11 actualiza la cuenta ciudadana y conserva la recuperación offline de recursos propios.
+const CACHE = "redauxilio-demo-v11";
 const SHELL = [
   "/",
   "/app.css",
   "/app.js",
   "/identity-forms.js",
+  "/identity-status.js",
   "/map.js",
   "/manifest.webmanifest",
   "/icon.svg",
@@ -99,13 +101,12 @@ self.addEventListener("fetch", (event) => {
 /** Quita los tokens de sesión de la copia offline; identity-forms.js obtiene uno vigente antes del POST. */
 async function removeCachedCsrfTokens(response) {
   const html = await response.clone().text();
-  const sanitized = html.replace(
-    /(<input\b(?=[^>]*\bname=["']_csrf["'])[^>]*)(>)/gi,
-    (match, input, close) => {
+  const sanitized = html
+    .replace(/(<input\b(?=[^>]*\bname=["']_csrf["'])[^>]*)(>)/gi, (match, input, close) => {
       const withoutToken = input.replace(/\svalue=(["']).*?\1/i, ' value=""');
       return `${withoutToken}${close}`;
-    },
-  );
+    })
+    .replace(/\sdata-authenticated=["']true["']/gi, ' data-authenticated="false"');
   const headers = new Headers(response.headers);
   headers.delete("Content-Length");
   headers.delete("Content-Encoding");

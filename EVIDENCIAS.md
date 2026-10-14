@@ -432,3 +432,42 @@ Carlos revisó `422ab2a` y solicitó cuatro correcciones antes de recomendar int
 | `npm.cmd run format:check` y `git diff --check` | Aprobados después de los cambios de código y documentación.                                                                                                                                                  |
 
 RNF-05 y RNF-15 tienen implementación y pruebas de comportamiento en esta rama; su aceptación final sigue sujeta a revisión del compañero y al entorno de despliegue. No se probó una instalación manual PWA ni se verificó un proxy de producción real. GitHub Actions aprobó el commit de código `09d6811` en la [ejecución 37679497399](https://github.com/Carlos1120/redauxilio/actions/runs/37679497399). Carlos fue solicitado de nuevo como revisor. Pendientes: instalación manual PWA y validación final tras integrar en `develop`. Trello permanece En progreso según la actualización de Santiago/Carlos; Codex no modificó la tarjeta. RA-01 no está terminada.
+
+## Refinamiento visual local de la consulta — 8 de octubre de 2026
+
+Codex aplicó la propuesta B de Open Design con ajustes de lectura de A en `app.css` y `app.js`. La guía de interfaz distingue el ajuste de dirección de los resultados observados. La vista usó `http://localhost:8081/`, Corretto 21.0.10, recursos/plantilla servidos desde el árbol actual y H2 en memoria. La instancia preexistente 8080 no se reinició ni se detuvo. HEAD `42ec1f275ef82ac3d2c69951c913e3f090e0d160`; cambios locales, sin commit.
+
+| Comprobación del agente                        | Resultado observado                                                                            |
+| ---------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| 360×800, 768×1024 y 1366×768                   | Sin desplazamiento horizontal; mapa antes de la lista en móvil y lista flotante en escritorio. |
+| Tarjetas del servidor de prueba                | Estado operativo, confianza y fecha de actualización visibles; datos ficticios intactos.       |
+| Detalle a 360 y 768 px                         | Modal centrado; Escape cierra el diálogo y devuelve el foco al botón que lo abrió.             |
+| Detalle a 1366 px                              | Panel lateral; mapa, lista y atribución Leaflet/OpenStreetMap disponibles.                     |
+| Filtros avanzados abiertos en escritorio       | Controles completos y lista desplazable de resultados (aprox. 176 px).                         |
+| `npm.cmd test`                                 | 22/22 pruebas JavaScript aprobadas.                                                            |
+| `npm.cmd run format:check`; `git diff --check` | Aprobados.                                                                                     |
+
+No se revisó instalación PWA ni el estado de desconexión/error cartográfico. No hubo validación humana; las pruebas de Codex no se atribuyen a Santiago o Carlos. La instancia de prueba 8081 permanece activa para inspección.
+
+### Refinamiento más visible solicitado por Santiago
+
+Tras observar la primera vista, Santiago indicó que la diferencia era poco notoria. Codex amplió el panel a 376 px, elevó el título de ficha a 18 px, destacó categorías con insignias de fondo rosado y separó estado operativo y confianza en bloques de fondo cálido. El filtro activo usa ahora el rojo de marca; lista y detalle mantienen jerarquía relacionada. No se añade otra paleta ni se retira el mapa como fondo.
+
+Se revisó la segunda vista en 360×800, 768×1024 y 1366×768. El documento no presenta desplazamiento horizontal; filtros y selectores de tableta caben y el detalle sigue modal en anchos estrechos. En escritorio de 1366×768 el panel gana presencia, aunque se ve aproximadamente una ficha y parte de la siguiente. No se midieron rendimiento, contraste mediante auditoría ni modo offline en esta revisión visual.
+
+## Registro y panel de cuenta — 8 de octubre de 2026
+
+La rama local RA-01 ahora indica que el correo podría estar asociado a otra cuenta cuando el servidor rechaza el registro por clave duplicada, y propone iniciar sesión o probar otro correo. El mensaje evita afirmar la existencia de una cuenta. El perfil se obtiene únicamente desde `/api/account`, ruta autenticada que devuelve nombre y correo; no serializa hash de contraseña ni datos internos. El icono carga el perfil tras el login y el estado de cuenta conserva la opción de cerrar sesión. La caché PWA sube a v11 para renovar recursos del shell.
+
+| Verificación del agente | Resultado                                                                                                                                                                                                            |
+| ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Suite Spring            | `mvnw.cmd -B verify` con Corretto 21.0.10: BUILD SUCCESS, 39 pruebas; Spotless y PMD aprobados. Incluye registro duplicado, acceso anónimo denegado, campos de perfil, ausencia de hash y `Cache-Control: no-store`. |
+| Pruebas JavaScript      | `npm.cmd test`: 23/23; incluye carga del perfil y limpieza al cerrar sesión.                                                                                                                                         |
+| Formato                 | `npm.cmd run format:check` y `git diff --check`: aprobados al final.                                                                                                                                                 |
+| Servidor local          | En `http://localhost:8082/`, GET devuelve 200; la página incluye los campos de perfil, el script consulta `/api/account` y `sw.js` entrega caché v11. H2 de este puerto está en memoria.                             |
+
+No se intentó registrar con los datos de la captura. La explicación de duplicado se basa en la rama de error que genera exactamente el mensaje observado; no se inspeccionó ni confirmó el estado de esa cuenta en la base de datos del usuario. Aún falta recorrer manualmente en navegador creación, login, perfil y salida; no se registra validación humana.
+
+### Estado remoto de RA-01 — 8 de octubre de 2026
+
+GitHub marca el [PR #9](https://github.com/Carlos1120/redauxilio/pull/9) como integrado en `develop` el 8 de octubre. Los cambios de perfil y refinamiento se preservaron y trasladaron a `feat/RA-01-perfil-ciudadano`, basada en `origin/develop` `12d7939`; el commit `3673ad6` está publicado en `origin`. Estos cambios no forman parte del PR anterior y aún no tienen PR de seguimiento. Esto confirma la integración del PR #9, pero no las pruebas post-merge en `develop`, la instalación manual PWA ni la validación humana del cambio nuevo. No se modificó Trello.

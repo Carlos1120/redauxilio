@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -57,6 +58,31 @@ class IdentitySecurityTests {
   }
 
   @Test
+  void homeProvidesAuthenticationStateForTheSingleHeaderIndicator() throws Exception {
+    mvc.perform(get("/"))
+        .andExpect(status().isOk())
+        .andExpect(
+            org.springframework.test.web.servlet.result.MockMvcResultMatchers.model()
+                .attribute("authenticated", false));
+
+    mvc.perform(get("/").with(user("citizen@example.test")))
+        .andExpect(status().isOk())
+        .andExpect(
+            org.springframework.test.web.servlet.result.MockMvcResultMatchers.model()
+                .attribute("authenticated", true));
+  }
+
+  @Test
+  void identityScriptsRemainPublicForAnonymousVisitors() throws Exception {
+    mvc.perform(get("/identity-forms.js"))
+        .andExpect(status().isOk())
+        .andExpect(content().contentTypeCompatibleWith("text/javascript"));
+    mvc.perform(get("/identity-status.js"))
+        .andExpect(status().isOk())
+        .andExpect(content().contentTypeCompatibleWith("text/javascript"));
+  }
+
+  @Test
   void registrationNormalizesEmailAndStoresOnlyPasswordHash() throws Exception {
     String email = uniqueEmail("Citizen.User");
 
@@ -91,6 +117,17 @@ class IdentitySecurityTests {
         .andExpect(
             org.springframework.test.web.servlet.result.MockMvcResultMatchers.model()
                 .attribute("identityMode", "register"));
+    org.assertj.core.api.Assertions.assertThat(
+            mvc.perform(
+                    post("/register")
+                        .with(csrf())
+                        .param("displayName", "Otra cuenta")
+                        .param("email", email.toUpperCase())
+                        .param("password", VALID_PASSWORD))
+                .andReturn()
+                .getResponse()
+                .getContentAsString())
+        .contains("El correo podría estar asociado a una cuenta");
 
     mvc.perform(
             post("/register")
@@ -171,6 +208,9 @@ class IdentitySecurityTests {
     mvc.perform(get("/account"))
         .andExpect(status().is3xxRedirection())
         .andExpect(redirectedUrl("http://localhost/login"));
+    mvc.perform(get("/api/account"))
+        .andExpect(status().is3xxRedirection())
+        .andExpect(redirectedUrl("http://localhost/login"));
     mvc.perform(get("/api/publications")).andExpect(status().isOk());
 
     MvcResult login =
@@ -187,6 +227,17 @@ class IdentitySecurityTests {
     mvc.perform(get("/account").session(session))
         .andExpect(status().is3xxRedirection())
         .andExpect(redirectedUrl("/?access=account"));
+    mvc.perform(get("/api/account").session(session))
+        .andExpect(status().isOk())
+        .andExpect(
+            org.springframework.test.web.servlet.result.MockMvcResultMatchers.header()
+                .string("Cache-Control", org.hamcrest.Matchers.containsString("no-store")))
+        .andExpect(
+            content()
+                .contentTypeCompatibleWith(org.springframework.http.MediaType.APPLICATION_JSON))
+        .andExpect(jsonPath("$.displayName").value("Ciudadano de prueba"))
+        .andExpect(jsonPath("$.email").value(email))
+        .andExpect(jsonPath("$.passwordHash").doesNotExist());
 
     mvc.perform(post("/logout").with(csrf()).session(session))
         .andExpect(status().is3xxRedirection())

@@ -41,6 +41,14 @@ class CitizenAccountService {
         clock.instant());
   }
 
+  /** Devuelve solo los datos visibles del perfil, sin incluir credenciales ni estado interno. */
+  CitizenProfile findProfile(String email) {
+    return repository
+        .findByEmail(normalizeEmail(email))
+        .map(account -> new CitizenProfile(account.displayName(), account.email()))
+        .orElseThrow(() -> new IllegalStateException("La cuenta autenticada no está disponible."));
+  }
+
   @Transactional
   void recordFailedAttempt(String email) {
     if (email == null || email.isBlank()) return;

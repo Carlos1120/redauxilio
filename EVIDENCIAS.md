@@ -480,7 +480,7 @@ El PR #10 se integró por squash como `125d93a315c4bee50e2af747cb6c5106373c0cc9`
 
 La [tarjeta RA-01](https://trello.com/c/25iI3xgM) ya estaba en Terminado al consultarla; su descripción conservaba un estado antiguo del PR #9. Codex actualizó la descripción con los enlaces del PR #10, la revisión humana y la CI posterior al merge, sin atribuirse la decisión previa de moverla a Terminado.
 
-## RA-03: implementación y PR en borrador — 14 de octubre de 2026 (Colombia)
+## RA-03: implementación y PR en revisión — 14 de octubre de 2026 (Colombia)
 
 Sobre `feat/RA-03-publicacion-georreferenciada` desde `develop` `125d93a`, Codex implementó creación autenticada y transaccional de puntos/vías, límite de cinco por cuenta y hora con bloqueo de la cuenta, consulta pública sin autor, ubicación manual/mapa/GPS y búsqueda a petición mediante proxy Nominatim. El service worker precarga el nuevo formulario sin interceptar POST. `RA03.md` delimita el alcance y las decisiones de Santiago.
 
@@ -497,3 +497,5 @@ La misma prueba descubrió que recargar `/?access=account` sin red mostraba el e
 Después de la corrección, `mvnw.cmd -B verify` volvió a terminar en **BUILD SUCCESS** con 46 pruebas Java, Spotless y PMD aprobados; `git diff --check` también pasó. El resultado de CI sobre el nuevo HEAD debe comprobarse en el PR.
 
 Codex ejecutó otra prueba en Edge headless con el mismo JAR en puerto 18083, H2 en memoria y geocodificación externa deshabilitada. Con permiso de geolocalización concedido por el navegador y coordenadas simuladas `4.1482, -73.6321`, el botón «Usar mi ubicación» propuso esos valores con seis decimales. Al denegar el permiso, se conservaron las coordenadas manuales `4.200000, -73.700000`, apareció la alternativa de mapa/campos y el botón de mapa siguió habilitado. Un clic real sobre la superficie Leaflet propuso `4.150335, -73.636444`, editable en ambos campos. El manifiesto se cargó sin errores de lectura y declaró `display: standalone`; esto no acredita instalación PWA. Estas pruebas usan permisos y posición simulados, no GPS físico ni aceptación humana.
+
+El informe JaCoCo local posterior a `verify` muestra cobertura de líneas de producción de 183/188 (97,3 %) en `publications`, 208/220 (94,5 %) en `identity` y 65/74 (87,8 %) en `geography`; no se cuentan clases generadas fuera de esos paquetes. La [CI de `9bf887a`](https://github.com/Carlos1120/redauxilio/actions/runs/38634587395) aprobó. Codex marcó el PR #11 listo para revisión y movió la tarjeta a En revisión el 14 de octubre; no había revisión registrada de Carlos en ese momento. Estas acciones no acreditan aprobación humana ni cumplimiento de la DoD final.

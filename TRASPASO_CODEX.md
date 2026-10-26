@@ -2,7 +2,7 @@
 
 ## Actualización del 25 de octubre de 2026 (Colombia)
 
-Carlos solicitó cambios en el [PR #11](https://github.com/Carlos1120/redauxilio/pull/11) sobre el HEAD `b01d271`: contador de resultados y rótulos del mapa/lista atribuían origen ficticio a datos mixtos. La rama `feat/RA-03-publicacion-georreferenciada` recibió una corrección de textos y una prueba de regresión para ejemplos, publicaciones ciudadanas y mezcla; el detalle sigue identificando cada origen. La caché PWA pasa a v14. Pruebas locales del agente y límites en `EVIDENCIAS.md`. La tarjeta RA-03 volvió temporalmente a En progreso por el bloqueante; antes de cerrar, publicar la corrección en el mismo PR, verificar CI, responder a Carlos y devolver la tarjeta a En revisión. No hay aprobación de Carlos, validación manual del equipo ni integración en `develop`.
+Carlos solicitó cambios en el [PR #11](https://github.com/Carlos1120/redauxilio/pull/11) sobre el HEAD `b01d271`: contador de resultados y rótulos del mapa/lista atribuían origen ficticio a datos mixtos. La rama `feat/RA-03-publicacion-georreferenciada` publicó `0515e9f` con textos corregidos y prueba de regresión para ejemplos, publicaciones ciudadanas y mezcla; el detalle sigue identificando cada origen. La caché PWA pasa a v14. Pruebas locales del agente y límites en `EVIDENCIAS.md`; la [CI del commit de código](https://github.com/Carlos1120/redauxilio/actions/runs/40257768548) aprobó. Se respondió a Carlos y se pidió nueva revisión. La tarjeta RA-03 pasó temporalmente a En progreso por el bloqueante y volvió a En revisión tras la corrección. No hay aprobación de Carlos, validación manual del equipo ni integración en `develop`; comprobar la CI del HEAD final en el PR.
 
 ## Estado comprobado el 13 de octubre de 2026 (Colombia)
 

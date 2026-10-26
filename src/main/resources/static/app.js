@@ -10,6 +10,21 @@ const categoryLabels = {
   MISSING_PERSON: "Persona desaparecida",
   HELP_REQUEST: "Solicitud de ayuda",
 };
+/** El esquema reserva los ID desde 1000000 para publicaciones persistidas; los inferiores son ejemplos. */
+function isCommunityPublication(item) {
+  return item.id >= 1000000;
+}
+/** Comunica el origen de cada subconjunto visible; recibe reportes de la API y devuelve texto para el estado. */
+function describeReportCount(items) {
+  const communityCount = items.filter(isCommunityPublication).length;
+  const exampleCount = items.length - communityCount;
+  if (items.length === 0) return "No se encontraron reportes.";
+  const examples = `${exampleCount} ${exampleCount === 1 ? "reporte ficticio" : "reportes ficticios"}`;
+  const community = `${communityCount} ${communityCount === 1 ? "publicación comunitaria" : "publicaciones comunitarias"}`;
+  if (communityCount === 0) return `${examples} encontrados.`;
+  if (exampleCount === 0) return `${community} encontradas.`;
+  return `${examples} y ${community} encontrados.`;
+}
 let latestPublicationQueryId = 0;
 let mapQueryTimer;
 let detailTrigger;
@@ -23,7 +38,7 @@ function showReportDetail(item, trigger, initial = false) {
   if (trigger) detailTrigger = trigger;
   selectedReportId = item.id;
   getElement("detail-kicker").textContent =
-    `${categoryLabels[item.category]} · ${item.id >= 1000000 ? "publicación comunitaria" : "reporte ficticio"}`;
+    `${categoryLabels[item.category]} · ${isCommunityPublication(item) ? "publicación comunitaria" : "reporte ficticio"}`;
   getElement("detail-title").textContent = item.title;
   const detail = getElement("detail-content");
   detail.replaceChildren();
@@ -236,10 +251,7 @@ async function loadPublications() {
     currentSourceMessage = savedAt
       ? `Consulta almacenada el ${new Date(savedAt).toLocaleString("es-CO")}; puede estar desactualizada.`
       : "Datos obtenidos del servidor.";
-    const countLabel =
-      items.length === 1
-        ? "1 reporte ficticio encontrado."
-        : `${items.length} reportes ficticios encontrados.`;
+    const countLabel = describeReportCount(items);
     currentQueryMessage = `${countLabel} ${currentSourceMessage}`;
     renderSearchResults();
   } catch {

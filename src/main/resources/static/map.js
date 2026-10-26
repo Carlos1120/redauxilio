@@ -48,7 +48,7 @@ if (typeof window !== "undefined") {
         status.dataset.error = String(failedTiles.size > 0);
         status.textContent = failedTiles.size
           ? "El fondo cartográfico no está disponible. Consulta la lista y las ubicaciones de los reportes."
-          : "Ubicaciones ficticias. El fondo cartográfico requiere conexión.";
+          : "Ubicaciones de reportes. El fondo cartográfico requiere conexión.";
       }
       tileLayer.on("tileerror", ({ tile }) => {
         failedTiles.add(tile);

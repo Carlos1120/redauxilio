@@ -1,5 +1,9 @@
 # RedAuxilio: estado para continuar
 
+## Actualización del 25 de octubre de 2026 (Colombia)
+
+Carlos solicitó cambios en el [PR #11](https://github.com/Carlos1120/redauxilio/pull/11) sobre el HEAD `b01d271`: contador de resultados y rótulos del mapa/lista atribuían origen ficticio a datos mixtos. La rama `feat/RA-03-publicacion-georreferenciada` recibió una corrección de textos y una prueba de regresión para ejemplos, publicaciones ciudadanas y mezcla; el detalle sigue identificando cada origen. La caché PWA pasa a v14. Pruebas locales del agente y límites en `EVIDENCIAS.md`. La tarjeta RA-03 volvió temporalmente a En progreso por el bloqueante; antes de cerrar, publicar la corrección en el mismo PR, verificar CI, responder a Carlos y devolver la tarjeta a En revisión. No hay aprobación de Carlos, validación manual del equipo ni integración en `develop`.
+
 ## Estado comprobado el 13 de octubre de 2026 (Colombia)
 
 Actualización del 14 de octubre: RA-03 está en `feat/RA-03-publicacion-georreferenciada`; el [PR #11](https://github.com/Carlos1120/redauxilio/pull/11) está listo para revisión hacia `develop` y la tarjeta está En revisión. No había revisión de Carlos al hacer la transición. La CI del commit `9bf887a` aprobó; comprobar en el PR el estado del HEAD más reciente. Localmente pasaron 46 pruebas Java y 24 JS; Spotless, PMD, Prettier y diff aprobaron según EVIDENCIAS.md. Edge headless verificó 360/768/1366 px, borrador, fallo de red, cuenta ficticia, publicación visible, una búsqueda real de Nominatim y ubicación simulada concedida/denegada más selección en mapa. Faltan revisión humana de Carlos, instalación PWA/GPS físico y comprobaciones tras integrar. No marcar RA-03 como Terminado antes de ellas.

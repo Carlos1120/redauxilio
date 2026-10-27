@@ -4,8 +4,8 @@
  * Intenta primero la red; solo ante un fallo de red utiliza una copia previamente guardada.
  * No almacena borradores, operaciones de escritura, bibliotecas CDN ni cartografía externa.
  */
-// La versión 14 renueva los rótulos de origen en la consulta y conserva el shell offline.
-const CACHE = "redauxilio-demo-v14";
+// La versión 15 renueva el shell de confirmación; las escrituras siguen fuera de caché.
+const CACHE = "redauxilio-demo-v15";
 const SHELL = [
   "/",
   "/app.css",
@@ -13,6 +13,7 @@ const SHELL = [
   "/identity-forms.js",
   "/identity-status.js",
   "/publication-form.js",
+  "/confirmation.js",
   "/map.js",
   "/manifest.webmanifest",
   "/icon.svg",

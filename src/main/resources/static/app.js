@@ -410,9 +410,12 @@ getElement("identity-open").addEventListener("click", () => {
   identityDialog.showModal();
 });
 window.addEventListener("redauxilio:identity-change", (event) => {
+  // Notificación de estado: no volver a invocar setAuthenticated ni abrir un modal al reconectar.
+  setIdentityView(event.detail.authenticated ? "account" : "login");
+});
+window.addEventListener("redauxilio:identity-action", (event) => {
   const { authenticated, message } = event.detail;
   window.RedAuxilioIdentityStatus?.setAuthenticated(authenticated);
-  setIdentityView(authenticated ? "account" : "login");
   const status = getElement("identity-action-message");
   status.textContent = message;
   status.hidden = false;

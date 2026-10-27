@@ -83,7 +83,7 @@ test("una recarga de cuenta sin red usa el shell público saneado y no guarda la
   const worker = loadWorker(async (request) => {
     if (!isOnline) throw new Error("sin conexión");
     if (request.url?.includes("access=account")) {
-      return new Response('<p>correo-privado@example.invalid</p>', { status: 200 });
+      return new Response("<p>correo-privado@example.invalid</p>", { status: 200 });
     }
     return new Response(
       '<button data-authenticated="true"></button><input name="_csrf" value="token-privado">',
@@ -211,4 +211,24 @@ test("flujo offline → reconexión renueva CSRF antes de permitir login", async
   isOnline = true;
   await submitListeners.get("submit")({ preventDefault: () => {} });
   assert.equal(submittedToken, "token-fresco");
+});
+
+test("PWA precarga gestión propia pero excluye todas sus rutas privadas", async () => {
+  const worker = loadWorker();
+  let installation;
+  worker.listeners.get("install")({ waitUntil: (promise) => (installation = promise) });
+  await installation;
+  assert.ok(worker.precached.includes("/my-publications.js"));
+  for (const [suffix, method] of [
+    ["", "GET"],
+    ["/1", "PATCH"],
+    ["/1/status", "POST"],
+    ["/1/history", "GET"],
+  ]) {
+    assert.equal(
+      fetchEvent(worker, "http://localhost:8081/api/my/publications" + suffix, method),
+      undefined,
+    );
+  }
+  assert.equal(fetchEvent(worker, "http://localhost:8081/api/account"), undefined);
 });

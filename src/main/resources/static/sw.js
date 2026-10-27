@@ -4,8 +4,8 @@
  * Intenta primero la red; solo ante un fallo de red utiliza una copia previamente guardada.
  * No almacena borradores, operaciones de escritura, bibliotecas CDN ni cartografía externa.
  */
-// La versión 14 renueva los rótulos de origen en la consulta y conserva el shell offline.
-const CACHE = "redauxilio-demo-v15";
+// La versión 16 renueva gestión privada y sincronización de sesión; solo guarda el shell público.
+const CACHE = "redauxilio-demo-v16";
 const SHELL = [
   "/",
   "/app.css",

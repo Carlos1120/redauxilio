@@ -1688,6 +1688,10 @@ footer {
 #own-section {
   margin-top: 24px;
 }
+/* La cabecera de gestión contiene explicación larga: apilarla evita overflow en móvil. */
+#own-section .section-heading {
+  display: block;
+}
 #own-workspace {
   display: grid;
   gap: 18px;

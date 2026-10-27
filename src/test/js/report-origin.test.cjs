@@ -9,6 +9,7 @@ const vm = require("node:vm");
 /** Ejecuta la consulta real con dobles mínimos de DOM; no simula revisión humana ni cartografía. */
 async function loadReportView(items) {
   const nodes = new Map();
+  const listeners = new Map();
   function element(id = "") {
     if (nodes.has(id)) return nodes.get(id);
     const node = {
@@ -46,7 +47,10 @@ async function loadReportView(items) {
     },
     window: {
       matchMedia: () => ({ matches: false, addEventListener() {} }),
-      addEventListener() {},
+      addEventListener(name, fn) {
+        if (!listeners.has(name)) listeners.set(name, []);
+        listeners.get(name).push(fn);
+      },
     },
     navigator: {},
     indexedDB: { open: () => ({}) },
@@ -65,7 +69,7 @@ async function loadReportView(items) {
     { filename: "app.js" },
   );
   await new Promise((resolve) => setImmediate(resolve));
-  return { nodes, context };
+  return { nodes, context, listeners };
 }
 
 function report(id) {
@@ -111,4 +115,28 @@ test("mapa y rótulos estáticos describen una consulta de origen mixto", () => 
   assert.match(template, /Ejemplos y publicaciones/u);
   assert.match(template, /Mapa de ejemplos ficticios y publicaciones comunitarias/u);
   assert.match(map, /Ubicaciones de reportes\. El fondo cartográfico requiere conexión/u);
+});
+
+test("app e identidad sincronizan una vez sin realimentar el evento de sesión", async () => {
+  const { nodes, context, listeners } = await loadReportView([]);
+  let dispatched = 0;
+  context.navigator.onLine = true;
+  context.CustomEvent = class {
+    constructor(type, options) {
+      this.type = type;
+      this.detail = options.detail;
+    }
+  };
+  context.window.dispatchEvent = (event) => {
+    if (++dispatched > 5) throw new Error("Bucle de eventos de identidad");
+    for (const fn of listeners.get(event.type) || []) fn(event);
+  };
+  nodes.get("identity-open").dataset.authenticated = "false";
+  vm.runInContext(
+    readFileSync(join(__dirname, "../../main/resources/static/identity-status.js"), "utf8"),
+    context,
+  );
+  context.window.RedAuxilioIdentityStatus.setAuthenticated(true);
+  assert.equal(dispatched, 1);
+  assert.equal(nodes.get("identity-open").dataset.authenticated, "true");
 });

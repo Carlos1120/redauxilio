@@ -505,3 +505,52 @@ El informe JaCoCo local posterior a `verify` muestra cobertura de líneas de pro
 Carlos solicitó cambios en el [PR #11](https://github.com/Carlos1120/redauxilio/pull/11) sobre `b01d271`: el contador y varios rótulos atribuían origen ficticio a una consulta que también incluye publicaciones comunitarias. Codex corrigió el contador para distinguir solo ejemplos, solo publicaciones y una mezcla; el detalle conserva el origen individual. El rótulo de la lista y el nombre accesible del mapa describen ambos tipos. El estado del mapa usa texto neutral. El aviso de demostración y la advertencia de falta de verificación permanecen visibles. La caché PWA sube a v14 para renovar los textos.
 
 La nueva prueba JavaScript ejecuta `app.js` con respuestas de los tres tipos y comprueba contador y origen del detalle; también verifica los rótulos del mapa y la plantilla. Resultado local de Codex: `npm.cmd test` 26/26; `mvnw.cmd -B verify` con Corretto 21.0.10, 46 pruebas Java, Spotless y PMD aprobados; `npm.cmd run format:check`, Prettier para la nueva prueba y `git diff --check` aprobados. La [CI de `0515e9f`](https://github.com/Carlos1120/redauxilio/actions/runs/40257768548) aprobó. Se respondió a Carlos y se solicitó nueva revisión; la tarjeta RA-03 volvió a En revisión. No se realizó en este bloque la validación manual solicitada por Carlos de punto/vía, GPS físico, PWA y responsive sobre el HEAD corregido. La aprobación humana e integración siguen pendientes; comprobar la CI del HEAD final en el PR.
+
+## RA-04: auditoría y correcciones de PR #13 — 27 de octubre de 2026
+
+Comprobación ejecutada mediante herramientas automatizadas; validación humana pendiente. Base auditada `fe4b15b1260a11857f0e938fc3fe9f5656619bd7`, rama `feat/RA-04-actualizacion-cierre`, worktree independiente `C:\Users\cmps-\.codex\worktrees\ra04-auditoria\redauxilio`. El commit que incorpora este registro identifica los archivos finales. La rama local no tenía cambios ni commits no publicados al iniciar; repositorio original, worktree/servidor RA-03 y ramas de Santiago preservados. No hay aprobación humana, merge ni modificación de Trello.
+
+### Reproducción y corrección
+
+- MockMvc antes del arreglo: GET anónimo `/my-publications.js` esperaba 200 y obtuvo **302**; alta de vía HABILITADA esperaba `closed=true` y obtuvo **false**. Ambos fallaron antes y pasan después. Solo se añade el recurso estático a la lista pública; `/api/my/**` sigue privado.
+- La suite JS nueva falló en seis casos iniciales de visitante, limpieza tras logout/401/403, historial y respuestas tardías. Se añadieron versiones de sesión/selección, limpieza completa y descartes tras CSRF/escritura. Una prueba de integración adicional detectó realimentación entre el emisor y `app.js` durante el ajuste: se separan acción de acceso y notificación de estado; pasa sin recursión.
+- Una regresión específica reprodujo la pérdida de la corrección escrita al fallar el guardado. Ahora el formulario conserva la entrada para reintentar sin anunciar éxito.
+- HABILITADA representa cierre desde el alta y en la lectura compatible de filas antiguas; no se migran ni borran datos. Matriz y límites en RA04.md. Autorización por autor, bloqueo SQL y auditoría transaccional conservados.
+- En navegador a 360×800 se reprodujo `scrollWidth=370` con `innerWidth=360`: la explicación de la cabecera flex desbordaba. Se apila solo la cabecera de gestión. Resultado final: `scrollWidth/clientWidth` **345/345**, **753/753**, **1351/1351** en los tres tamaños (barra vertical de 15 px).
+
+### Comprobaciones automáticas
+
+Windows, Temurin Java 17.0.20.1, Node 24.19.0 y npm 11.17.0. Se usaron exclusivamente cuentas/datos sintéticos, SQL de prueba y H2 aislada; sin datos personales reales ni carga al geocodificador público.
+
+| Comando                               | Resultado observado                                                                                                 |
+| ------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| `npm.cmd ci`                          | Correcto; Prettier fijado por lockfile, sin dependencias nuevas                                                     |
+| `.\mvnw.cmd -B spotless:apply verify` | BUILD SUCCESS: 57 pruebas Java, cero fallos/errores/omitidas; Spotless y PMD aprobados                              |
+| `.\mvnw.cmd -B verify`                | Segunda ejecución tras ajustes: BUILD SUCCESS, mismas 57 pruebas; Java no volvió a modificarse                      |
+| `npm.cmd test`                        | 42/42 aprobadas sobre JS final; incluye 12 pruebas del módulo de gestión y regresiones de identidad/integración/PWA |
+| `npm.cmd run format:check`            | Aprobado sobre archivos finales                                                                                     |
+| `git diff --check`                    | Aprobado                                                                                                            |
+
+Las 11 pruebas de `PublicationMaintenanceTests` incluyen un recorrido de **25 pares** de estados; no son 25 métodos JUnit adicionales. Se verifican anónimo/ajeno, CSRF, IDs inexistentes/ocultos, cierre y reapertura con motivo, snapshots y `no-store`, alta HABILITADA y compatibilidad antigua. Una restricción temporal exclusiva de H2 induce fallo SQL en auditoría: ambas escrituras se revierten. Dos cierres simultáneos devuelven 200/400 y producen una sola auditoría. No es una prueba de rendimiento ni de concurrencia en PostgreSQL productivo.
+
+Se ejercitan lista e historial tardíos, logout durante obtención de CSRF y durante PATCH, 401/403, cambio de cuenta, reconexión confirmada, edición/cierre/reapertura, error 500 y preservación del texto. La PWA precarga el script, excluye todas las rutas privadas y conserva pruebas anteriores de saneamiento de CSRF/identidad del shell. Se inspeccionó que el DTO público no expone autor ni auditoría.
+
+### Navegador sobre la versión final
+
+Navegador integrado de Codex, origen exclusivo `http://127.0.0.1:58414/`, instancia propia desde este worktree, H2 en memoria y geocodificación externa deshabilitada. Los seis recursos servidos (`app.js`, `identity-forms.js`, `identity-status.js`, `my-publications.js`, `app.css`, `sw.js`) coincidieron por SHA-256 con los archivos locales finales. GET anónimo del script devolvió 200 y `text/javascript`. La revisión de consola de la ejecución final no mostró errores; los mensajes antiguos de la versión intermedia no se presentan como errores actuales.
+
+| Recorrido                                     | Resultado observado                                                                                                                                                          |
+| --------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Registro/login sintético                      | Cuenta creada; nombre/correo del perfil disponibles; gestión se actualiza al autenticar                                                                                      |
+| Punto propio: publicar, cargar, editar título | Cambio confirmado; historial muestra nombre anterior → posterior y fecha                                                                                                     |
+| Cerrar y reabrir punto                        | Cerrado desaparece de consulta activa, edición deshabilitada; motivo requerido para reapertura; reapertura registrada y vuelve a consulta                                    |
+| Vía nueva HABILITADA                          | Aparece en gestión como cerrada, edición deshabilitada y motivo requerido; no aparece en consulta activa                                                                     |
+| Incluir casos cerrados                        | Vía recuperada en lista y grupo de cuatro marcadores; al reabrir a BLOQUEADA con motivo queda historial REOPEN                                                               |
+| Logout tras cargar datos                      | Sesión falsa, selector vacío, seis campos vacíos, historial vacío y workspace oculto                                                                                         |
+| 360×800, 768×1024, 1366×768                   | Inspección visual por secciones: formularios y controles utilizables, historial con saltos de línea y sin desbordamiento horizontal; foco visible al recorrer campos con Tab |
+| Shell con servidor detenido                   | Recarga `/?access=login` recupera la pantalla pública desde SW, sin estado autenticado ni campos/historial privados                                                          |
+| Servidor restaurado                           | Responde de nuevo por red en el mismo origen; H2 reiniciada, no se prometen cuentas persistentes entre reinicios                                                             |
+
+La caída del servidor **no** equivale a desconexión total del navegador: Internet y cartografía permanecen accesibles, `navigator.onLine` no cambia. No se acredita instalación PWA de escritorio ni aceptación humana. Los dobles JS cubren eventos offline/reconexión y exclusión de caché privada; quedan pruebas humanas de desconexión total, instalación y recorrido final. La revisión visual del agente no constituye auditoría WCAG ni nueva medición RNF-01/10. Las capturas observadas respaldan la sesión; no se afirma que estén versionadas en GitHub.
+
+PR #13 debe permanecer Draft hasta completar la validación manual y solicitar revisión de Santiago. CI del HEAD publicado se consulta en el PR; el verde histórico de `fe4b15b` no aprueba estas correcciones. Pendientes humanos y alcance en RA04.md; no se declara RA-04 terminada.

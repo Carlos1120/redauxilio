@@ -1683,3 +1683,34 @@ footer {
     padding: 20px;
   }
 }
+
+/* RA-04: formularios de mantenimiento simples, sin acciones privadas en el mapa público. */
+#own-section {
+  margin-top: 24px;
+}
+#own-workspace {
+  display: grid;
+  gap: 18px;
+}
+#own-workspace[hidden] {
+  display: none;
+}
+.own-manage-form {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid var(--color-report-border);
+  border-radius: var(--radius-control);
+  background: var(--color-information-paper);
+}
+.own-manage-form h3 {
+  margin: 0;
+}
+#own-history {
+  margin: 0;
+  padding-left: 24px;
+}
+#own-history li {
+  margin-bottom: 8px;
+  overflow-wrap: anywhere;
+}

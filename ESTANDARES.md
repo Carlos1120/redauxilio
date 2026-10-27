@@ -20,6 +20,8 @@ La base es el acta de constitución corregida del 18 de septiembre de 2026. Se c
 
 La ficha técnica define Java con Spring Boot, Spring Data JPA y Spring Security; PostgreSQL; Thymeleaf, Bootstrap y JavaScript; Leaflet; manifiesto, service worker e IndexedDB. Se mantiene un monolito modular.
 
+> Nota operativa (27/10/2026): la frase anterior describe la ficha académica, no las bibliotecas efectivamente implementadas. El repositorio actual utiliza Spring Boot/Security con Spring JDBC (`JdbcTemplate`), Thymeleaf, JavaScript/CSS propios, Leaflet y PWA; H2 local/pruebas y PostgreSQL para producción. No introducir JPA o Bootstrap solo porque aparezcan en la ficha sin una decisión técnica explícita. Las versiones y verificaciones reales se consultan en `pom.xml`, `package.json` y CI.
+
 Estado de verificación: los documentos suministrados no contienen el repositorio ni su configuración de formato. Google Java Format y Prettier se proponen aquí como herramientas del equipo; su instalación y ejecución deben quedar demostradas en el repositorio antes de presentar este documento como adoptado. No se afirma que ya estén configuradas, que existan pruebas aprobadas ni que los integrantes hayan firmado su aceptación.
 
 1. Guía de estilo y nombres

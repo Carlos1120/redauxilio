@@ -1,20 +1,23 @@
 # RedAuxilio — traspaso vigente
 
-Actualización: 27 de octubre de 2026 (Colombia). Este archivo contiene **solo el estado necesario para retomar**; no reemplaza la comprobación de GitHub y del árbol local. Para normas, leer `AGENTS.md`; para requisitos, `RA05.md`. El historial está en Git y `EVIDENCIAS.md`, que no debe cargarse completo de rutina.
+Actualización: 27 de octubre de 2026 (Colombia). Resumen operativo para retomar; no sustituye GitHub ni el estado del árbol. Reglas en AGENTS.md/ESTANDARES.md, contrato funcional en RA05.md y resultados extensos en la última sección RA-05 de EVIDENCIAS.md. No cargar el historial completo por rutina.
 
-## Rama y trabajo inmediato
+## Rama y estado
 
-- Repositorio: `Carlos1120/redauxilio`.
-- Historia activa: **RA-05, confirmación independiente**. Carlos implementa con Codex y Santiago (`Arch0102`) revisa.
-- Rama: `feat/RA-05-confirmacion-independiente`, creada desde `develop` en `2abc847700379484a713a0aff84e1f01e51090bc`. **Comprobar HEAD y árbol local** antes de trabajar; no asumir que siguen en ese SHA.
-- RA-05 debe contar confirmaciones válidas e independientes: el autor no confirma, solo una activa por cuenta y publicación, tres elevan exclusivamente la confianza comunitaria y el límite es de 30 por cuenta por hora. Persistencia, concurrencia, API, UI y pruebas se implementan en su rama. Criterios y límites en `RA05.md` y tarjeta Trello.
-- Al retomar, localizar solo el servicio/repositorio/JS/prueba que afecte la tarea. Las clases de publicaciones actuales están en `src/main/java/co/redauxilio/publications/`; identidad en `identity/`. Estilos visuales: `ESTANDARES_INTERFAZ.md`, solo cuando se cambie interfaz.
+Historia activa RA-05, confirmación independiente, en `feat/RA-05-confirmacion-independiente`. Base integrada RA-03/develop `2abc847`; se conservó el documental `94d30bc` como ancestro, ya existente en remoto. El HEAD identifica los commits de núcleo y cliente/evidencias. La entrega se prepara en PR Draft hacia develop; verificar su URL, HEAD y CI publicados en GitHub antes de asumir que están aprobados. No hay merge, aprobación humana ni cambios de Trello.
 
-## Dependencia externa
+Worktree propio: `C:\Users\cmps-\.codex\worktrees\ra05-confirmacion\redauxilio`. Se preservaron RA-04, la copia de validación RA-03 y el repositorio original RA-01, sin descartar ni trasladar cambios. Comprobar status/remotos antes de continuar. Mantener commits lógicos y la identidad Git configurada por Carlos; no atribuir responsabilidad del proyecto al agente.
 
-- **RA-04**: PR [#13](https://github.com/Carlos1120/redauxilio/pull/13), rama `feat/RA-04-actualizacion-cierre`, HEAD verificado `393602d` en esta actualización. Santiago solicitó cambios de rendimiento; Carlos publicó corrección y CI verde con 58 pruebas Java y 42 JS. Aún requiere nueva aprobación de Santiago e integración a `develop`. Verificar estado actual, sin reutilizar estas cifras para otros commits.
-- RA-05 puede construir **el núcleo independiente** ya. La invalidación de confirmaciones al editar ubicación, descripción principal, estado o datos específicos se conectará a RA-04 **después de su integración**, con pruebas de extremo a extremo. No copiar código no integrado de RA-04 ni declarar RA-05 terminada antes de esa comprobación.
+## Núcleo implementado y límites
 
-## Próxima acción y entrega
+Confirmaciones persistentes por publicación/versión/cuenta; cuota móvil de 30 aceptaciones por hora; autor excluido, una activa por cuenta y umbral de tres solo para confianza comunitaria. Carlos confirmó ocultos 404, cerrados 409 y reconfirmación después de invalidar, conservando historia y cupo. POST requiere sesión, CSRF y versión observada; rechaza versiones obsoletas. Se serializan cuenta/publicación y se conserva auditoría de invalidación. No expone correos/IDs de confirmadores ni concede verificación oficial.
 
-Iniciar implementación RA-05 en su rama; abrir PR **Draft** a `develop`, mantener cambios y commits por funcionalidad, y dejar constancia precisa del punto de integración diferido. Ejecutar pruebas específicas durante el trabajo; antes de publicar, Maven/Node/formato completos y comprobar CI del HEAD final. No hacer merge sin revisión humana de Santiago. Al cerrar el bloque, actualizar **este resumen en 300–500 palabras**, indicando HEAD, PR, resultados y próximo paso. Documentar pruebas y límites extensos por referencia en `EVIDENCIAS.md`.
+La UI reutiliza el detalle, deshabilita sin sesión/red y no guarda ni reintenta escrituras. SW v15 precarga el script y excluye POST. El hook interno `invalidateForSubstantialChange` está probado aisladamente; **no** equivale a integración automática con RA-04. No copiar ese PR pendiente.
+
+## Evidencias y siguiente paso
+
+Verificación local: 55 Java (9 específicas), Spotless/PMD, 39 JS, Prettier y diff --check aprobados. JaCoCo del servicio/controlador y records de confirmación: 82/82 líneas. Navegador: aceptación 2→3, duplicado, visitante/logout y tres tamaños sin overflow. No repetir suites del mismo código sin incertidumbre o cambio nuevo. La CI debe corresponder al HEAD exacto del Draft.
+
+Instancia propia en `http://127.0.0.1:61213/`, H2 exclusiva en memoria; reiniciar elimina datos sintéticos. Mantenerla para revisión manual y preservar servidores ajenos.
+
+Siguiente paso: revisar el núcleo Draft con Santiago, completar validación humana de PWA/desconexión y, cuando RA-04 se integre, conectar invalidación en la misma transacción de edición/transición y probar regresión conjunta. RA-05 no cumple DoD ni está lista para merge antes de esa integración y aprobación.

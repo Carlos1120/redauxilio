@@ -10,6 +10,21 @@ const categoryLabels = {
   MISSING_PERSON: "Persona desaparecida",
   HELP_REQUEST: "Solicitud de ayuda",
 };
+/** El esquema reserva los ID desde 1000000 para publicaciones persistidas; los inferiores son ejemplos. */
+function isCommunityPublication(item) {
+  return item.id >= 1000000;
+}
+/** Comunica el origen de cada subconjunto visible; recibe reportes de la API y devuelve texto para el estado. */
+function describeReportCount(items) {
+  const communityCount = items.filter(isCommunityPublication).length;
+  const exampleCount = items.length - communityCount;
+  if (items.length === 0) return "No se encontraron reportes.";
+  const examples = `${exampleCount} ${exampleCount === 1 ? "reporte ficticio" : "reportes ficticios"}`;
+  const community = `${communityCount} ${communityCount === 1 ? "publicación comunitaria" : "publicaciones comunitarias"}`;
+  if (communityCount === 0) return `${examples} encontrados.`;
+  if (exampleCount === 0) return `${community} encontradas.`;
+  return `${examples} y ${community} encontrados.`;
+}
 let latestPublicationQueryId = 0;
 let mapQueryTimer;
 let detailTrigger;
@@ -22,12 +37,26 @@ let suppressFocusReturn = false;
 function showReportDetail(item, trigger, initial = false) {
   if (trigger) detailTrigger = trigger;
   selectedReportId = item.id;
-  getElement("detail-kicker").textContent = `${categoryLabels[item.category]} · reporte ficticio`;
+  getElement("detail-kicker").textContent =
+    `${categoryLabels[item.category]} · ${isCommunityPublication(item) ? "publicación comunitaria" : "reporte ficticio"}`;
   getElement("detail-title").textContent = item.title;
   const detail = getElement("detail-content");
   detail.replaceChildren();
   const facts = createReportElement("div", "detail-facts", "");
+  const specificFacts = item.assistanceSubtype
+    ? [
+        [
+          "Tipo de punto",
+          { SHELTER: "Refugio", COLLECTION: "Centro de acopio", MEDICAL_CENTER: "Centro médico" }[
+            item.assistanceSubtype
+          ] || item.assistanceSubtype,
+        ],
+      ]
+    : item.impactType
+      ? [["Afectación", item.impactType]]
+      : [];
   for (const [label, value] of [
+    ...specificFacts,
     ["Estado operativo", item.operationalStatus],
     [
       "Confianza",
@@ -78,6 +107,12 @@ const reportMap = window.RedAuxilioMap?.create(
   showReportDetail,
   categoryLabels,
 );
+window.RedAuxilioPublicationUI = {
+  reportMap,
+  loadPublications: () => loadPublications(),
+  saveDraft: () => saveDraft(),
+  clearDraft: () => executeDraftOperation("readwrite", (store) => store.delete("current")),
+};
 getElement("reset-map").disabled = !reportMap;
 getElement("reset-map").addEventListener("click", () => reportMap?.reset());
 function createReportElement(tag, className, text) {
@@ -216,10 +251,7 @@ async function loadPublications() {
     currentSourceMessage = savedAt
       ? `Consulta almacenada el ${new Date(savedAt).toLocaleString("es-CO")}; puede estar desactualizada.`
       : "Datos obtenidos del servidor.";
-    const countLabel =
-      items.length === 1
-        ? "1 reporte ficticio encontrado."
-        : `${items.length} reportes ficticios encontrados.`;
+    const countLabel = describeReportCount(items);
     currentQueryMessage = `${countLabel} ${currentSourceMessage}`;
     renderSearchResults();
   } catch {
@@ -291,19 +323,30 @@ async function executeDraftOperation(mode, operation) {
     transaction.onabort = () => reject(transaction.error);
   });
 }
+/** Guarda todos los campos al confirmar la transacción local, incluso si el formulario está parcial. */
+function saveDraft() {
+  return executeDraftOperation("readwrite", (store) =>
+    store.put(
+      {
+        text: getElement("draft-text").value,
+        latitude: getElement("latitude").value,
+        longitude: getElement("longitude").value,
+        category: getElement("publication-category").value,
+        title: getElement("publication-title").value,
+        assistanceSubtype: getElement("assistance-subtype").value,
+        assistanceStatus: getElement("assistance-status").value,
+        roadImpact: getElement("road-impact").value,
+        roadStatus: getElement("road-status").value,
+        location: getElement("publication-location").value,
+      },
+      "current",
+    ),
+  );
+}
 getElement("draft-form").addEventListener("submit", async (event) => {
   event.preventDefault();
   try {
-    await executeDraftOperation("readwrite", (store) =>
-      store.put(
-        {
-          text: getElement("draft-text").value,
-          latitude: getElement("latitude").value,
-          longitude: getElement("longitude").value,
-        },
-        "current",
-      ),
-    );
+    await saveDraft();
     getElement("draft-message").textContent =
       "Borrador guardado localmente. No se ha enviado al servidor.";
   } catch {
@@ -315,6 +358,7 @@ getElement("discard").addEventListener("click", async () => {
   try {
     await executeDraftOperation("readwrite", (store) => store.delete("current"));
     getElement("draft-form").reset();
+    getElement("publication-category").dispatchEvent(new Event("change"));
     getElement("draft-message").textContent = "Borrador local descartado.";
   } catch {
     getElement("draft-message").textContent = "No se pudo descartar el borrador.";
@@ -326,6 +370,14 @@ executeDraftOperation("readonly", (store) => store.get("current"))
       getElement("draft-text").value = draft.text;
       getElement("latitude").value = draft.latitude;
       getElement("longitude").value = draft.longitude;
+      getElement("publication-category").value = draft.category || "ASSISTANCE";
+      getElement("publication-title").value = draft.title || "";
+      getElement("assistance-subtype").value = draft.assistanceSubtype || "SHELTER";
+      getElement("assistance-status").value = draft.assistanceStatus || "DISPONIBLE";
+      getElement("road-impact").value = draft.roadImpact || "DERRUMBE";
+      getElement("road-status").value = draft.roadStatus || "BLOQUEADA";
+      getElement("publication-location").value = draft.location || "";
+      getElement("publication-category").dispatchEvent(new Event("change"));
       getElement("draft-message").textContent = "Borrador local recuperado; no está publicado.";
     }
   })

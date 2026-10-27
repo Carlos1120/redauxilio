@@ -4,7 +4,7 @@ PWA colaborativa de información georreferenciada ante terremotos. Equipo 4: Car
 
 ## Primera versión ejecutable
 
-Consulta pública con mapa Leaflet, agrupación y filtros por categoría, estado, confianza y área visible; detalle de reportes ficticios, borrador local y base PWA. RA-02 está integrada en develop. RA-01 agrega registro y acceso ciudadano; el borrador no publica reportes al servidor. No usar en una emergencia real. El alcance completo del Word sigue vigente.
+Consulta pública con mapa Leaflet, agrupación y filtros por categoría, estado, confianza y área visible; detalle, borrador local y base PWA. RA-02 y RA-01 están integradas en develop. Esta rama de RA-03 añade publicación persistente de puntos de asistencia y vías afectadas con cuenta ciudadana. Los seis ejemplos de RA-02 siguen siendo ficticios. No usar en una emergencia real. El alcance completo del Word sigue vigente.
 
 ## Ejecutar en Windows
 
@@ -23,17 +23,23 @@ Maven Wrapper descarga Maven 3.9.11; no exige instalar Maven por separado. Java 
 
 ## Acceso ciudadano (RA-01)
 
-El correo normalizado identifica la cuenta. La contraseña requiere al menos 12 caracteres, se conserva como hash BCrypt con sal aleatoria y no se registra en texto. Cinco intentos fallidos bloquean esa cuenta durante 15 minutos. La sesión rota su identificador al entrar, usa cookie HttpOnly/SameSite=Lax y termina al cumplir 24 horas. Formularios conservan protección CSRF. El registro no valida que el correo pertenezca a la persona ni habilita todavía publicaciones.
+El correo normalizado identifica la cuenta. La contraseña requiere al menos 12 caracteres, se conserva como hash BCrypt con sal aleatoria y no se registra en texto. Cinco intentos fallidos bloquean esa cuenta durante 15 minutos. La sesión rota su identificador al entrar, usa cookie HttpOnly/SameSite=Lax y termina al cumplir 24 horas. Formularios conservan protección CSRF. El registro no valida que el correo pertenezca a la persona.
+
+## Publicación georreferenciada (RA-03, rama de trabajo)
+
+Una cuenta autenticada puede publicar un punto de asistencia o una vía afectada desde el formulario. Se exigen categoría, nombre o tramo, descripción, estado y ubicación; los campos específicos dependen de la categoría. La ubicación puede señalarse en el mapa, proponerse con permiso del dispositivo, buscarse explícitamente por Nominatim o escribirse manualmente; latitud y longitud siguen editables. Antes de enviar se guarda el borrador local; el servidor limita a cinco publicaciones por cuenta en una hora y responde HTTP 201 solo después de persistir. Si falla, el borrador local se conserva. La búsqueda usa un proxy con caché y máximo una petición por segundo por instancia; `GEOCODING_SEARCH_URL` permite cambiar el proveedor y `GEOCODING_ENABLED=false` deshabilitarlo. En despliegues con varias instancias se requiere un limitador compartido antes de habilitar Nominatim público.
 
 ## Entender el código
 
 - `pom.xml`: dependencias y controles de compilación.
 - `RedAuxilioApplication`: inicia el servidor.
 - `publications/PublicationController`: recibe las consultas de pantalla y API.
-- `publications/PublicationService`: valida filtros y área, excluye contenido oculto y entrega datos ficticios.
+- `publications/PublicationService`: valida filtros y área, excluye contenido oculto y combina ejemplos ficticios con publicaciones visibles persistidas.
+- `publications/PublicationCreationService` y `CitizenPublicationRepository`: validan y guardan publicaciones, con cupo transaccional por cuenta.
+- `geography/PlaceSearchService`: consulta explícita de lugares con caché y límite de frecuencia.
 - `templates/index.html`: pantalla inicial.
 - `static/map.js`: mapa, agrupación y selección de reportes con Leaflet.
-- `static/app.js`: consulta la API y conserva el borrador en IndexedDB.
+- `static/app.js` y `static/publication-form.js`: consultan la API, conservan el borrador y publican con sesión y CSRF.
 - `static/sw.js`: guarda solo recursos y consultas públicas de demostración, con fecha de almacenamiento; no guarda operaciones de escritura.
 - `PublicationTests`: verifica consulta, categorías inválidas y recursos públicos.
 
@@ -43,7 +49,8 @@ El correo normalizado identifica la cuenta. La contraseña requiere al menos 12 
 2. Visitar `/api/publications?category=ROAD` y después `?category=OTHER`: la primera devuelve datos, la segunda HTTP 400.
 3. Guardar texto ficticio y coordenadas, recargar y comprobar recuperación.
 4. Tras primera visita y service worker activo, recargar sin red y revisar el aviso y antigüedad. Una categoría nunca consultada puede no estar guardada.
-5. Descartar borrador. Nunca se anuncia publicación enviada porque no hay endpoint de escritura.
+5. Con sesión, crear un punto y una vía; comprobar HTTP 201, lista, detalle y persistencia tras reiniciar.
+6. Sin sesión o CSRF, probar rechazo; con coordenadas inválidas, HTTP 400; tras cinco publicaciones en una hora, HTTP 429. Sin red, no se anuncia éxito y el borrador sigue disponible.
 
 La instalación PWA depende del navegador y entorno seguro (localhost para desarrollo; HTTPS al desplegar). La base no demuestra el cumplimiento completo de RNF-03 ni de accesibilidad/usabilidad. Fallos de almacenamiento local se comunican. Borradores solo sobreviven cuando se pulsa Guardar; el autoguardado del formulario final queda pendiente.
 

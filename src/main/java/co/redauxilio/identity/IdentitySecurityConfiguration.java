@@ -7,6 +7,7 @@ import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.core.Authentication;
@@ -17,7 +18,12 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.security.web.authentication.HttpStatusEntryPoint;
+import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.util.matcher.AnyRequestMatcher;
+import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.stereotype.Component;
 
 /** Define acceso público, formularios protegidos contra CSRF y la duración de sesión. */
@@ -65,6 +71,7 @@ class IdentitySecurityConfiguration {
                         "/app.js",
                         "/identity-forms.js",
                         "/identity-status.js",
+                        "/publication-form.js",
                         "/map.js",
                         "/sw.js",
                         "/manifest.webmanifest",
@@ -77,6 +84,16 @@ class IdentitySecurityConfiguration {
                     .anyRequest()
                     .authenticated())
         .authenticationProvider(authenticationProvider)
+        .exceptionHandling(
+            exceptions ->
+                exceptions
+                    .defaultAuthenticationEntryPointFor(
+                        new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED),
+                        new OrRequestMatcher(
+                            new AntPathRequestMatcher("/api/places"),
+                            new AntPathRequestMatcher("/api/publications", "POST")))
+                    .defaultAuthenticationEntryPointFor(
+                        new LoginUrlAuthenticationEntryPoint("/login"), AnyRequestMatcher.INSTANCE))
         .formLogin(
             form ->
                 form.loginPage("/login")

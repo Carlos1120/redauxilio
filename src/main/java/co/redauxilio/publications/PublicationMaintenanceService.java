@@ -193,7 +193,9 @@ class PublicationMaintenanceService {
                     row.getString("impact_type"),
                     row.getDouble("latitude"),
                     row.getDouble("longitude"),
-                    row.getBoolean("closed")),
+                    row.getBoolean("closed")
+                        || ("ROAD".equals(row.getString("category"))
+                            && "HABILITADA".equals(row.getString("operational_status")))),
             id,
             email)
         .stream()

@@ -49,8 +49,8 @@ class CitizenPublicationRepository {
               connection.prepareStatement(
                   "INSERT INTO citizen_publication"
                       + " (author_id, category, assistance_subtype, title, description, location,"
-                      + " operational_status, impact_type, latitude, longitude, created_at, updated_at)"
-                      + " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                      + " operational_status, impact_type, latitude, longitude, created_at, updated_at, closed)"
+                      + " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                   Statement.RETURN_GENERATED_KEYS);
           statement.setLong(1, authorId);
           statement.setString(2, request.category());
@@ -64,6 +64,11 @@ class CitizenPublicationRepository {
           statement.setDouble(10, request.longitude());
           statement.setTimestamp(11, Timestamp.from(now));
           statement.setTimestamp(12, Timestamp.from(now));
+          // HABILITADA es el cierre vial acordado; no crear un caso activo con ese estado.
+          statement.setBoolean(
+              13,
+              "ROAD".equals(request.category())
+                  && "HABILITADA".equals(request.operationalStatus()));
           return statement;
         },
         keys);
@@ -91,7 +96,10 @@ class CitizenPublicationRepository {
                 row.getDouble("longitude"),
                 row.getString("description"),
                 row.getTimestamp("created_at").toInstant().toString(),
-                row.getBoolean("closed"),
+                // Lectura compatible con altas RA-03 anteriores, sin reescribir sus filas.
+                row.getBoolean("closed")
+                    || ("ROAD".equals(row.getString("category"))
+                        && "HABILITADA".equals(row.getString("operational_status"))),
                 row.getString("assistance_subtype"),
                 row.getString("impact_type")));
   }

@@ -72,6 +72,7 @@ class IdentitySecurityConfiguration {
                         "/identity-forms.js",
                         "/identity-status.js",
                         "/publication-form.js",
+                        "/my-publications.js",
                         "/map.js",
                         "/sw.js",
                         "/manifest.webmanifest",

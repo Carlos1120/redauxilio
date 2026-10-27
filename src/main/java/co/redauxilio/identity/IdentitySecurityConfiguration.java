@@ -91,7 +91,8 @@ class IdentitySecurityConfiguration {
                         new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED),
                         new OrRequestMatcher(
                             new AntPathRequestMatcher("/api/places"),
-                            new AntPathRequestMatcher("/api/publications", "POST")))
+                            new AntPathRequestMatcher("/api/publications", "POST"),
+                            new AntPathRequestMatcher("/api/my/**")))
                     .defaultAuthenticationEntryPointFor(
                         new LoginUrlAuthenticationEntryPoint("/login"), AnyRequestMatcher.INSTANCE))
         .formLogin(

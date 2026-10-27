@@ -73,8 +73,9 @@
       for (const change of changes) {
         const entry = document.createElement("li");
         const when = new Date(change.changedAt).toLocaleString("es-CO");
-        entry.textContent = `${when} · ${change.action}${change.reason
-          ? " · Motivo: " + change.reason : ""}`;
+        entry.textContent = `${when} · ${change.action}${
+          change.reason ? " · Motivo: " + change.reason : ""
+        }`;
         history.append(entry);
       }
     } catch (error) {
@@ -130,9 +131,11 @@
         select.value = String(preferredId);
       }
       showCurrent();
-      notify(mine.length
-        ? "Selecciona tu publicación para actualizarla. Los cambios quedan auditados."
-        : "Todavía no tienes publicaciones visibles.");
+      notify(
+        mine.length
+          ? "Selecciona tu publicación para actualizarla. Los cambios quedan auditados."
+          : "Todavía no tienes publicaciones visibles.",
+      );
     } catch (error) {
       workspace.hidden = true;
       notify(error.message);
@@ -178,8 +181,12 @@
       longitude: Number(find("own-longitude").value),
     };
     void submitChange(
-      find("own-save"), `/api/my/publications/${item.id}`, "PATCH", payload,
-      "Corrección guardada e incorporada al historial.", item.id,
+      find("own-save"),
+      `/api/my/publications/${item.id}`,
+      "PATCH",
+      payload,
+      "Corrección guardada e incorporada al historial.",
+      item.id,
     );
   });
   stateForm.addEventListener("submit", (event) => {
@@ -187,9 +194,12 @@
     const item = current();
     if (!item || !stateForm.reportValidity()) return;
     void submitChange(
-      find("own-change-status"), `/api/my/publications/${item.id}/status`, "POST",
+      find("own-change-status"),
+      `/api/my/publications/${item.id}/status`,
+      "POST",
       { operationalStatus: states.value, reason: find("own-reason").value },
-      "Estado actualizado y registrado en el historial.", item.id,
+      "Estado actualizado y registrado en el historial.",
+      item.id,
     );
   });
   window.addEventListener("redauxilio:identity-change", (event) => {

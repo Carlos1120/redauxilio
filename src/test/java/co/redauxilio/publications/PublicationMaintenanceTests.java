@@ -402,6 +402,61 @@ class PublicationMaintenanceTests {
     }
   }
 
+  @Test
+  void listOwnUsesOneAuthorFilteredQueryAndPreservesOrderClosedAndPublicMapping() throws Exception {
+    String owner = account();
+    String other = account();
+    List<Long> ids = new ArrayList<>();
+    for (int index = 0; index < 4; index++) {
+      long id = publish(owner, index == 2);
+      ids.add(id);
+      jdbc.update(
+          "UPDATE citizen_publication SET created_at = ? WHERE id = ?",
+          Timestamp.from(Instant.parse("2026-10-01T00:00:00Z").plusSeconds(index)),
+          id);
+    }
+    transition(owner, ids.get(1), "CERRADO", "", 200);
+    // Fila vial heredada: reutilizar también la interpretación pública de cierre sin migrarla.
+    jdbc.update(
+        "UPDATE citizen_publication SET operational_status = 'HABILITADA', closed = FALSE WHERE id = ?",
+        ids.get(2));
+    long hidden = publish(owner, false);
+    jdbc.update("UPDATE citizen_publication SET visible = FALSE WHERE id = ?", hidden);
+    publish(other, false);
+    jdbc.execute("SET QUERY_STATISTICS TRUE");
+    try {
+      String body =
+          mvc.perform(get("/api/my/publications").with(user(owner)))
+              .andExpect(status().isOk())
+              .andReturn()
+              .getResponse()
+              .getContentAsString();
+      var result = json.readTree(body);
+      assertEquals(4, result.size());
+      for (int index = 0; index < 4; index++) {
+        assertEquals(ids.get(3 - index).longValue(), result.get(index).path("id").asLong());
+        org.junit.jupiter.api.Assertions.assertFalse(result.get(index).has("authorId"));
+        org.junit.jupiter.api.Assertions.assertFalse(result.get(index).has("author_id"));
+        org.junit.jupiter.api.Assertions.assertFalse(result.get(index).has("beforeSnapshot"));
+        assertEquals("REPORTADA", result.get(index).path("confidenceLevel").asText());
+      }
+      org.junit.jupiter.api.Assertions.assertTrue(result.get(1).path("closed").asBoolean());
+      org.junit.jupiter.api.Assertions.assertTrue(result.get(2).path("closed").asBoolean());
+      // H2 cuenta las sentencias ejecutadas, incluidas las consultas globales repetidas.
+      long queries =
+          jdbc.queryForObject(
+              "SELECT COALESCE(SUM(EXECUTION_COUNT), 0) FROM INFORMATION_SCHEMA.QUERY_STATISTICS"
+                  + " WHERE LOWER(SQL_STATEMENT) LIKE 'select%citizen_publication%'"
+                  + " AND SQL_STATEMENT NOT LIKE '%INFORMATION_SCHEMA%'",
+              Long.class);
+      assertEquals(
+          1, queries, "M publicaciones propias deben costar una consulta, no 1 + M globales");
+    } finally {
+      // Solo observación de SQL en la H2 de prueba; no dejarla activa en otras suites.
+      jdbc.execute("SET QUERY_STATISTICS FALSE");
+    }
+  }
+
   private void transition(String userEmail, long id, String state, String reason, int expected)
       throws Exception {
     mvc.perform(

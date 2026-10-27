@@ -554,3 +554,19 @@ Navegador integrado de Codex, origen exclusivo `http://127.0.0.1:58414/`, instan
 La caída del servidor **no** equivale a desconexión total del navegador: Internet y cartografía permanecen accesibles, `navigator.onLine` no cambia. No se acredita instalación PWA de escritorio ni aceptación humana. Los dobles JS cubren eventos offline/reconexión y exclusión de caché privada; quedan pruebas humanas de desconexión total, instalación y recorrido final. La revisión visual del agente no constituye auditoría WCAG ni nueva medición RNF-01/10. Las capturas observadas respaldan la sesión; no se afirma que estén versionadas en GitHub.
 
 PR #13 debe permanecer Draft hasta completar la validación manual y solicitar revisión de Santiago. CI del HEAD publicado se consulta en el PR; el verde histórico de `fe4b15b` no aprueba estas correcciones. Pendientes humanos y alcance en RA04.md; no se declara RA-04 terminada.
+
+## RA-04: bloqueo de Santiago — lista propia en una consulta — 27 de octubre de 2026
+
+Comprobación ejecutada mediante herramientas automatizadas; validación humana pendiente. Revisión [CHANGES_REQUESTED de Santiago/Arch0102](https://github.com/Carlos1120/redauxilio/pull/13#pullrequestreview-5670680417), base `494cd2a9bc5ada6af7df8f78c9e23affc33029d1`. Rama exclusiva `feat/RA-04-actualizacion-cierre`; árbol limpio y sin commits no publicados al iniciar. El commit que incorpora esta sección identifica la corrección. No se atribuye aprobación ni validación manual nueva a Santiago.
+
+Antes: `listOwn` leía M IDs y después cada `findPublication` cargaba todos los reportes visibles. La nueva regresión `listOwnUsesOneAuthorFilteredQueryAndPreservesOrderClosedAndPublicMapping` falló sobre la implementación anterior: **M=4, cinco consultas ejecutadas**, en lugar de una. Después obtiene los mismos cuatro reportes con **una consulta SQL** filtrada en la base por autor y visibilidad. `findOwnVisible` comparte proyección/mapeador público con `findVisible`; conserva cerrados, compatibilidad HABILITADA y orden de fecha descendente (ID descendente para empates). No se seleccionan autor ni auditoría en el DTO.
+
+La prueba HTTP/SQL prepara cuatro publicaciones propias, una propia oculta y otra de distinta cuenta; incluye un punto cerrado y una vía HABILITADA antigua con bandera falsa. Comprueba contenido, orden, cierre efectivo, ausencia de autor/auditoría y cuenta las ejecuciones reales con [QUERY_STATISTICS de H2](https://h2database.com/html/commands.html#set_query_statistics) / `EXECUTION_COUNT`. Se habilita solo alrededor de la solicitud y se deshabilita en `finally`. No se incorporan mocks ni dependencias. Este conteo prueba eliminación de consultas repetidas; no es un benchmark de latencia ni una medición de PostgreSQL.
+
+- Regresión específica antes de corregir: fallo esperado `expected 1, actual 5`; después, aprobada.
+- `.\mvnw.cmd -B spotless:apply verify`: **BUILD SUCCESS**, 58 pruebas Java, cero fallos/errores/omitidas; Spotless y PMD aprobados. En una ejecución intermedia PMD detectó el índice sin usar del mapeador extraído; se retiró y se validó de nuevo.
+- `npm.cmd test`: **42/42** aprobadas; no cambia JS ni interfaz.
+- `npm.cmd run format:check` y `git diff --check`: aprobados sobre archivos finales.
+- Entorno Windows/Temurin 17.0.20.1, Node 24.19.0/npm 11.17.0, H2 de pruebas. No se repiten responsive ni PWA porque no cambian sus recursos ni comportamiento de interfaz.
+
+Se conservan evidencias anteriores y pendientes humanos; este ajuste no los convierte en aprobaciones. El servidor anterior no se reinició para preservar su base de validación: su URL no acredita el nuevo backend sin reiniciar. CI del nuevo HEAD y la nueva solicitud de revisión se registran en PR #13; no se hace merge, no se modifica Trello ni ramas ajenas.

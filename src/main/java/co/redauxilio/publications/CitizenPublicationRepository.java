@@ -1,6 +1,8 @@
 package co.redauxilio.publications;
 
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -13,6 +15,10 @@ import org.springframework.stereotype.Repository;
 /** Persiste reportes ciudadanos y mantiene la autoría fuera del JSON público. */
 @Repository
 class CitizenPublicationRepository {
+  // Proyección compartida: no seleccionar autor, visibilidad ni auditoría en el DTO público.
+  private static final String PUBLIC_COLUMNS =
+      "id, category, assistance_subtype, title, description, location, operational_status,"
+          + " impact_type, latitude, longitude, created_at, updated_at, closed";
   private final JdbcTemplate jdbc;
 
   CitizenPublicationRepository(JdbcTemplate jdbc) {
@@ -80,27 +86,44 @@ class CitizenPublicationRepository {
   /** Entrega solo contenido visible, sin ID/correo del autor ni columnas internas. */
   List<PublicationService.Publication> findVisible() {
     return jdbc.query(
-        "SELECT id, category, assistance_subtype, title, description, location, operational_status,"
-            + " impact_type, latitude, longitude, created_at, updated_at, closed"
-            + " FROM citizen_publication WHERE visible = TRUE",
-        (row, index) ->
-            new PublicationService.Publication(
-                row.getLong("id"),
-                row.getString("category"),
-                row.getString("title"),
-                row.getString("location"),
-                row.getString("operational_status"),
-                "REPORTADA",
-                row.getTimestamp("updated_at").toInstant().toString(),
-                row.getDouble("latitude"),
-                row.getDouble("longitude"),
-                row.getString("description"),
-                row.getTimestamp("created_at").toInstant().toString(),
-                // Lectura compatible con altas RA-03 anteriores, sin reescribir sus filas.
-                row.getBoolean("closed")
-                    || ("ROAD".equals(row.getString("category"))
-                        && "HABILITADA".equals(row.getString("operational_status"))),
-                row.getString("assistance_subtype"),
-                row.getString("impact_type")));
+        "SELECT " + PUBLIC_COLUMNS + " FROM citizen_publication WHERE visible = TRUE",
+        (row, index) -> mapPublic(row));
+  }
+
+  /**
+   * Recupera todos los reportes visibles del autor en una consulta, incluidos cerrados. Filtra en
+   * SQL por el correo de la sesión; ordena del más reciente al más antiguo, con ID descendente como
+   * desempate estable. No recorre la colección pública global.
+   */
+  List<PublicationService.Publication> findOwnVisible(String email) {
+    return jdbc.query(
+        "SELECT "
+            + PUBLIC_COLUMNS
+            + " FROM citizen_publication"
+            + " WHERE author_id = (SELECT id FROM citizen_account WHERE email = ?)"
+            + " AND visible = TRUE ORDER BY created_at DESC, id DESC",
+        (row, index) -> mapPublic(row),
+        email);
+  }
+
+  /** Mapea exclusivamente el contrato público y conserva el cierre vial de altas antiguas. */
+  private static PublicationService.Publication mapPublic(ResultSet row) throws SQLException {
+    return new PublicationService.Publication(
+        row.getLong("id"),
+        row.getString("category"),
+        row.getString("title"),
+        row.getString("location"),
+        row.getString("operational_status"),
+        "REPORTADA",
+        row.getTimestamp("updated_at").toInstant().toString(),
+        row.getDouble("latitude"),
+        row.getDouble("longitude"),
+        row.getString("description"),
+        row.getTimestamp("created_at").toInstant().toString(),
+        row.getBoolean("closed")
+            || ("ROAD".equals(row.getString("category"))
+                && "HABILITADA".equals(row.getString("operational_status"))),
+        row.getString("assistance_subtype"),
+        row.getString("impact_type"));
   }
 }

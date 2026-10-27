@@ -35,13 +35,19 @@ class PublicationMaintenanceService {
 
   private final JdbcTemplate jdbc;
   private final PublicationService publications;
+  private final CitizenPublicationRepository repository;
   private final ObjectMapper json;
   private final Clock clock;
 
   PublicationMaintenanceService(
-      JdbcTemplate jdbc, PublicationService publications, ObjectMapper json, Clock clock) {
+      JdbcTemplate jdbc,
+      PublicationService publications,
+      CitizenPublicationRepository repository,
+      ObjectMapper json,
+      Clock clock) {
     this.jdbc = jdbc;
     this.publications = publications;
+    this.repository = repository;
     this.json = json;
     this.clock = clock;
   }
@@ -49,14 +55,7 @@ class PublicationMaintenanceService {
   /** Solo enumera reportes persistidos del autor, nunca los seis ejemplos del demostrador. */
   @Transactional(readOnly = true)
   List<PublicationService.Publication> listOwn(String email) {
-    List<Long> ids =
-        jdbc.query(
-            "SELECT p.id FROM citizen_publication p"
-                + " JOIN citizen_account a ON a.id = p.author_id"
-                + " WHERE a.email = ? AND p.visible = TRUE ORDER BY p.created_at DESC",
-            (row, index) -> row.getLong(1),
-            email);
-    return ids.stream().map(publications::findPublication).toList();
+    return repository.findOwnVisible(email);
   }
 
   /** Edita contenido y coordenadas, pero obliga a usar la transición para cambiar estados. */

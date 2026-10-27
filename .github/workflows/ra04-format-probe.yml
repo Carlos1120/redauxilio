@@ -1,0 +1,35 @@
+name: RA04 temporary formatter probe
+on:
+  push:
+    branches:
+      - feat/RA-04-actualizacion-cierre
+permissions:
+  contents: read
+jobs:
+  format-probe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: chmod +x mvnw && ./mvnw -B spotless:apply
+      - run: npx prettier --write src/main/resources/static/my-publications.js src/main/resources/templates/index.html src/main/resources/static/app.css
+      - name: Print formatted file snapshots for applying on branch
+        shell: bash
+        run: |
+          for file in src/main/java/co/redauxilio/publications/PublicationMaintenanceService.java src/main/java/co/redauxilio/publications/PublicationMaintenanceController.java src/test/java/co/redauxilio/publications/PublicationMaintenanceTests.java src/main/resources/static/my-publications.js src/main/resources/templates/index.html src/main/resources/static/app.css; do
+            if ! git diff --quiet -- "$file"; then
+              echo "RA04_FORMAT_BEGIN:$file"
+              base64 -w 0 "$file"
+              echo
+              echo "RA04_FORMAT_END:$file"
+            fi
+          done
+      - run: npm run format:check && npm test && ./mvnw -B verify

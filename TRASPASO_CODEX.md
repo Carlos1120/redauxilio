@@ -1,70 +1,23 @@
-# RedAuxilio: estado para continuar
+# RedAuxilio — traspaso vigente
 
-## Actualización del 25 de octubre de 2026 (Colombia)
+Actualización: 27 de octubre de 2026 (Colombia). Resumen operativo para retomar; no sustituye GitHub ni el estado del árbol. Reglas en AGENTS.md/ESTANDARES.md, contrato funcional en RA05.md y resultados extensos en la última sección RA-05 de EVIDENCIAS.md. No cargar el historial completo por rutina.
 
-Carlos solicitó cambios en el [PR #11](https://github.com/Carlos1120/redauxilio/pull/11) sobre el HEAD `b01d271`: contador de resultados y rótulos del mapa/lista atribuían origen ficticio a datos mixtos. La rama `feat/RA-03-publicacion-georreferenciada` publicó `0515e9f` con textos corregidos y prueba de regresión para ejemplos, publicaciones ciudadanas y mezcla; el detalle sigue identificando cada origen. La caché PWA pasa a v14. Pruebas locales del agente y límites en `EVIDENCIAS.md`; la [CI del commit de código](https://github.com/Carlos1120/redauxilio/actions/runs/40257768548) aprobó. Se respondió a Carlos y se pidió nueva revisión. La tarjeta RA-03 pasó temporalmente a En progreso por el bloqueante y volvió a En revisión tras la corrección. No hay aprobación de Carlos, validación manual del equipo ni integración en `develop`; comprobar la CI del HEAD final en el PR.
+## Rama y estado
 
-## Estado comprobado el 13 de octubre de 2026 (Colombia)
+Historia activa RA-05, confirmación independiente, en `feat/RA-05-confirmacion-independiente`. Base integrada RA-03/develop `2abc847`; se conservó el documental `94d30bc` como ancestro, ya existente en remoto. El HEAD identifica los commits de núcleo y cliente/evidencias. La entrega se prepara en PR Draft hacia develop; verificar su URL, HEAD y CI publicados en GitHub antes de asumir que están aprobados. No hay merge, aprobación humana ni cambios de Trello.
 
-Actualización del 14 de octubre: RA-03 está en `feat/RA-03-publicacion-georreferenciada`; el [PR #11](https://github.com/Carlos1120/redauxilio/pull/11) está listo para revisión hacia `develop` y la tarjeta está En revisión. No había revisión de Carlos al hacer la transición. La CI del commit `9bf887a` aprobó; comprobar en el PR el estado del HEAD más reciente. Localmente pasaron 46 pruebas Java y 24 JS; Spotless, PMD, Prettier y diff aprobaron según EVIDENCIAS.md. Edge headless verificó 360/768/1366 px, borrador, fallo de red, cuenta ficticia, publicación visible, una búsqueda real de Nominatim y ubicación simulada concedida/denegada más selección en mapa. Faltan revisión humana de Carlos, instalación PWA/GPS físico y comprobaciones tras integrar. No marcar RA-03 como Terminado antes de ellas.
+Worktree propio: `C:\Users\cmps-\.codex\worktrees\ra05-confirmacion\redauxilio`. Se preservaron RA-04, la copia de validación RA-03 y el repositorio original RA-01, sin descartar ni trasladar cambios. Comprobar status/remotos antes de continuar. Mantener commits lógicos y la identidad Git configurada por Carlos; no atribuir responsabilidad del proyecto al agente.
 
-- `origin/develop` está en `125d93a`: el [PR #10](https://github.com/Carlos1120/redauxilio/pull/10) de perfil/acceso se integró por squash. Carlos aprobó el HEAD `008ff56`; CI del PR y CI post-integración en `develop` aprobaron. El árbol de archivos del squash coincide con el HEAD aprobado. Detalle en RA01.md y EVIDENCIAS.md.
-- La tarjeta RA-01 se comprobó en Terminado y su descripción se actualizó con PR, revisión y CI actuales. Los apartados históricos que siguen describen estados anteriores; no usarlos como estado vigente del checkout o de GitHub.
-- La siguiente historia prioritaria es [RA-03](https://trello.com/c/bCMIjnzc). Santiago indicó usar sus criterios como alcance, eligió Nominatim público para la demostración y confirmó 24–32 horas-persona propias efectivas hasta el 19 de octubre. Preparación, límites y criterios en RA03.md; la DoD y la revisión de Carlos siguen pendientes.
+## Núcleo implementado y límites
 
-Instantánea del 6 de octubre de 2026 (Colombia). Normas en AGENTS.md y ESTANDARES.md; contrato en RA02.md; evidencia automática y humana separada en EVIDENCIAS.md.
+Confirmaciones persistentes por publicación/versión/cuenta; cuota móvil de 30 aceptaciones por hora; autor excluido, una activa por cuenta y umbral de tres solo para confianza comunitaria. Carlos confirmó ocultos 404, cerrados 409 y reconfirmación después de invalidar, conservando historia y cupo. POST requiere sesión, CSRF y versión observada; rechaza versiones obsoletas. Se serializan cuenta/publicación y se conserva auditoría de invalidación. No expone correos/IDs de confirmadores ni concede verificación oficial.
 
-## Estado actual
+La UI reutiliza el detalle, deshabilita sin sesión/red y no guarda ni reintenta escrituras. SW v15 precarga el script y excluye POST. El hook interno `invalidateForSubstantialChange` está probado aisladamente; **no** equivale a integración automática con RA-04. No copiar ese PR pendiente.
 
-- Repositorio de Santiago: `C:\Users\Santiago\redauxilio`; remoto https://github.com/Carlos1120/redauxilio.git.
-- PR #8 de RA-02 fue aprobado por Carlos Mario Peña y se integró por squash en `develop` como `bb97f9bdced4e031bd00d8916c0f5caa80dfd1fc`. CI post-merge pasó en ejecución 37538504822. La tarjeta de seguimiento está en Terminado; se conserva la RA-02 base.
-- PR #5, #6 y #7 integrados en develop. No fusionar otra vez las ramas antiguas ni reutilizar un traspaso previo como estado actual. La integración anterior no aprueba este rediseño.
-- El rediseño solicitado por Santiago usa Onest, rojo `#d7262e`, mapa como fondo y paneles flotantes de lista/detalle. Conserva API, filtros avanzados y borrador local; añade búsqueda local y filtros rápidos. Leaflet 1.9.4 y Onest se sirven localmente con sus licencias; caché PWA v9. No hay geolocalización, rutas, publicación real ni datos oficiales.
-- Santiago observó el diseño en IntelliJ y autorizó commit y push; la revisión final corresponde a Carlos. No atribuir aprobación del PR ni pruebas del agente a Santiago.
+## Evidencias y siguiente paso
 
-## Evidencias y límites
+Verificación local: 55 Java (9 específicas), Spotless/PMD, 39 JS, Prettier y diff --check aprobados. JaCoCo del servicio/controlador y records de confirmación: 82/82 líneas. Navegador: aceptación 2→3, duplicado, visitante/logout y tres tamaños sin overflow. No repetir suites del mismo código sin incertidumbre o cambio nuevo. La CI debe corresponder al HEAD exacto del Draft.
 
-- Rediseño: comprobado mediante Codex en servidor propio 8081, Windows/Corretto 21.0.10 y navegador integrado. Tres tamaños 360×800, 768×1024 y 1366×768 sin desbordamiento horizontal; selectores completos en tableta y detalle modal móvil. Búsqueda/filtros actualizan lista/mapa/detalle. Borrador guardado, recuperado y descartado. Caída del servidor muestra caché fechada; reinicio recupera datos del servidor. Esto no simula desconexión total de red.
-- Antes de incorporar PR #7: cinco pruebas Node y 22 Java, Prettier, Spotless, PMD y git diff --check aprobados. OpenJDK 25 falla en Spotless; verify pasa con el JDK 21 instalado. El registro posterior a la actualización debe consultarse en el PR y EVIDENCIAS.md.
-- PR #7 aporta 23 ejecuciones Java y nueve JS, corrección del aviso cartográfico por tesela y pruebas de carga aisladas. RNF-01: 1.000 datos/20 usuarios, p95 interno 19,802/4,299/0,252 ms (consulta/filtros/detalle), primeros resultados 366,9 ms en el entorno registrado. El rediseño no modifica el servidor; conservar esa evidencia sin afirmar medición nueva.
-- Carlos comunicó validación humana de responsive, instalación PWA en Chrome y desconexión/reconexión real sobre `e95b7da`, antes del rediseño. RNF-10 anterior: Lighthouse 100/100 móvil/escritorio. Esos resultados no acreditan automáticamente la nueva interfaz ni la nueva caché; confirmar los casos afectados. No atribuirlos a Santiago.
-- Leaflet retiene los fallos de cada tesela hasta tileload/tileunload; el rediseño conserva esta corrección y usa el mismo estado para mostrar el aviso. Cartografía requiere Internet y no se descarga masivamente ni se guarda por service worker. Consultas offline dependen de la URL exacta previamente guardada.
+Instancia propia en `http://127.0.0.1:61213/`, H2 exclusiva en memoria; reiniciar elimina datos sintéticos. Mantenerla para revisión manual y preservar servidores ajenos.
 
-## Trabajo actual: RA-01
-
-- El PR #9 de RA-01 ya aparece integrado en `develop` en GitHub (8 de octubre de 2026). El checkout está en `feat/RA-01-acceso-ciudadano`, HEAD `42ec1f2`; el estado local tiene cambios sin commit de interfaz/perfil posteriores a la integración y no pertenecen al PR. Esta actualización añade pruebas de seguridad RA-01 y corrige expiración de sesión; ver resultados y límites en el apartado final de `EVIDENCIAS.md`.
-- La implementación inicial cubre formulario de registro, acceso y salida, persistencia local H2 con perfil PostgreSQL, BCrypt, bloqueo temporal y expiración absoluta de sesión. Alcance y supuestos: RA01.md.
-- Respuesta al `REQUEST_CHANGES` de Carlos sobre `422ab2a`: expiración de sesión en rutas públicas corregida; copia del shell sin token CSRF y renovación antes del POST; HTTPS obligatorio en `prod`; correlation-id en cabecera, MDC y logs de errores. Detalle en el apartado del 7 de octubre de `EVIDENCIAS.md`.
-- Verificación de la corrección: `mvnw.cmd -B verify` BUILD SUCCESS (37 Java: 12 identidad, 2 HTTPS, 22 publicaciones, 1 rendimiento; Spotless y PMD); `npm.cmd test` 16/16; Prettier y `git diff --check` aprobados. H2 de tests en memoria; base de IntelliJ intacta.
-- Las pruebas simulan offline → reconexión con el service worker y script real; no son instalación PWA manual ni prueba en Chrome/Edge de escritorio. HTTPS se comprobó con MockMvc, incluido `X-Forwarded-Proto`, no contra un proxy productivo real.
-- Históricamente, GitHub Actions `verify` pasó en `09d6811` (ejecución 37679497399); luego el PR #9 se integró. Pendientes del bloque: instalación manual PWA y comprobaciones post-merge en `develop`. No se verificó Trello en esta actualización.
-
-Seguir la guía visual existente para nuevos formularios. Santiago autorizó el commit y push del avance actual; esto no autoriza PR, merge ni integración. No subir cuentas ni contraseñas reales. No marcar RA-01 lista hasta ejecutar los casos específicos, completar revisión de Carlos y las comprobaciones sobre develop.
-
-Servidor de IntelliJ 8080 preservado; la instancia propia 8081 usa H2 en memoria. No crear cuentas con datos reales. Tarjeta RA-01: https://trello.com/c/25iI3xgM. Tarjeta RA-02: https://trello.com/c/LYDxDTZT.
-
-Lectura mínima: este estado y AGENTS.md; secciones finales de RA02.md/EVIDENCIAS.md; ESTANDARES.md al aplicar reglas.
-
-## Cambio local pendiente — cabecera de acceso
-
-En `feat/RA-01-acceso-ciudadano`, la cabecera separa el botón neutral de cuenta del punto pequeño de conexión (verde online, rojo offline). El botón abre la cuenta y permite cerrar sesión. Login/logout envían POST con token CSRF fresco y actualizan el estado sin navegación completa; al reconectar se confirma la sesión con `/account`. El service worker v9 elimina del shell guardado los tokens CSRF y el estado de autenticación antiguo. Cambios locales no comprometidos ni publicados, según la instrucción expresa de Santiago.
-
-Verificación local: 39 pruebas Java de `mvnw verify`, 22 de Node, Prettier y `git diff --check` aprobados con Corretto 21. La observación inicial de `localhost:8080` en esta nota ya no es actual: la inspección del 8 de octubre encontró `identity-controls` y `identity-status.js` servidos; no reiniciar ni detener la instancia ajena.
-
-## Refinamiento local del panel de consulta — 8 de octubre de 2026
-
-Santiago solicitó probar la propuesta B de Open Design con ajustes de legibilidad de A. Tras su comentario de que el primer ajuste era demasiado sutil, `app.css` ahora usa panel de 376 px, títulos de 18 px, insignias de categoría y bloques visuales paralelos para estado operativo y confianza; `app.js` muestra la última actualización y `sw.js` renueva la caché v10. Se conserva la dirección Onest/rojo/mapa; no se alteraron API ni datos. La guía de interfaz y evidencias anotan el refinamiento.
-
-Vista probada por Codex en 360×800, 768×1024 y 1366×768 mediante la app local en 8081, con H2 en memoria y recursos/plantilla leídos desde el árbol actual. No apareció desbordamiento horizontal; detalle centrado en móvil/tableta y lateral en escritorio; mapa, lista, fichas, controles y atribución se vieron según el encuadre. El detalle largo cierra con Escape y devuelve el foco. En tableta, selectores avanzados de 329 px caben completos. No se verificó error cartográfico ni recorrido PWA offline manual.
-
-`npm.cmd test`: 22/22; `npm.cmd run format:check` y `git diff --check`: aprobados. Revisión del agente no acredita validación manual de Santiago o Carlos. La instancia propia 8081 sigue activa para inspección; IntelliJ/8080 se conservó. HEAD `42ec1f275ef82ac3d2c69951c913e3f090e0d160`, sin commit; cambios locales previos preservados.
-
-## Corrección de registro y perfil — 8 de octubre de 2026
-
-En el mismo bloque local de RA-01 se aclaró el mensaje para la restricción de correo duplicado sin confirmar si una cuenta existe; se agregó `/api/account`, privado y sin caché, que solo devuelve nombre visible y correo de la sesión. El icono de cuenta carga esos datos en el diálogo, mantiene cerrar sesión y limpia los campos al salir. `sw.js` actualiza la caché a v11 para renovar la interfaz. No se usaron datos de registro de la captura ni se creó una cuenta real.
-
-Pruebas locales: `npm.cmd test` 23/23; `mvnw.cmd -B verify` con Corretto 21.0.10 BUILD SUCCESS (39 pruebas, Spotless y PMD); `npm.cmd run format:check` y `git diff --check` aprobados. GET `localhost:8082/` devuelve 200 y los campos de perfil; H2 en memoria aislada. La vista nueva 8082 queda disponible; no se reiniciaron 8080 ni 8081, cuyas instancias conservaron su estado. No se ha hecho prueba manual del flujo de registro/perfil en navegador ni validación humana. El PR base ya está integrado; los cambios actuales son locales y pendientes de organizar para revisión.
-
-## Estado remoto revisado — 8 de octubre de 2026
-
-GitHub muestra el PR #9 como integrado en `develop` el 8 de octubre: https://github.com/Carlos1120/redauxilio/pull/9. Se verificó por red que `origin/develop` era `12d7939` y que la rama fuente del PR estaba en `42ec1f2`. Los cambios se preservaron y reaplicaron sin conflictos sobre `feat/RA-01-perfil-ciudadano`, basada en `origin/develop`, y se publicaron como `3673ad6`. El remoto confirma `HEAD` igual a `origin/feat/RA-01-perfil-ciudadano`; no se abrió PR de seguimiento. `gh` no está instalado; el PR #9 se consultó en GitHub. No se actualizó Trello. La integración no demuestra comprobaciones post-merge en `develop` ni completa la validación manual PWA.
+Siguiente paso: revisar el núcleo Draft con Santiago, completar validación humana de PWA/desconexión y, cuando RA-04 se integre, conectar invalidación en la misma transacción de edición/transición y probar regresión conjunta. RA-05 no cumple DoD ni está lista para merge antes de esa integración y aprobación.

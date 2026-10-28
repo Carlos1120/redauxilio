@@ -76,7 +76,10 @@ class CitizenPublicationRepository {
   List<PublicationService.Publication> findVisible() {
     return jdbc.query(
         "SELECT id, category, assistance_subtype, title, description, location, operational_status,"
-            + " impact_type, latitude, longitude, created_at, updated_at, closed"
+            + " impact_type, latitude, longitude, created_at, updated_at, closed, confirmation_version"
+            + ", (SELECT COUNT(*) FROM publication_confirmation c WHERE c.publication_id = citizen_publication.id"
+            + " AND c.publication_version = citizen_publication.confirmation_version"
+            + " AND c.confirmer_id <> citizen_publication.author_id) AS confirmation_count"
             + " FROM citizen_publication WHERE visible = TRUE",
         (row, index) ->
             new PublicationService.Publication(
@@ -85,7 +88,7 @@ class CitizenPublicationRepository {
                 row.getString("title"),
                 row.getString("location"),
                 row.getString("operational_status"),
-                "REPORTADA",
+                row.getInt("confirmation_count") >= 3 ? "CONFIRMADA" : "REPORTADA",
                 row.getTimestamp("updated_at").toInstant().toString(),
                 row.getDouble("latitude"),
                 row.getDouble("longitude"),
@@ -93,6 +96,8 @@ class CitizenPublicationRepository {
                 row.getTimestamp("created_at").toInstant().toString(),
                 row.getBoolean("closed"),
                 row.getString("assistance_subtype"),
-                row.getString("impact_type")));
+                row.getString("impact_type"),
+                row.getInt("confirmation_count"),
+                row.getLong("confirmation_version")));
   }
 }

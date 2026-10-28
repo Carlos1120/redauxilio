@@ -569,6 +569,12 @@
 #report-map .leaflet-control-attribution {
   font-size: 12px;
 }
+/* Los enlaces de atribución conservan el texto pequeño, con una zona táctil completa. */
+#report-map .leaflet-control-attribution a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}
 #report-map :focus-visible {
   outline: 3px solid var(--color-focus);
   outline-offset: 3px;
@@ -663,6 +669,7 @@ body {
 }
 .brand {
   gap: 8px;
+  min-height: 44px;
   font-size: 1.125rem;
   letter-spacing: -0.035em;
   white-space: nowrap;
@@ -1398,8 +1405,16 @@ footer {
   .map-section #reset-map {
     right: 24px;
   }
+  /* Separa zoom, restablecer y atribución al ampliar el área pulsable de esta última. */
+  #report-map .leaflet-top.leaflet-left {
+    bottom: 112px;
+  }
+  .map-section #reset-map {
+    bottom: 52px;
+  }
   .map-legend {
     right: 90px;
+    bottom: 52px;
     max-width: calc(100% - var(--report-list-width) - 122px);
   }
   .map-section #map-status[data-error="true"] {
@@ -1501,15 +1516,15 @@ footer {
   }
   #report-map .leaflet-top.leaflet-left {
     right: 16px;
-    bottom: 84px;
+    bottom: 112px;
   }
   .map-section #reset-map {
     right: 18px;
-    bottom: 22px;
+    bottom: 52px;
   }
   .map-legend {
     right: 76px;
-    bottom: 15px;
+    bottom: 48px;
     left: 12px;
     width: auto;
     max-width: none;

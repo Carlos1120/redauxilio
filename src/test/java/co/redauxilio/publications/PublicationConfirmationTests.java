@@ -109,6 +109,27 @@ class PublicationConfirmationTests {
   }
 
   @Test
+  void legacyEnabledRoadIsClosedForPublicQueryAndConfirmation() throws Exception {
+    String author = account(), citizen = account();
+    long id = publication(author);
+    // Fila heredada de RA-03: el estado cierra la vía aunque la bandera antigua sea falsa.
+    jdbc.update(
+        "UPDATE citizen_publication SET category = 'ROAD', assistance_subtype = NULL,"
+            + " operational_status = 'HABILITADA', closed = FALSE WHERE id = ?",
+        id);
+    mvc.perform(get("/api/publications/{id}", id))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.closed").value(true));
+    var stored =
+        jdbc.queryForMap(
+            "SELECT category, operational_status FROM citizen_publication WHERE id = ?", id);
+    assertEquals("ROAD", stored.get("CATEGORY"));
+    assertEquals("HABILITADA", stored.get("OPERATIONAL_STATUS"));
+    submit(id, citizen, 409);
+    assertEquals(0, rows(id));
+  }
+
+  @Test
   void thirtyAcceptedPerSlidingHourAndExactBoundary() throws Exception {
     String author = account(), citizen = account();
     List<Long> ids = new ArrayList<>();

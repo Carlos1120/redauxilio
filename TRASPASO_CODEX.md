@@ -1,5 +1,23 @@
 # RedAuxilio: estado para continuar
 
+## Actualización del 28 de octubre de 2026 (Colombia)
+
+El PR #13 de Carlos (RA-04) publicó `393602d` con la corrección de listado propio en una consulta SQL; su CI 40544989326 aprobó. Codex revisó el cambio y dejó comentario técnico en la revisión 5690831459. La aprobación y validación humana de Santiago aún no están acreditadas; no integrar ni cerrar RA-04 por esta comprobación del agente.
+
+La rama `fix/RA-02-controles-tactiles` del PR #12 incorporó `origin/develop` `2abc847` mediante merge, conservando el cambio CSS y resolviendo el conflicto de `EVIDENCIAS.md`. Sobre el árbol combinado pasaron 46 pruebas Java, Spotless, PMD y 26 pruebas JS con Corretto 21. El primer `mvnw verify` se ejecutó accidentalmente con Java 25: sus 46 pruebas pasaron, pero Spotless falló por incompatibilidad del formateador; la ejecución con Java 21 terminó en BUILD SUCCESS. Quedan por comprobar formato final, CI del commit publicado y validación visual/humana de la combinación antes de sacar PR #12 de Draft.
+
+## Actualización del 25 de octubre de 2026 (Colombia)
+
+Carlos solicitó cambios en el [PR #11](https://github.com/Carlos1120/redauxilio/pull/11) sobre el HEAD `b01d271`: contador de resultados y rótulos del mapa/lista atribuían origen ficticio a datos mixtos. La rama `feat/RA-03-publicacion-georreferenciada` publicó `0515e9f` con textos corregidos y prueba de regresión para ejemplos, publicaciones ciudadanas y mezcla; el detalle sigue identificando cada origen. La caché PWA pasa a v14. Pruebas locales del agente y límites en `EVIDENCIAS.md`; la [CI del commit de código](https://github.com/Carlos1120/redauxilio/actions/runs/40257768548) aprobó. Se respondió a Carlos y se pidió nueva revisión. La tarjeta RA-03 pasó temporalmente a En progreso por el bloqueante y volvió a En revisión tras la corrección. No hay aprobación de Carlos, validación manual del equipo ni integración en `develop`; comprobar la CI del HEAD final en el PR.
+
+## Estado comprobado el 13 de octubre de 2026 (Colombia)
+
+Actualización del 14 de octubre: RA-03 está en `feat/RA-03-publicacion-georreferenciada`; el [PR #11](https://github.com/Carlos1120/redauxilio/pull/11) está listo para revisión hacia `develop` y la tarjeta está En revisión. No había revisión de Carlos al hacer la transición. La CI del commit `9bf887a` aprobó; comprobar en el PR el estado del HEAD más reciente. Localmente pasaron 46 pruebas Java y 24 JS; Spotless, PMD, Prettier y diff aprobaron según EVIDENCIAS.md. Edge headless verificó 360/768/1366 px, borrador, fallo de red, cuenta ficticia, publicación visible, una búsqueda real de Nominatim y ubicación simulada concedida/denegada más selección en mapa. Faltan revisión humana de Carlos, instalación PWA/GPS físico y comprobaciones tras integrar. No marcar RA-03 como Terminado antes de ellas.
+
+- `origin/develop` está en `125d93a`: el [PR #10](https://github.com/Carlos1120/redauxilio/pull/10) de perfil/acceso se integró por squash. Carlos aprobó el HEAD `008ff56`; CI del PR y CI post-integración en `develop` aprobaron. El árbol de archivos del squash coincide con el HEAD aprobado. Detalle en RA01.md y EVIDENCIAS.md.
+- La tarjeta RA-01 se comprobó en Terminado y su descripción se actualizó con PR, revisión y CI actuales. Los apartados históricos que siguen describen estados anteriores; no usarlos como estado vigente del checkout o de GitHub.
+- La siguiente historia prioritaria es [RA-03](https://trello.com/c/bCMIjnzc). Santiago indicó usar sus criterios como alcance, eligió Nominatim público para la demostración y confirmó 24–32 horas-persona propias efectivas hasta el 19 de octubre. Preparación, límites y criterios en RA03.md; la DoD y la revisión de Carlos siguen pendientes.
+
 Instantánea del 6 de octubre de 2026 (Colombia). Normas en AGENTS.md y ESTANDARES.md; contrato en RA02.md; evidencia automática y humana separada en EVIDENCIAS.md.
 
 ## Estado actual

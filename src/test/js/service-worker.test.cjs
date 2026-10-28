@@ -70,14 +70,41 @@ test("el shell precarga el script que mantiene el indicador de sesión y conexi�
   assert.ok(worker.precached.includes("/identity-status.js"));
 });
 
-test("el service worker no intercepta pantallas de acceso ni escrituras", () => {
+test("el service worker no intercepta rutas de acceso independientes ni escrituras", () => {
   const worker = loadWorker();
-  assert.equal(fetchEvent(worker, "http://localhost:8081/?access=register"), undefined);
-  assert.equal(fetchEvent(worker, "http://localhost:8081/?access=login"), undefined);
   assert.equal(fetchEvent(worker, "http://localhost:8081/register"), undefined);
   assert.equal(fetchEvent(worker, "http://localhost:8081/login", "POST"), undefined);
   assert.equal(fetchEvent(worker, "http://localhost:8081/logout", "POST"), undefined);
   assert.equal(fetchEvent(worker, "http://localhost:8081/csrf"), undefined);
+});
+
+test("una recarga de cuenta sin red usa el shell público saneado y no guarda la vista privada", async () => {
+  let isOnline = true;
+  const worker = loadWorker(async (request) => {
+    if (!isOnline) throw new Error("sin conexión");
+    if (request.url?.includes("access=account")) {
+      return new Response('<p>correo-privado@example.invalid</p>', { status: 200 });
+    }
+    return new Response(
+      '<button data-authenticated="true"></button><input name="_csrf" value="token-privado">',
+      { status: 200 },
+    );
+  });
+  let installation;
+  worker.listeners.get("install")({ waitUntil: (promise) => (installation = promise) });
+  await installation;
+
+  const accountUrl = "http://localhost:8081/?access=account";
+  const onlineResponse = await fetchEvent(worker, accountUrl);
+  assert.match(await onlineResponse.text(), /correo-privado/);
+  assert.equal(worker.entries.has(accountUrl), false);
+
+  isOnline = false;
+  const offlineResponse = await fetchEvent(worker, accountUrl);
+  const offlineHtml = await offlineResponse.text();
+  assert.doesNotMatch(offlineHtml, /correo-privado|token-privado/);
+  assert.match(offlineHtml, /data-authenticated="false"/);
+  assert.match(offlineHtml, /name="_csrf" value=""/);
 });
 
 test("la copia offline del shell no conserva tokens CSRF de la sesión anterior", async () => {

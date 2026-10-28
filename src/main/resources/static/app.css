@@ -809,6 +809,10 @@ main {
   isolation: isolate;
   background: #eee9e6;
 }
+#report-map.map-selecting-location,
+#report-map.map-selecting-location * {
+  cursor: crosshair !important;
+}
 .search-section::before {
   content: "";
   position: absolute;
@@ -1306,6 +1310,61 @@ main {
 }
 .draft-section form > .field {
   grid-column: 1;
+}
+.publication-fields,
+.publication-specific {
+  display: grid;
+  gap: 14px;
+}
+.publication-specific[hidden] {
+  display: none;
+}
+.publication-specific {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.draft-section fieldset .field {
+  margin-bottom: 14px;
+}
+.location-actions,
+.location-search,
+.coordinate-fields {
+  display: flex;
+  gap: 10px;
+}
+.location-actions {
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+.location-actions button {
+  flex: 1 1 145px;
+}
+.location-search input {
+  min-width: 0;
+  flex: 1;
+}
+.coordinate-fields > .field {
+  flex: 1;
+  min-width: 0;
+}
+.place-results {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 12px;
+  max-height: 180px;
+  overflow-y: auto;
+}
+.place-results li + li {
+  margin-top: 6px;
+}
+.place-results button {
+  width: 100%;
+  text-align: left;
+  white-space: normal;
+}
+#location-message,
+.draft-message {
+  color: var(--color-report-secondary);
+  font-size: 0.875rem;
 }
 .draft-section form > fieldset {
   grid-column: 2;

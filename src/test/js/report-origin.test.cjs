@@ -1,0 +1,114 @@
+"use strict";
+
+const { test } = require("node:test");
+const assert = require("node:assert/strict");
+const { readFileSync } = require("node:fs");
+const { join } = require("node:path");
+const vm = require("node:vm");
+
+/** Ejecuta la consulta real con dobles mínimos de DOM; no simula revisión humana ni cartografía. */
+async function loadReportView(items) {
+  const nodes = new Map();
+  function element(id = "") {
+    if (nodes.has(id)) return nodes.get(id);
+    const node = {
+      id,
+      dataset: {},
+      value: "",
+      children: [],
+      open: false,
+      addEventListener() {},
+      append(...children) {
+        this.children.push(...children);
+      },
+      replaceChildren(...children) {
+        this.children = children;
+      },
+      setAttribute() {},
+      querySelectorAll: () => [],
+      querySelector: () => null,
+      focus() {},
+      close() {
+        this.open = false;
+      },
+      show() {
+        this.open = true;
+      },
+    };
+    nodes.set(id, node);
+    return node;
+  }
+  const context = vm.createContext({
+    document: {
+      getElementById: element,
+      createElement: () => element(Symbol()),
+      querySelectorAll: () => [],
+    },
+    window: {
+      matchMedia: () => ({ matches: false, addEventListener() {} }),
+      addEventListener() {},
+    },
+    navigator: {},
+    indexedDB: { open: () => ({}) },
+    fetch: async () => ({
+      ok: true,
+      json: async () => items,
+      headers: { get: () => null },
+    }),
+    URLSearchParams,
+    setTimeout,
+    clearTimeout,
+  });
+  vm.runInContext(
+    readFileSync(join(__dirname, "../../main/resources/static/app.js"), "utf8"),
+    context,
+    { filename: "app.js" },
+  );
+  await new Promise((resolve) => setImmediate(resolve));
+  return { nodes, context };
+}
+
+function report(id) {
+  return {
+    id,
+    category: "ASSISTANCE",
+    title: `Reporte ${id}`,
+    location: "Ubicación de prueba",
+    description: "Descripción de prueba",
+    operationalStatus: "Disponible",
+    confidenceLevel: "REPORTADA",
+    latitude: 4.15,
+    longitude: -73.63,
+    createdAt: "2026-10-14T12:00:00Z",
+    updatedAt: "2026-10-14T12:00:00Z",
+  };
+}
+
+test("consulta y detalle distinguen ejemplos, publicaciones y mezcla", async () => {
+  for (const [items, expected, detailOrigin] of [
+    [[report(1)], "1 reporte ficticio encontrado.", "reporte ficticio"],
+    [[report(1000000)], "1 publicación comunitaria encontrada.", "publicación comunitaria"],
+    [
+      [report(1), report(1000000)],
+      "1 reporte ficticio y 1 publicación comunitaria encontrados.",
+      "publicación comunitaria",
+    ],
+  ]) {
+    const { nodes, context } = await loadReportView(items);
+    assert.match(nodes.get("message").textContent, new RegExp(expected, "u"));
+    context.selectedItem = items.at(-1);
+    vm.runInContext("showReportDetail(selectedItem, null, true)", context);
+    assert.match(nodes.get("detail-kicker").textContent, new RegExp(detailOrigin, "u"));
+  }
+});
+
+test("mapa y rótulos estáticos describen una consulta de origen mixto", () => {
+  const template = readFileSync(
+    join(__dirname, "../../main/resources/templates/index.html"),
+    "utf8",
+  );
+  const map = readFileSync(join(__dirname, "../../main/resources/static/map.js"), "utf8");
+  assert.match(template, /Ejemplos y publicaciones/u);
+  assert.match(template, /Mapa de ejemplos ficticios y publicaciones comunitarias/u);
+  assert.match(map, /Ubicaciones de reportes\. El fondo cartográfico requiere conexión/u);
+});

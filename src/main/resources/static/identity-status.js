@@ -11,6 +11,8 @@
   const accountMessage = document.getElementById("account-load-message");
   if (!trigger || !connectionIndicator || !liveStatus) return;
 
+  let sessionVersion = 0;
+
   function updateStatus() {
     const online = navigator.onLine;
     connectionIndicator.dataset.online = String(online);
@@ -30,6 +32,7 @@
 
   /** Carga los datos visibles del perfil únicamente desde la sesión actual. */
   async function loadAccountProfile() {
+    const version = sessionVersion;
     if (trigger.dataset.authenticated !== "true") {
       accountName.textContent = "";
       accountEmail.textContent = "";
@@ -43,12 +46,19 @@
         cache: "no-store",
         headers: { Accept: "application/json" },
       });
+      if (version !== sessionVersion) return;
+      if (response.status === 401 || response.status === 403 || response.redirected) {
+        window.RedAuxilioIdentityStatus.setAuthenticated(false);
+        return;
+      }
       if (!response.ok) throw new Error("Perfil no disponible.");
       const profile = await response.json();
+      if (version !== sessionVersion) return;
       accountName.textContent = profile.displayName;
       accountEmail.textContent = profile.email;
       accountMessage.textContent = "Tu cuenta ciudadana está activa.";
     } catch {
+      if (version !== sessionVersion) return;
       accountName.textContent = "";
       accountEmail.textContent = "";
       accountMessage.textContent = "No fue posible cargar el perfil. Intenta de nuevo.";
@@ -57,31 +67,43 @@
 
   /** Confirma por una ruta protegida si la sesión aún es válida después de usar la copia offline. */
   async function confirmSessionAfterReconnect() {
+    const version = sessionVersion;
     try {
       const response = await fetch("/account", {
         credentials: "same-origin",
         cache: "no-store",
         headers: { Accept: "text/html" },
       });
+      if (version !== sessionVersion) return;
       const destination = new URL(response.url);
       window.RedAuxilioIdentityStatus.setAuthenticated(
         response.ok && destination.searchParams.get("access") === "account",
       );
     } catch {
-      window.RedAuxilioIdentityStatus.setAuthenticated(false);
+      if (version === sessionVersion) window.RedAuxilioIdentityStatus.setAuthenticated(false);
     }
   }
 
   window.addEventListener("online", () => {
     updateStatus();
+    // Oculta datos anteriores mientras se confirma la identidad, incluso al cambiar de cuenta.
+    window.RedAuxilioIdentityStatus.setAuthenticated(false);
     void confirmSessionAfterReconnect();
   });
   window.addEventListener("offline", updateStatus);
   window.RedAuxilioIdentityStatus = {
     refresh: updateStatus,
     setAuthenticated(authenticated) {
+      sessionVersion++;
       trigger.dataset.authenticated = String(authenticated);
       updateAccountLabel();
+      accountName.textContent = "";
+      accountEmail.textContent = "";
+      window.dispatchEvent(
+        new CustomEvent("redauxilio:identity-change", {
+          detail: { authenticated: Boolean(authenticated) },
+        }),
+      );
       void loadAccountProfile();
     },
   };

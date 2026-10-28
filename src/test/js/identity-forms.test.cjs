@@ -155,7 +155,7 @@ test("login y logout usan CSRF y actualizan sesión sin navegación completa", a
     });
 
     assert.equal(navigationPrevented, true);
-    assert.equal(events[0].type, "redauxilio:identity-change");
+    assert.equal(events[0].type, "redauxilio:identity-action");
     assert.equal(events[0].detail.authenticated, authenticated);
     assert.equal(message.hidden, true);
   }

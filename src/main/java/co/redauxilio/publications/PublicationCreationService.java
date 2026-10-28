@@ -51,7 +51,7 @@ class PublicationCreationService {
     return repository.insert(authorId, request, now);
   }
 
-  private static CreatePublicationRequest validate(CreatePublicationRequest input) {
+  static CreatePublicationRequest validate(CreatePublicationRequest input) {
     if (input == null) throw invalid("Faltan datos de la publicación");
     String category = required(input.category(), 20, "Categoría");
     String title = required(input.title(), 120, "Nombre o tramo");

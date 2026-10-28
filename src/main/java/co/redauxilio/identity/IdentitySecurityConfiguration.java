@@ -72,6 +72,7 @@ class IdentitySecurityConfiguration {
                         "/identity-forms.js",
                         "/identity-status.js",
                         "/publication-form.js",
+                        "/my-publications.js",
                         "/confirmation.js",
                         "/map.js",
                         "/sw.js",
@@ -95,6 +96,7 @@ class IdentitySecurityConfiguration {
                         new OrRequestMatcher(
                             new AntPathRequestMatcher("/api/places"),
                             new AntPathRequestMatcher("/api/publications", "POST"),
+                            new AntPathRequestMatcher("/api/my/**"),
                             new AntPathRequestMatcher("/api/publications/*/confirmations", "POST")))
                     .defaultAuthenticationEntryPointFor(
                         new LoginUrlAuthenticationEntryPoint("/login"), AnyRequestMatcher.INSTANCE))

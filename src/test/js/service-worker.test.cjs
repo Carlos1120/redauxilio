@@ -83,7 +83,7 @@ test("una recarga de cuenta sin red usa el shell público saneado y no guarda la
   const worker = loadWorker(async (request) => {
     if (!isOnline) throw new Error("sin conexión");
     if (request.url?.includes("access=account")) {
-      return new Response('<p>correo-privado@example.invalid</p>', { status: 200 });
+      return new Response("<p>correo-privado@example.invalid</p>", { status: 200 });
     }
     return new Response(
       '<button data-authenticated="true"></button><input name="_csrf" value="token-privado">',
@@ -211,4 +211,16 @@ test("flujo offline → reconexión renueva CSRF antes de permitir login", async
   isOnline = true;
   await submitListeners.get("submit")({ preventDefault: () => {} });
   assert.equal(submittedToken, "token-fresco");
+});
+
+test("confirmación precargada y escrituras excluidas del service worker", async () => {
+  const worker = loadWorker();
+  let installation;
+  worker.listeners.get("install")({ waitUntil: (promise) => (installation = promise) });
+  await installation;
+  assert.ok(worker.precached.includes("/confirmation.js"));
+  assert.equal(
+    fetchEvent(worker, "http://localhost:8081/api/publications/1000001/confirmations", "POST"),
+    undefined,
+  );
 });

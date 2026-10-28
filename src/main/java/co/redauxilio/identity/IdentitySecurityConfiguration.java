@@ -72,6 +72,7 @@ class IdentitySecurityConfiguration {
                         "/identity-forms.js",
                         "/identity-status.js",
                         "/publication-form.js",
+                        "/confirmation.js",
                         "/map.js",
                         "/sw.js",
                         "/manifest.webmanifest",
@@ -79,6 +80,8 @@ class IdentitySecurityConfiguration {
                         "/vendor/**",
                         "/api/publications/**")
                     .permitAll()
+                    .requestMatchers(HttpMethod.POST, "/api/publications/*/confirmations")
+                    .authenticated()
                     .requestMatchers(HttpMethod.POST, "/login", "/register")
                     .permitAll()
                     .anyRequest()
@@ -91,7 +94,8 @@ class IdentitySecurityConfiguration {
                         new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED),
                         new OrRequestMatcher(
                             new AntPathRequestMatcher("/api/places"),
-                            new AntPathRequestMatcher("/api/publications", "POST")))
+                            new AntPathRequestMatcher("/api/publications", "POST"),
+                            new AntPathRequestMatcher("/api/publications/*/confirmations", "POST")))
                     .defaultAuthenticationEntryPointFor(
                         new LoginUrlAuthenticationEntryPoint("/login"), AnyRequestMatcher.INSTANCE))
         .formLogin(

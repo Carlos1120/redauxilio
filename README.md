@@ -4,7 +4,7 @@ PWA colaborativa de información georreferenciada ante terremotos. Equipo 4: Car
 
 ## Primera versión ejecutable
 
-Consulta pública con mapa Leaflet, agrupación y filtros por categoría, estado, confianza y área visible; detalle, borrador local y base PWA. RA-02 y RA-01 están integradas en develop. Esta rama de RA-03 añade publicación persistente de puntos de asistencia y vías afectadas con cuenta ciudadana. Los seis ejemplos de RA-02 siguen siendo ficticios. No usar en una emergencia real. El alcance completo del Word sigue vigente.
+Consulta pública con mapa Leaflet, filtros, detalle, borrador local y base PWA. RA-01, RA-02 y RA-03 están integradas en `develop`; RA-03 incluye publicación persistente de puntos de asistencia y vías afectadas. RA-04 sigue en revisión en el PR #13 y RA-05 se desarrolla aisladamente desde `develop`. Los seis ejemplos de RA-02 siguen siendo ficticios. No usar en una emergencia real. Se conserva el alcance completo de requisitos.
 
 ## Ejecutar en Windows
 
@@ -25,7 +25,7 @@ Maven Wrapper descarga Maven 3.9.11; no exige instalar Maven por separado. Java 
 
 El correo normalizado identifica la cuenta. La contraseña requiere al menos 12 caracteres, se conserva como hash BCrypt con sal aleatoria y no se registra en texto. Cinco intentos fallidos bloquean esa cuenta durante 15 minutos. La sesión rota su identificador al entrar, usa cookie HttpOnly/SameSite=Lax y termina al cumplir 24 horas. Formularios conservan protección CSRF. El registro no valida que el correo pertenezca a la persona.
 
-## Publicación georreferenciada (RA-03, rama de trabajo)
+## Publicación georreferenciada (RA-03 integrada en `develop`)
 
 Una cuenta autenticada puede publicar un punto de asistencia o una vía afectada desde el formulario. Se exigen categoría, nombre o tramo, descripción, estado y ubicación; los campos específicos dependen de la categoría. La ubicación puede señalarse en el mapa, proponerse con permiso del dispositivo, buscarse explícitamente por Nominatim o escribirse manualmente; latitud y longitud siguen editables. Antes de enviar se guarda el borrador local; el servidor limita a cinco publicaciones por cuenta en una hora y responde HTTP 201 solo después de persistir. Si falla, el borrador local se conserva. La búsqueda usa un proxy con caché y máximo una petición por segundo por instancia; `GEOCODING_SEARCH_URL` permite cambiar el proveedor y `GEOCODING_ENABLED=false` deshabilitarlo. En despliegues con varias instancias se requiere un limitador compartido antes de habilitar Nominatim público.
 

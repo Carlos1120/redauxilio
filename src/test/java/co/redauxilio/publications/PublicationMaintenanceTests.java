@@ -37,6 +37,18 @@ class PublicationMaintenanceTests {
   void cleanOwnData() {
     for (String email : accounts) {
       jdbc.update(
+          "DELETE FROM publication_confirmation WHERE confirmer_id IN"
+              + " (SELECT id FROM citizen_account WHERE email = ?) OR publication_id IN"
+              + " (SELECT p.id FROM citizen_publication p JOIN citizen_account a"
+              + " ON a.id = p.author_id WHERE a.email = ?)",
+          email,
+          email);
+      jdbc.update(
+          "DELETE FROM publication_confirmation_invalidation WHERE publication_id IN"
+              + " (SELECT p.id FROM citizen_publication p JOIN citizen_account a"
+              + " ON a.id = p.author_id WHERE a.email = ?)",
+          email);
+      jdbc.update(
           "DELETE FROM citizen_publication_change WHERE publication_id IN"
               + " (SELECT p.id FROM citizen_publication p JOIN citizen_account a"
               + " ON a.id = p.author_id WHERE a.email = ?)",
@@ -47,6 +59,53 @@ class PublicationMaintenanceTests {
           email);
       jdbc.update("DELETE FROM citizen_account WHERE email = ?", email);
     }
+  }
+
+  @Test
+  void editAndTransitionInvalidatePriorCommunitySupport() throws Exception {
+    String owner = account();
+    String first = account();
+    String second = account();
+    String third = account();
+    long id = publish(owner, false);
+    for (String confirmer : List.of(first, second, third)) {
+      mvc.perform(
+              post("/api/publications/{id}/confirmations", id)
+                  .with(user(confirmer))
+                  .with(csrf())
+                  .contentType(MediaType.APPLICATION_JSON)
+                  .content("{\"version\":1}"))
+          .andExpect(status().isOk());
+    }
+    mvc.perform(get("/api/publications/{id}", id))
+        .andExpect(jsonPath("$.confirmationCount").value(3))
+        .andExpect(jsonPath("$.confidenceLevel").value("CONFIRMADA"));
+    mvc.perform(
+            patch("/api/my/publications/{id}", id)
+                .with(user(owner))
+                .with(csrf())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(point("Nuevo nombre")))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.confirmationVersion").value(2))
+        .andExpect(jsonPath("$.confirmationCount").value(0));
+    mvc.perform(
+            post("/api/publications/{id}/confirmations", id)
+                .with(user(first))
+                .with(csrf())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"version\":1}"))
+        .andExpect(status().isConflict());
+    transition(owner, id, "CERRADO", "", 200);
+    mvc.perform(get("/api/publications/{id}", id))
+        .andExpect(jsonPath("$.confirmationVersion").value(3))
+        .andExpect(jsonPath("$.confidenceLevel").value("REPORTADA"));
+    assertEquals(
+        2,
+        jdbc.queryForObject(
+            "SELECT COUNT(*) FROM publication_confirmation_invalidation WHERE publication_id = ?",
+            Integer.class,
+            id));
   }
 
   @Test

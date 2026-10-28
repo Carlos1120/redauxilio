@@ -1,18 +1,21 @@
 # Reglas para agentes
 
-- Leer TRASPASO_CODEX.md al retomar; ESTANDARES.md es la norma. Distinguir cambios pendientes de PR de reglas integradas.
+- Al retomar, consultar el resumen vigente de TRASPASO_CODEX.md y el contrato RAxx.md pertinente. ESTANDARES.md es la norma; distinguir PR pendientes de reglas integradas y verificar siempre el estado remoto cambiante.
 - Antes de crear o modificar pantallas, leer ESTANDARES_INTERFAZ.md y reutilizar los tokens y componentes de app.css. Conservar la dirección Onest/rojo/mapa del PR #8; no mezclar la paleta azul anterior. Registrar cambios de dirección en la guía y someterlos a revisión del compañero.
 - Antes de modificar, comprobar carpeta, estado Git, rama y remotos; preservar cambios locales. Continuar historias en su rama y crear trabajo nuevo desde develop actualizado.
-- Leer solo los documentos y fragmentos necesarios. No repetir pruebas sobre el mismo SHA sin una razón nueva.
+- Ahorrar contexto: localizar primero con búsqueda por archivo/símbolo y abrir solo fragmentos pertinentes. No volcar archivos grandes (EVIDENCIAS.md, ESTANDARES.md, app.css) ni historiales completos por rutina.
+- Encargos cortos: rama, objetivo, criterios específicos y entrega. No reiterar estas reglas, los estándares o la arquitectura en cada prompt; ampliar solo ante una decisión técnica nueva.
+- Pruebas escalonadas: durante el cambio, ejecutar primero pruebas específicas; antes de publicar un incremento, ejecutar verificaciones completas de Maven/Node/formato y revisar CI sobre el HEAD exacto. No repetir suites del mismo SHA sin razón nueva.
+- Mantener TRASPASO_CODEX.md entre 300 y 500 palabras: estado verificado, rama/PR, riesgos, bloqueos y siguiente paso. Guardar historia y resultados extensos en GitHub/EVIDENCIAS.md, pero consultarlos solo cuando haga falta.
 - Documentar código nuevo o modificado en español: propósito, entradas/salidas, reglas y límites. Usar identificadores en inglés y actualizar documentación si cambia el comportamiento.
 - Agrupar archivos relacionados en commits coherentes según ESTANDARES.md. Usar la identidad Git configurada por Carlos, sin atribuciones del agente en commits; distinguir ejecuciones del agente en la documentación de evidencias.
 - PR hacia develop, revisión real del compañero y comprobaciones sobre la versión final; integración por squash. No inventar aprobaciones, pruebas ni estados del tablero.
 - No descartar cambios, hacer force push, subir secretos ni ampliar el alcance. No delegar por defecto ni trabajar simultáneamente sobre la misma rama/carpeta.
-- Explicar avances en español breve; distinguir resultados del agente, validación humana y pendientes. Actualizar el traspaso al cerrar el bloque.
+- Responder en español breve con HEAD, PR, pruebas/CI, bloqueos y siguiente acción; distinguir agente, humano y pendientes. Actualizar el traspaso solo con información vigente al cerrar el bloque.
 
 ## Mapa de trabajo
 
-- Aceptación/API: RA02.md; ejecución Windows: VALIDACION_WINDOWS.md; resultados: EVIDENCIAS.md.
+- Historia en curso: RA05.md; RA-04 pendiente: PR #13 y RA04.md en su propia rama. Aceptación anterior: RA02.md; Windows: VALIDACION_WINDOWS.md; evidencias históricas: EVIDENCIAS.md.
 - Servidor: src/main/java/co/redauxilio/publications/PublicationController.java y PublicationService.java.
 - UI: src/main/resources/templates/index.html y src/main/resources/static/{app.js,map.js,app.css}.
 - PWA: src/main/resources/static/sw.js y manifest.webmanifest.

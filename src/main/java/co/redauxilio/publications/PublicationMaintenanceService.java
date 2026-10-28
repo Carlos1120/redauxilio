@@ -36,6 +36,7 @@ class PublicationMaintenanceService {
   private final JdbcTemplate jdbc;
   private final PublicationService publications;
   private final CitizenPublicationRepository repository;
+  private final PublicationConfirmationService confirmations;
   private final ObjectMapper json;
   private final Clock clock;
 
@@ -43,11 +44,13 @@ class PublicationMaintenanceService {
       JdbcTemplate jdbc,
       PublicationService publications,
       CitizenPublicationRepository repository,
+      PublicationConfirmationService confirmations,
       ObjectMapper json,
       Clock clock) {
     this.jdbc = jdbc;
     this.publications = publications;
     this.repository = repository;
+    this.confirmations = confirmations;
     this.json = json;
     this.clock = clock;
   }
@@ -99,6 +102,10 @@ class PublicationMaintenanceService {
             valid.longitude(),
             before.closed());
     audit(before, after, "EDIT", null, now);
+    // Toda modificación real de contenido invalida el respaldo anterior en la misma transacción.
+    if (!before.equals(after)) {
+      confirmations.invalidateForSubstantialChange(id, email, "Edición de la publicación");
+    }
     return publications.findPublication(id);
   }
 
@@ -147,6 +154,7 @@ class PublicationMaintenanceService {
             closing);
     String action = before.closed() ? "REOPEN" : closing ? "CLOSE" : "STATUS";
     audit(before, after, action, explanation.isBlank() ? null : explanation, now);
+    confirmations.invalidateForSubstantialChange(id, email, "Cambio de estado operativo");
     return publications.findPublication(id);
   }
 

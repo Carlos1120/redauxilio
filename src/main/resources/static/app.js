@@ -60,7 +60,11 @@ function showReportDetail(item, trigger, initial = false) {
     ["Estado operativo", item.operationalStatus],
     [
       "Confianza",
-      item.confidenceLevel === "REPORTADA" ? "Reportada · sin verificar" : item.confidenceLevel,
+      item.confidenceLevel === "REPORTADA"
+        ? "Reportada · sin verificar"
+        : item.confidenceLevel === "CONFIRMADA"
+          ? "Confirmada por la comunidad"
+          : item.confidenceLevel,
     ],
     ["Ubicación aproximada", `${item.latitude.toFixed(3)}, ${item.longitude.toFixed(3)}`],
   ]) {
@@ -78,6 +82,9 @@ function showReportDetail(item, trigger, initial = false) {
       `Creado: ${new Date(item.createdAt).toLocaleString("es-CO")} · Actualizado: ${new Date(item.updatedAt).toLocaleString("es-CO")}`,
     ),
   );
+  const confirmation = createReportElement("div", "confirmation-actions", "");
+  detail.append(confirmation);
+  window.RedAuxilioConfirmation?.render(item, confirmation);
   for (const card of getElement("publications").querySelectorAll(".card")) {
     card.dataset.selected = String(card.dataset.reportId === String(item.id));
   }
@@ -109,6 +116,11 @@ const reportMap = window.RedAuxilioMap?.create(
 );
 window.RedAuxilioPublicationUI = {
   reportMap,
+  // Un módulo diferido puede incorporarse después de la primera respuesta sin repetir la consulta.
+  refreshConfirmation: () => {
+    const selected = currentItems.find((item) => item.id === selectedReportId);
+    if (selected) showReportDetail(selected, null, true);
+  },
   loadPublications: () => loadPublications(),
   saveDraft: () => saveDraft(),
   clearDraft: () => executeDraftOperation("readwrite", (store) => store.delete("current")),
@@ -151,7 +163,11 @@ function renderPublications(items) {
       ["Estado operativo", item.operationalStatus],
       [
         "Confianza",
-        item.confidenceLevel === "REPORTADA" ? "Reportada · sin verificar" : item.confidenceLevel,
+        item.confidenceLevel === "REPORTADA"
+          ? "Reportada · sin verificar"
+          : item.confidenceLevel === "CONFIRMADA"
+            ? "Confirmada por la comunidad"
+            : item.confidenceLevel,
       ],
     ]) {
       const fact = document.createElement("div");

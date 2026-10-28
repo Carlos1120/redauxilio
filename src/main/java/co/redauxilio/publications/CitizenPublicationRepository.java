@@ -15,10 +15,14 @@ import org.springframework.stereotype.Repository;
 /** Persiste reportes ciudadanos y mantiene la autoría fuera del JSON público. */
 @Repository
 class CitizenPublicationRepository {
-  // Proyección compartida: no seleccionar autor, visibilidad ni auditoría en el DTO público.
+  // Proyección compartida: agrega respaldo comunitario sin exponer autor ni auditoría.
   private static final String PUBLIC_COLUMNS =
       "id, category, assistance_subtype, title, description, location, operational_status,"
-          + " impact_type, latitude, longitude, created_at, updated_at, closed";
+          + " impact_type, latitude, longitude, created_at, updated_at, closed, confirmation_version"
+          + ", (SELECT COUNT(*) FROM publication_confirmation c"
+          + " WHERE c.publication_id = citizen_publication.id"
+          + " AND c.publication_version = citizen_publication.confirmation_version"
+          + " AND c.confirmer_id <> citizen_publication.author_id) AS confirmation_count";
   private final JdbcTemplate jdbc;
 
   CitizenPublicationRepository(JdbcTemplate jdbc) {
@@ -114,7 +118,7 @@ class CitizenPublicationRepository {
         row.getString("title"),
         row.getString("location"),
         row.getString("operational_status"),
-        "REPORTADA",
+        row.getInt("confirmation_count") >= 3 ? "CONFIRMADA" : "REPORTADA",
         row.getTimestamp("updated_at").toInstant().toString(),
         row.getDouble("latitude"),
         row.getDouble("longitude"),
@@ -124,6 +128,8 @@ class CitizenPublicationRepository {
             || ("ROAD".equals(row.getString("category"))
                 && "HABILITADA".equals(row.getString("operational_status"))),
         row.getString("assistance_subtype"),
-        row.getString("impact_type"));
+        row.getString("impact_type"),
+        row.getInt("confirmation_count"),
+        row.getLong("confirmation_version"));
   }
 }

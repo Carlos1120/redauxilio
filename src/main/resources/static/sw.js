@@ -4,8 +4,8 @@
  * Intenta primero la red; solo ante un fallo de red utiliza una copia previamente guardada.
  * No almacena borradores, operaciones de escritura, bibliotecas CDN ni cartografía externa.
  */
-// La versión 16 renueva gestión privada y sincronización de sesión; solo guarda el shell público.
-const CACHE = "redauxilio-demo-v16";
+// La versión 17 renueva gestión y confirmación; solo guarda el shell público.
+const CACHE = "redauxilio-demo-v17";
 const SHELL = [
   "/",
   "/app.css",
@@ -14,6 +14,7 @@ const SHELL = [
   "/identity-status.js",
   "/publication-form.js",
   "/my-publications.js",
+  "/confirmation.js",
   "/map.js",
   "/manifest.webmanifest",
   "/icon.svg",

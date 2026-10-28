@@ -255,7 +255,44 @@ public class PublicationService {
       String createdAt,
       boolean closed,
       String assistanceSubtype,
-      String impactType) {
+      String impactType,
+      int confirmationCount,
+      long confirmationVersion) {
+    /** Compatibilidad de constructores anteriores; ejemplos y pruebas sin confirmaciones. */
+    public Publication(
+        long id,
+        String category,
+        String title,
+        String location,
+        String operationalStatus,
+        String confidenceLevel,
+        String updatedAt,
+        double latitude,
+        double longitude,
+        String description,
+        String createdAt,
+        boolean closed,
+        String assistanceSubtype,
+        String impactType) {
+      this(
+          id,
+          category,
+          title,
+          location,
+          operationalStatus,
+          confidenceLevel,
+          updatedAt,
+          latitude,
+          longitude,
+          description,
+          createdAt,
+          closed,
+          assistanceSubtype,
+          impactType,
+          0,
+          0);
+    }
+
     /** Mantiene el contrato de construcción de los seis ejemplos y de la prueba de carga. */
     public Publication(
         long id,

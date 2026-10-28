@@ -1,21 +1,15 @@
-# RedAuxilio: estado para continuar
+# RedAuxilio — traspaso vigente
 
-Instantánea del 27 de octubre de 2026 (Colombia). Reglas en AGENTS.md/ESTANDARES.md; dirección visual en ESTANDARES_INTERFAZ.md. Historial de comprobaciones en EVIDENCIAS.md.
+Actualización: 28 de octubre de 2026, Colombia. Comprobar siempre GitHub, Trello y el árbol local antes de usar este resumen. Las normas están en `AGENTS.md` y `ESTANDARES.md`; resultados detallados en `EVIDENCIAS.md`.
 
-## Trabajo actual: RA-04
+## Estado verificado
 
-- Rama `feat/RA-04-actualizacion-cierre`, PR #13 abierto para revisión hacia develop (GitHub ya no lo muestra Draft); Santiago solicitó cambios en la revisión 5670680417. Base del bloque `fe4b15b1260a11857f0e938fc3fe9f5656619bd7`; HEAD identifica las correcciones y evidencias. Base develop de la historia `2abc847` (RA-03 integrada). No fusionar ramas antiguas ni modificar ramas de Santiago.
-- Worktree propio `C:\Users\cmps-\.codex\worktrees\ra04-auditoria\redauxilio`; original RA-01 y worktree/servidor de validación RA-03 preservados. Sin cambios locales o commits propios no publicados al iniciar.
-- Se atendió auditoría #6445652807: script estático público sin abrir API privada; sesión/perfil y respuestas tardías; cierre coherente HABILITADA desde alta/lectura antigua; historial legible; preservación de entrada ante error y cabecera móvil sin overflow. Requisitos, matriz y límites en RA04.md.
-- Corrección posterior de listOwn: una consulta SQL de reportes propios visibles, mapeo público compartido, cerrados y orden conservados. Regresión real H2 con cuatro reportes: antes 5 consultas, después 1; sin dependencias nuevas. Base de este ajuste 494cd2a.
-- Validación final del ajuste: 58 pruebas Java, Spotless/PMD; 42 JS; Prettier y diff --check. Pruebas nuevas reproducen fallos antes del arreglo; matriz de 25 pares, rollback SQL y cierre concurrente incluidos. No repetir suites sin cambio o incertidumbre nueva. Comprobar CI del commit de corrección publicado, sin reutilizar el verde de 494cd2a como prueba del HEAD nuevo.
-- Navegador del agente: publicación/edición/cierre/reapertura de punto/vía, historial, filtros, logout sin residuos; tres tamaños sin overflow; shell recuperado al detener servidor. Evidencia final en EVIDENCIAS.md, sin atribuir pruebas humanas a Carlos ni Santiago.
-- Instancia propia de prueba en `http://127.0.0.1:58414/`, H2 exclusiva en memoria; reiniciar elimina cuentas y publicaciones sintéticas. Geocodificación externa deshabilitada. Servidor anterior no reiniciado en este ajuste: su URL no acredita la nueva lógica SQL sin reiniciar. No detener servidores ajenos ni perder la H2 de validaciones manuales. No hay cambios de Trello, merge ni aprobación humana.
+`origin/develop` avanzó a `488157d` mediante el squash del PR #14, núcleo RA-05. Al consultar GitHub, el PR #14 figuraba integrado sin ninguna revisión registrada; esa integración no acredita la aprobación cruzada, la validación humana ni la DoD. La tarjeta RA-05 requiere comprobación actual antes de cambiar estado. RA-03 ya se integró previamente por PR #11. No usar las secciones históricas de los documentos como estado vigente.
 
-## Siguiente acción
+PR #13, RA-04, de Carlos: rama `feat/RA-04-actualizacion-cierre`. La corrección de rendimiento `393602d` sustituyó las lecturas globales M×N por una consulta SQL propia; Codex verificó el cambio y la CI de ese HEAD pasó. La revisión `CHANGES_REQUESTED` anterior permanece en GitHub y no hay aprobación humana de Santiago. Al integrar `develop` con RA-05 aparecieron conflictos en documentación, seguridad, repositorio, esquema, PWA, plantilla y prueba. En el checkout principal se resolvieron conservando ambos módulos. La proyección pública comparte conteo y versión de confirmaciones, y la edición real o transición de RA-04 invalida respaldo previo dentro de la misma transacción. Regresión nueva: tres confirmadores, edición, versión antigua rechazada y cierre. Pasaron 22 pruebas Java específicas, 54 JS y `mvnw verify` con 68 Java, Spotless y PMD sobre este árbol. Falta publicar el merge, comprobar CI del HEAD y validación humana final.
 
-1. Validación manual humana del HEAD final, incluida instalación PWA y desconexión/reconexión total. La caída del servidor solo verifica respaldo del SW, no desconexión del navegador.
-2. Nueva revisión de Santiago sobre la corrección de listOwn y sus evidencias; no autoaprobar ni integrar desde este bloque.
-3. RA-05 es dependencia futura de invalidación de confirmaciones; no hay confirmaciones implementadas. Las ediciones concurrentes se serializan con bloqueo y auditoría, sin control optimista entre formularios de dispositivos distintos.
+PR #12, RA-02 táctiles, de Santiago: rama `fix/RA-02-controles-tactiles` en worktree `C:\Users\Santiago\.codex\worktrees\ra02-touch-targets\redauxilio`. El HEAD publicado `89e5dd6` incorporó RA-03/develop, pasó CI 40785333366 y quedó abierto para revisión. El avance posterior de `develop` con RA-05 volvió a causar conflictos documentales; resolverlos en ese worktree, verificar CI y solicitar revisión real de Carlos. No aprobar el PR propio.
 
-Lectura mínima: este traspaso, RA04.md y última sección RA-04 de EVIDENCIAS.md. RA-01/02/03 conservan sus contratos e historial; consultar solo si el cambio los afecta.
+## Siguiente acción y límites
+
+Completar documentación/formato y publicar la resolución de PR #13 sin force push. Resolver después el conflicto del PR #12. Ninguno se integra hasta revisión cruzada real sobre el HEAD final, CI verde y comprobaciones manuales pertinentes. Registrar por separado los resultados del agente y las confirmaciones humanas; no mover RA-04 o RA-05 a Terminado por una CI. Conservar ramas y datos locales; no modificar el worktree de Carlos ni fabricar evidencias.

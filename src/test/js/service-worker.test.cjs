@@ -213,7 +213,7 @@ test("flujo offline → reconexión renueva CSRF antes de permitir login", async
   assert.equal(submittedToken, "token-fresco");
 });
 
-test("PWA precarga gestión propia pero excluye todas sus rutas privadas", async () => {
+test("PWA precarga gestión y confirmación sin interceptar rutas privadas", async () => {
   const worker = loadWorker();
   let installation;
   worker.listeners.get("install")({ waitUntil: (promise) => (installation = promise) });
@@ -231,4 +231,9 @@ test("PWA precarga gestión propia pero excluye todas sus rutas privadas", async
     );
   }
   assert.equal(fetchEvent(worker, "http://localhost:8081/api/account"), undefined);
+  assert.ok(worker.precached.includes("/confirmation.js"));
+  assert.equal(
+    fetchEvent(worker, "http://localhost:8081/api/publications/1000001/confirmations", "POST"),
+    undefined,
+  );
 });

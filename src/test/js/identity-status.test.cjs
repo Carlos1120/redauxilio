@@ -39,6 +39,12 @@ function loadIdentityStatus({
     },
     navigator: { onLine: online },
     URL,
+    CustomEvent: class {
+      constructor(type, options) {
+        this.type = type;
+        this.detail = options.detail;
+      }
+    },
     fetch: async () => ({
       ok: true,
       url: reconnectUrl,
@@ -46,6 +52,7 @@ function loadIdentityStatus({
     }),
     window: {
       addEventListener: (name, listener) => listeners.set(name, listener),
+      dispatchEvent: (event) => listeners.get(event.type)?.(event),
     },
   };
   const source = fs.readFileSync(
@@ -123,6 +130,35 @@ test("carga el nombre y correo del perfil y los limpia al cerrar sesión", async
   assert.equal(status.accountName.textContent, "Nombre de prueba");
   assert.equal(status.accountEmail.textContent, "prueba@example.test");
   status.context.window.RedAuxilioIdentityStatus.setAuthenticated(false);
+  assert.equal(status.accountName.textContent, "");
+  assert.equal(status.accountEmail.textContent, "");
+});
+
+test("los cambios de sesión emiten el evento que invalida datos privados", () => {
+  const status = loadIdentityStatus({ authenticated: false, online: true });
+  const changes = [];
+  status.listeners.set("redauxilio:identity-change", (event) =>
+    changes.push(event.detail.authenticated),
+  );
+  status.context.window.RedAuxilioIdentityStatus.setAuthenticated(true);
+  status.context.window.RedAuxilioIdentityStatus.setAuthenticated(false);
+  assert.deepEqual(changes, [true, false]);
+});
+
+test("perfil tardío después de logout no recupera nombre ni correo", async () => {
+  const status = loadIdentityStatus({ authenticated: false, online: true });
+  let release;
+  status.context.fetch = () =>
+    new Promise((resolve) => {
+      release = resolve;
+    });
+  status.context.window.RedAuxilioIdentityStatus.setAuthenticated(true);
+  status.context.window.RedAuxilioIdentityStatus.setAuthenticated(false);
+  release({
+    ok: true,
+    json: async () => ({ displayName: "Perfil anterior", email: "privado@example.test" }),
+  });
+  await new Promise((resolve) => setImmediate(resolve));
   assert.equal(status.accountName.textContent, "");
   assert.equal(status.accountEmail.textContent, "");
 });

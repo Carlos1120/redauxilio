@@ -213,11 +213,24 @@ test("flujo offline → reconexión renueva CSRF antes de permitir login", async
   assert.equal(submittedToken, "token-fresco");
 });
 
-test("confirmación precargada y escrituras excluidas del service worker", async () => {
+test("PWA precarga gestión y confirmación sin interceptar rutas privadas", async () => {
   const worker = loadWorker();
   let installation;
   worker.listeners.get("install")({ waitUntil: (promise) => (installation = promise) });
   await installation;
+  assert.ok(worker.precached.includes("/my-publications.js"));
+  for (const [suffix, method] of [
+    ["", "GET"],
+    ["/1", "PATCH"],
+    ["/1/status", "POST"],
+    ["/1/history", "GET"],
+  ]) {
+    assert.equal(
+      fetchEvent(worker, "http://localhost:8081/api/my/publications" + suffix, method),
+      undefined,
+    );
+  }
+  assert.equal(fetchEvent(worker, "http://localhost:8081/api/account"), undefined);
   assert.ok(worker.precached.includes("/confirmation.js"));
   assert.equal(
     fetchEvent(worker, "http://localhost:8081/api/publications/1000001/confirmations", "POST"),

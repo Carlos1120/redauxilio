@@ -15,6 +15,7 @@
     <script src="/identity-status.js" defer></script>
     <script src="/app.js" defer></script>
     <script src="/publication-form.js" defer></script>
+    <script src="/my-publications.js" defer></script>
     <script src="/confirmation.js" defer></script>
   </head>
   <body>
@@ -445,6 +446,77 @@
           <p id="draft-message" class="draft-message" role="status" aria-live="polite">
             Guardar borrador no lo publica. La publicación necesita respuesta del servidor.
           </p>
+        </section>
+        <section id="own-section" class="draft-section" aria-labelledby="own-title">
+          <div class="section-heading">
+            <p class="eyebrow">GESTIÓN DEL AUTOR</p>
+            <h2 id="own-title">Mis publicaciones</h2>
+            <p>
+              Corrige información y actualiza estados de tus propios reportes. Los casos cerrados
+              siguen disponibles en el historial, pero no se editan sin reapertura.
+            </p>
+          </div>
+          <button type="button" id="own-refresh" class="secondary-button">
+            Cargar mis publicaciones
+          </button>
+          <p id="own-message" role="status" aria-live="polite">
+            Necesitas iniciar sesión para consultar y actualizar tus publicaciones.
+          </p>
+          <div id="own-workspace" hidden>
+            <div class="field">
+              <label for="own-select">Publicación que quieres actualizar</label>
+              <select id="own-select"></select>
+            </div>
+            <form id="own-edit-form" class="own-manage-form">
+              <h3>Corregir datos y ubicación</h3>
+              <div class="field">
+                <label for="own-title-input">Nombre o tramo</label>
+                <input id="own-title-input" required maxlength="120" />
+              </div>
+              <div class="field">
+                <label for="own-description">Descripción</label>
+                <textarea id="own-description" required maxlength="1000"></textarea>
+              </div>
+              <div class="field">
+                <label for="own-location">Sector o lugar público</label>
+                <input id="own-location" required maxlength="160" />
+              </div>
+              <div class="coordinate-fields">
+                <div class="field">
+                  <label for="own-latitude">Latitud</label>
+                  <input id="own-latitude" type="number" step="any" min="-90" max="90" required />
+                </div>
+                <div class="field">
+                  <label for="own-longitude">Longitud</label>
+                  <input
+                    id="own-longitude"
+                    type="number"
+                    step="any"
+                    min="-180"
+                    max="180"
+                    required
+                  />
+                </div>
+              </div>
+              <button type="submit" id="own-save">Guardar corrección</button>
+            </form>
+            <form id="own-status-form" class="own-manage-form">
+              <h3>Cambiar estado operativo</h3>
+              <div class="field">
+                <label for="own-next-state">Estado nuevo</label>
+                <select id="own-next-state" required></select>
+              </div>
+              <div class="field">
+                <label for="own-reason">Motivo (obligatorio si reabres)</label>
+                <textarea id="own-reason" maxlength="500"></textarea>
+              </div>
+              <button type="submit" id="own-change-status">Guardar cambio de estado</button>
+            </form>
+            <div class="own-manage-form">
+              <h3>Historial de cambios</h3>
+              <ol id="own-history"></ol>
+            </div>
+          </div>
         </section>
       </div>
     </main>

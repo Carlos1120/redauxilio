@@ -1,23 +1,15 @@
 # RedAuxilio — traspaso vigente
 
-Actualización: 27 de octubre de 2026 (Colombia). Resumen operativo para retomar; no sustituye GitHub ni el estado del árbol. Reglas en AGENTS.md/ESTANDARES.md, contrato funcional en RA05.md y resultados extensos en la última sección RA-05 de EVIDENCIAS.md. No cargar el historial completo por rutina.
+Actualización: 28 de octubre de 2026, Colombia. Comprobar siempre GitHub, Trello y el árbol local antes de usar este resumen. Las normas están en `AGENTS.md` y `ESTANDARES.md`; resultados detallados en `EVIDENCIAS.md`.
 
-## Rama y estado
+## Estado verificado
 
-Historia activa RA-05, confirmación independiente, en `feat/RA-05-confirmacion-independiente`. Base integrada RA-03/develop `2abc847`; se conservó el documental `94d30bc` como ancestro, ya existente en remoto. El HEAD identifica los commits de núcleo y cliente/evidencias. La entrega se prepara en PR Draft hacia develop; verificar su URL, HEAD y CI publicados en GitHub antes de asumir que están aprobados. No hay merge, aprobación humana ni cambios de Trello.
+`origin/develop` avanzó a `488157d` mediante el squash del PR #14, núcleo RA-05. Al consultar GitHub, el PR #14 figuraba integrado sin ninguna revisión registrada; esa integración no acredita la aprobación cruzada, la validación humana ni la DoD. La tarjeta RA-05 requiere comprobación actual antes de cambiar estado. RA-03 ya se integró previamente por PR #11. No usar las secciones históricas de los documentos como estado vigente.
 
-Worktree propio: `C:\Users\cmps-\.codex\worktrees\ra05-confirmacion\redauxilio`. Se preservaron RA-04, la copia de validación RA-03 y el repositorio original RA-01, sin descartar ni trasladar cambios. Comprobar status/remotos antes de continuar. Mantener commits lógicos y la identidad Git configurada por Carlos; no atribuir responsabilidad del proyecto al agente.
+PR #13, RA-04, de Carlos: rama `feat/RA-04-actualizacion-cierre`. La corrección de rendimiento `393602d` sustituyó las lecturas globales M×N por una consulta SQL propia; Codex verificó el cambio y la CI de ese HEAD pasó. La revisión `CHANGES_REQUESTED` anterior permanece en GitHub y no hay aprobación humana de Santiago. Al integrar `develop` con RA-05 aparecieron conflictos en documentación, seguridad, repositorio, esquema, PWA, plantilla y prueba. En el checkout principal se resolvieron conservando ambos módulos. La proyección pública comparte conteo y versión de confirmaciones, y la edición real o transición de RA-04 invalida respaldo previo dentro de la misma transacción. Regresión nueva: tres confirmadores, edición, versión antigua rechazada y cierre. Pasaron 22 pruebas Java específicas, 54 JS y `mvnw verify` con 68 Java, Spotless y PMD sobre este árbol. Falta publicar el merge, comprobar CI del HEAD y validación humana final.
 
-## Núcleo implementado y límites
+PR #12, RA-02 táctiles, de Santiago: rama `fix/RA-02-controles-tactiles` en worktree `C:\Users\Santiago\.codex\worktrees\ra02-touch-targets\redauxilio`. El HEAD publicado `89e5dd6` incorporó RA-03/develop, pasó CI 40785333366 y quedó abierto para revisión. El avance posterior de `develop` con RA-05 volvió a causar conflictos documentales; resolverlos en ese worktree, verificar CI y solicitar revisión real de Carlos. No aprobar el PR propio.
 
-Confirmaciones persistentes por publicación/versión/cuenta; cuota móvil de 30 aceptaciones por hora; autor excluido, una activa por cuenta y umbral de tres solo para confianza comunitaria. Carlos confirmó ocultos 404, cerrados 409 y reconfirmación después de invalidar, conservando historia y cupo. POST requiere sesión, CSRF y versión observada; rechaza versiones obsoletas. Se serializan cuenta/publicación y se conserva auditoría de invalidación. No expone correos/IDs de confirmadores ni concede verificación oficial.
+## Siguiente acción y límites
 
-La UI reutiliza el detalle, deshabilita sin sesión/red y no guarda ni reintenta escrituras. SW v15 precarga el script y excluye POST. El hook interno `invalidateForSubstantialChange` está probado aisladamente; **no** equivale a integración automática con RA-04. No copiar ese PR pendiente.
-
-## Evidencias y siguiente paso
-
-Verificación local: 55 Java (9 específicas), Spotless/PMD, 39 JS, Prettier y diff --check aprobados. JaCoCo del servicio/controlador y records de confirmación: 82/82 líneas. Navegador: aceptación 2→3, duplicado, visitante/logout y tres tamaños sin overflow. No repetir suites del mismo código sin incertidumbre o cambio nuevo. La CI debe corresponder al HEAD exacto del Draft.
-
-Instancia propia en `http://127.0.0.1:61213/`, H2 exclusiva en memoria; reiniciar elimina datos sintéticos. Mantenerla para revisión manual y preservar servidores ajenos.
-
-Siguiente paso: revisar el núcleo Draft con Santiago, completar validación humana de PWA/desconexión y, cuando RA-04 se integre, conectar invalidación en la misma transacción de edición/transición y probar regresión conjunta. RA-05 no cumple DoD ni está lista para merge antes de esa integración y aprobación.
+Completar documentación/formato y publicar la resolución de PR #13 sin force push. Resolver después el conflicto del PR #12. Ninguno se integra hasta revisión cruzada real sobre el HEAD final, CI verde y comprobaciones manuales pertinentes. Registrar por separado los resultados del agente y las confirmaciones humanas; no mover RA-04 o RA-05 a Terminado por una CI. Conservar ramas y datos locales; no modificar el worktree de Carlos ni fabricar evidencias.

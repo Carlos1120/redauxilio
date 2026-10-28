@@ -1,6 +1,6 @@
 "use strict";
 /** Actualiza el token CSRF desde el servidor antes de enviar formularios conservados offline. */
-/** Envía login/logout con CSRF fresco y emite el cambio de sesión al aceptar la redirección esperada. */
+/** Envía login/logout con CSRF fresco y solicita sincronizar la sesión al aceptar la redirección esperada. */
 async function submitIdentityFormWithoutReload(form) {
   const path = new URL(form.action, window.location.origin).pathname;
   const body = new URLSearchParams(new FormData(form));
@@ -18,13 +18,13 @@ async function submitIdentityFormWithoutReload(form) {
   if (path === "/login" && access === "account" && response.ok) {
     form.reset();
     window.dispatchEvent(
-      new CustomEvent("redauxilio:identity-change", {
+      new CustomEvent("redauxilio:identity-action", {
         detail: { authenticated: true, message: "Sesión iniciada." },
       }),
     );
   } else if (path === "/logout" && destination.searchParams.has("signedout") && response.ok) {
     window.dispatchEvent(
-      new CustomEvent("redauxilio:identity-change", {
+      new CustomEvent("redauxilio:identity-action", {
         detail: { authenticated: false, message: "Cerraste la sesión." },
       }),
     );

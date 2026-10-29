@@ -18,7 +18,16 @@ async function loadReportView(items) {
       value: "",
       children: [],
       open: false,
-      addEventListener() {},
+      listeners: {},
+      addEventListener(name, fn) {
+        this.listeners[name] = fn;
+      },
+      reset() {
+        for (const id of ["category", "operational-status", "confidence-level", "review-status"]) {
+          element(id).value = "";
+        }
+        element("include-closed").checked = false;
+      },
       append(...children) {
         this.children.push(...children);
       },
@@ -69,7 +78,7 @@ async function loadReportView(items) {
     { filename: "app.js" },
   );
   await new Promise((resolve) => setImmediate(resolve));
-  return { nodes, context, listeners };
+  return { nodes, context, listeners, element };
 }
 
 function report(id) {
@@ -157,4 +166,49 @@ test("revisión de contenido se muestra sin reemplazar confianza comunitaria", a
   assert.match(text(nodes.get("detail-content")), /Confirmada por la comunidad/);
   assert.match(text(nodes.get("detail-content")), /Revisión de contenido/);
   assert.equal(reviewed.confidenceLevel, "CONFIRMADA");
+});
+
+/** Ejecuta app.js real: ambos filtros deben viajar separados en la misma consulta HTTP. */
+test("consulta combina revisión de contenido y confianza sin sustituirlas", async () => {
+  const { context, element } = await loadReportView([]);
+  element("confidence-level").value = "CONFIRMADA";
+  element("review-status").value = "EN_REVISION";
+  let request;
+  context.fetch = async (url) => {
+    request = url;
+    return { ok: true, json: async () => [], headers: { get: () => null } };
+  };
+  await context.window.RedAuxilioPublicationUI.loadPublications();
+  const params = new URLSearchParams(request.split("?")[1]);
+  assert.equal(params.get("confidenceLevel"), "CONFIRMADA");
+  assert.equal(params.get("reviewStatus"), "EN_REVISION");
+});
+
+test("plantilla ofrece revisión independiente y confianza sin estados ajenos", () => {
+  const html = readFileSync(join(__dirname, "../../main/resources/templates/index.html"), "utf8");
+  const confidence = html.match(/<select id="confidence-level">([\s\S]*?)<\/select>/)[1];
+  assert.doesNotMatch(confidence, /EN_REVISION|DESACTUALIZADA/);
+  const review = html.match(/<select id="review-status">([\s\S]*?)<\/select>/)[1];
+  assert.match(review, /SIN_REVISION/);
+  assert.match(review, /EN_REVISION/);
+});
+
+/** El selector consulta al cambiar y el reset nativo limpia también la revisión. */
+test("cambiar revisión actualiza consulta y limpiar filtros restablece ambas dimensiones", async () => {
+  const { context, element } = await loadReportView([]);
+  const requests = [];
+  context.fetch = async (url) => {
+    requests.push(new URLSearchParams(url.split("?")[1]));
+    return { ok: true, json: async () => [], headers: { get: () => null } };
+  };
+  element("confidence-level").value = "CONFIRMADA";
+  element("review-status").value = "EN_REVISION";
+  element("review-status").listeners.change();
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.equal(requests[0].get("reviewStatus"), "EN_REVISION");
+  assert.equal(requests[0].get("confidenceLevel"), "CONFIRMADA");
+  element("clear-filters").listeners.click();
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.equal(requests[1].get("reviewStatus"), "");
+  assert.equal(requests[1].get("confidenceLevel"), "");
 });

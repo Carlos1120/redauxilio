@@ -102,6 +102,73 @@ class PublicationContentReportTests {
             id));
   }
 
+  /** Consulta pública: revisión y confianza son dimensiones independientes combinadas con AND. */
+  @Test
+  void reviewFiltersPreserveConfirmedTrustAndRejectInvalidDimensions() throws Exception {
+    long reviewed = publication(account()), regular = publication(account());
+    for (long id : List.of(reviewed, regular)) {
+      for (int i = 0; i < 3; i++)
+        jdbc.update(
+            "INSERT INTO publication_confirmation (publication_id, publication_version, confirmer_id, confirmed_at) VALUES (?, 1, (SELECT id FROM citizen_account WHERE email = ?), ?)",
+            id,
+            account(),
+            Timestamp.from(Instant.now()));
+    }
+    for (int i = 0; i < 3; i++) submit(reviewed, account(), "Contenido cuestionable", 200);
+    mvc.perform(get("/api/publications").param("reviewStatus", "EN_REVISION"))
+        .andExpect(status().isOk())
+        .andExpect(
+            jsonPath("$[?(@.id == %s)].confidenceLevel", reviewed)
+                .value(org.hamcrest.Matchers.contains("CONFIRMADA")))
+        .andExpect(jsonPath("$[?(@.id == %s)]", regular).doesNotExist());
+    mvc.perform(
+            get("/api/publications")
+                .param("reviewStatus", " en_revision ")
+                .param("confidenceLevel", "CONFIRMADA")
+                .param("category", "ASSISTANCE")
+                .param("operationalStatus", "DISPONIBLE")
+                .param("south", "4.14")
+                .param("west", "-73.64")
+                .param("north", "4.16")
+                .param("east", "-73.62"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.length()").value(1))
+        .andExpect(jsonPath("$[0].id").value(reviewed));
+    mvc.perform(get("/api/publications").param("confidenceLevel", "CONFIRMADA"))
+        .andExpect(jsonPath("$[?(@.id == %s)]", reviewed).exists())
+        .andExpect(jsonPath("$[?(@.id == %s)]", regular).exists());
+    mvc.perform(
+            get("/api/publications")
+                .param("reviewStatus", "SIN_REVISION")
+                .param("confidenceLevel", "CONFIRMADA"))
+        .andExpect(jsonPath("$[?(@.id == %s)]", reviewed).doesNotExist())
+        .andExpect(jsonPath("$[?(@.id == %s)]", regular).exists());
+    mvc.perform(
+            get("/api/publications")
+                .param("reviewStatus", "EN_REVISION")
+                .param("confidenceLevel", "REPORTADA"))
+        .andExpect(jsonPath("$.length()").value(0));
+    for (String invalid : List.of("CONFIRMADA", "DESACTUALIZADA", "DESCONOCIDO"))
+      mvc.perform(get("/api/publications").param("reviewStatus", invalid))
+          .andExpect(status().isBadRequest());
+    mvc.perform(get("/api/publications").param("confidenceLevel", "EN_REVISION"))
+        .andExpect(status().isBadRequest());
+    jdbc.update("UPDATE citizen_publication SET closed = TRUE WHERE id = ?", reviewed);
+    mvc.perform(get("/api/publications").param("reviewStatus", "EN_REVISION"))
+        .andExpect(jsonPath("$[?(@.id == %s)]", reviewed).doesNotExist());
+    mvc.perform(
+            get("/api/publications")
+                .param("reviewStatus", "EN_REVISION")
+                .param("includeClosed", "true"))
+        .andExpect(jsonPath("$[?(@.id == %s)]", reviewed).exists());
+    jdbc.update("UPDATE citizen_publication SET visible = FALSE WHERE id = ?", reviewed);
+    mvc.perform(
+            get("/api/publications")
+                .param("reviewStatus", "EN_REVISION")
+                .param("includeClosed", "true"))
+        .andExpect(jsonPath("$[?(@.id == %s)]", reviewed).doesNotExist());
+  }
+
   @Test
   void securityCsrfValidationAndPrivateReasonsCannotLeak() throws Exception {
     String author = account(), citizen = account();

@@ -31,7 +31,9 @@ public class PublicationService {
           "EN ATENCIÓN",
           "SATISFECHA");
   private static final Set<String> CONFIDENCE =
-      Set.of("REPORTADA", "CONFIRMADA", "VERIFICADA", "EN_REVISION", "DESACTUALIZADA");
+      Set.of("REPORTADA", "CONFIRMADA", "VERIFICADA", "DESACTUALIZADA");
+  // DESACTUALIZADA se admite por compatibilidad histórica; RA-07 no calcula vigencia (RA-06).
+  private static final Set<String> REVIEW = Set.of("SIN_REVISION", "EN_REVISION");
   private final List<Entry> publications;
   private CitizenPublicationRepository citizenPublications;
 
@@ -156,18 +158,21 @@ public class PublicationService {
 
   /**
    * Devuelve únicamente reportes visibles que cumplan TODOS los filtros activos (combinación AND).
-   * Un filtro nulo o vacío no restringe resultados. Los cerrados requieren includeClosed=true;
-   * solicitar cerrados nunca habilita los ocultos. bounds=null desactiva solo el filtro geográfico.
+   * Revisión de contenido y confianza se validan y comparan separadamente. Un filtro nulo o vacío
+   * no restringe resultados. Los cerrados requieren includeClosed=true; solicitar cerrados nunca
+   * habilita los ocultos. bounds=null desactiva solo el filtro geográfico.
    */
   public List<Publication> findPublications(
       String category,
       String operationalStatus,
       String confidenceLevel,
+      String reviewStatus,
       boolean includeClosed,
       Bounds bounds) {
     String categoryFilter = normalize(category, CATEGORIES, "Categoría");
     String statusFilter = normalize(operationalStatus, STATUSES, "Estado");
     String confidenceFilter = normalize(confidenceLevel, CONFIDENCE, "Confianza");
+    String reviewFilter = normalize(reviewStatus, REVIEW, "Revisión de contenido");
     // La visibilidad se aplica en servidor: ocultar una tarjeta en JavaScript no protege sus datos.
     return visiblePublications()
         .filter(p -> includeClosed || !p.closed())
@@ -177,6 +182,7 @@ public class PublicationService {
                 statusFilter.isEmpty()
                     || p.operationalStatus().toUpperCase(Locale.ROOT).equals(statusFilter))
         .filter(p -> confidenceFilter.isEmpty() || p.confidenceLevel().equals(confidenceFilter))
+        .filter(p -> reviewFilter.isEmpty() || p.reviewStatus().equals(reviewFilter))
         .filter(p -> bounds == null || bounds.contains(p.latitude(), p.longitude()))
         .toList();
   }

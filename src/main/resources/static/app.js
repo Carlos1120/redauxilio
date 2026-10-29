@@ -259,7 +259,7 @@ for (const button of document.querySelectorAll(".quick-filters button")) {
     loadPublications();
   });
 }
-/** Combina formulario y área del mapa, consulta la API y comunica carga, error o fuente guardada. */
+/** Combina filtros independientes de confianza/revisión y área; comunica carga, error o caché. */
 async function loadPublications() {
   const query = ++latestPublicationQueryId;
   getElement("message").textContent = "Consultando reportes…";
@@ -271,6 +271,7 @@ async function loadPublications() {
       category: getElement("category").value,
       operationalStatus: getElement("operational-status").value,
       confidenceLevel: getElement("confidence-level").value,
+      reviewStatus: getElement("review-status").value,
       includeClosed: String(getElement("include-closed").checked),
       ...reportMap?.bounds(),
     });
@@ -317,7 +318,13 @@ window.matchMedia("(min-width: 1100px)").addEventListener("change", (event) => {
     showReportDetail(selected, null, true);
   }
 });
-for (const id of ["category", "operational-status", "confidence-level", "include-closed"]) {
+for (const id of [
+  "category",
+  "operational-status",
+  "confidence-level",
+  "review-status",
+  "include-closed",
+]) {
   getElement(id).addEventListener("change", () => {
     syncQuickFilters();
     loadPublications();

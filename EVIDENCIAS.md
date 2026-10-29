@@ -651,3 +651,17 @@ Se inspeccionaron motivo, ayuda, botón y avisos en **360×800, 768×1024 y 1366
 No se ejecutó instalación PWA de escritorio ni desconexión total en navegador. Offline/reconexión y no reenvío se comprobaron con eventos/respuestas simulados en las pruebas JS; no se atribuyen pruebas humanas a Carlos o Santiago. No se mide rendimiento nuevo ni concurrencia PostgreSQL productiva.
 
 Entrega para PR Draft a develop, CI del HEAD publicado y revisión humana posterior. No se declara RA-07 terminada ni se realizan resoluciones de operadores; RA-08 queda fuera de alcance. El registro vigente de PR/CI se conserva en GitHub al publicar, sin reutilizar la CI de otro SHA como prueba del nuevo.
+
+## RA-07 — Corrección del filtro «En revisión» — 28/10/2026
+
+Observación técnica: [PR #17, comentario 6484939680](https://github.com/Carlos1120/redauxilio/pull/17#issuecomment-6484939680). Rama `feat/RA-07-reporte-contenido`, base `f69faedc00df84a1c7f718e88ce3984c789cb978`; esta sección pertenece al commit coherente que separa revisión/confianza (SHA final identificable en el historial del PR). Windows, Temurin 17, Node 24/npm 11, H2 de pruebas; sin datos productivos.
+
+**Reproducción anterior a corregir:** la nueva prueba Java falló porque `reviewStatus=EN_REVISION` incluía una publicación `SIN_REVISION` con confianza `CONFIRMADA`: el servidor ignoraba el parámetro. Las dos regresiones iniciales JS fallaron por ausencia de `reviewStatus` en HTTP y por las opciones mezcladas en la plantilla. No se interpreta este resultado esperado como fallo pendiente.
+
+**Corrección:** selector con etiqueta propia, parámetro HTTP y validación/filtro independiente en servidor; AND con los demás filtros, sin alterar DTO, confianza, confirmaciones ni privacidad. `EN_REVISION` deja de aceptarse como confianza y los valores de revisión desconocidos producen 400. «Desactualizada» sale del selector; se conserva solo compatibilidad del parámetro heredado, sin lógica RA-06. SW v19 renueva recursos públicos; no cambia la política de escrituras ni implementa RA-08.
+
+**Regresiones reproducibles:** `node --test src/test/js/report-origin.test.cjs` (7 aprobadas) y `.\mvnw.cmd -B -Dtest=PublicationContentReportTests test` (8 aprobadas). La nueva prueba HTTP/SQL crea dos publicaciones confirmadas con tres respaldos y denuncia una con tres cuentas: comprueba revisión sin perder CONFIRMADA, consulta combinada con categoría/estado/área, filtro ausente/SIN_REVISION, combinación vacía, valores inválidos (incluido cruce entre dimensiones), cerrados y ocultos. Tres pruebas JS nuevas ejecutan app.js y verifican parámetros independientes, cambio/reset y opciones HTML; son dobles de DOM, no aceptación visual humana.
+
+**Verificación completa:** `.\mvnw.cmd -B spotless:apply verify` aprobado: 77 Java, cero fallos/errores/omitidas, Spotless y PMD sin infracciones. `npm.cmd test`: 75/75 JS aprobadas. `npm.cmd run format:check` y `git diff --check` aprobados. CI del SHA publicado queda enlazado en el PR. No se repiten manuales PWA ni se atribuye aceptación humana del selector nuevo a las pruebas de navegador previas. La instancia anterior en 52657 no se reinició y conserva su estado de prueba; no acredita este nuevo servidor.
+
+Comprobación ejecutada mediante herramientas automatizadas; validación humana pendiente. Mantener PR Draft: falta aceptación humana de interfaz/sesión/PWA y revisión final de Santiago. No hay aprobación, merge ni movimiento de Trello.

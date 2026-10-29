@@ -4,8 +4,8 @@
  * Intenta primero la red; solo ante un fallo de red utiliza una copia previamente guardada.
  * No almacena borradores, operaciones de escritura, bibliotecas CDN ni cartografía externa.
  */
-// La versión 18 renueva revisión de contenido; motivos y escrituras nunca entran en caché.
-const CACHE = "redauxilio-demo-v18";
+// La versión 19 renueva los filtros independientes de revisión y confianza; motivos y escrituras nunca entran en caché.
+const CACHE = "redauxilio-demo-v19";
 const SHELL = [
   "/",
   "/app.css",

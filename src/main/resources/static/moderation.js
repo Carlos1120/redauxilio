@@ -44,6 +44,32 @@
     return response.json();
   }
 
+  /** Envía una decisión con CSRF renovado; los datos privados solo viven en el DOM de esta vista. */
+  async function decide(id, body, isCurrent) {
+    const csrf = await read("/csrf");
+    if (!isCurrent()) return false;
+    const response = await fetch(`/api/operator/publications/${id}/actions`, {
+      method: "POST",
+      credentials: "same-origin",
+      cache: "no-store",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+        [csrf.headerName]: csrf.token,
+      },
+      body: JSON.stringify(body),
+    });
+    if (!isCurrent()) return false;
+    if (response.redirected || !response.ok) {
+      const error = new Error("Decisión privada no disponible");
+      error.status = response.status;
+      error.reference = response.headers.get("X-Correlation-ID");
+      throw error;
+    }
+    await response.json();
+    return true;
+  }
+
   function failed(error) {
     clearPrivate();
     message.textContent =
@@ -143,11 +169,169 @@
             "Se muestran los 50 cambios más recientes; el resto permanece en la base de datos.",
           ),
         );
+      detail.append(text("h3", "Decisiones de moderación, más reciente primero"));
+      for (const decision of data.decisions ?? [])
+        detail.append(
+          text(
+            "p",
+            `${decision.actedAt} · ${decision.action} · operador ${decision.actorId} · ${decision.reason}`,
+          ),
+          text("pre", `Antes: ${decision.beforeSnapshot}\nDespués: ${decision.afterSnapshot}`),
+        );
+      if (data.moreDecisions)
+        detail.append(
+          text("p", "Se muestran las 50 decisiones más recientes; el resto se conserva."),
+        );
+      appendActions(detail, data.context);
       detail.focus();
-      message.textContent = "Contexto privado cargado. No se ha tomado ninguna decisión.";
+      message.textContent = "Contexto privado cargado.";
     } catch (error) {
       if (version === generation && selected === selection) failed(error);
     }
+  }
+
+  /** Presenta campos etiquetados y acciones explícitas según estado y categoría del caso. */
+  function appendActions(container, context) {
+    const p = context.publication;
+    const section = text("section", "");
+    section.className = "moderation-decision";
+    section.append(text("h3", "Decisión del operador"));
+    const reasonLabel = text("label", "Motivo obligatorio (máximo 500 caracteres)");
+    const reason = document.createElement("textarea");
+    reason.maxLength = 500;
+    reason.required = true;
+    reasonLabel.append(reason);
+    section.append(reasonLabel);
+    const act = (action, operationalStatus, correction) => async () => {
+      const version = generation;
+      const selected = selection;
+      const isCurrent = () => version === generation && selected === selection;
+      if (!reason.value.trim()) {
+        message.textContent = "Escribe el motivo antes de guardar la decisión.";
+        reason.focus();
+        return;
+      }
+      message.textContent = "Guardando decisión…";
+      try {
+        const applied = await decide(
+          p.id,
+          {
+            action,
+            reason: reason.value,
+            operationalStatus,
+            correction: typeof correction === "function" ? correction() : correction,
+          },
+          isCurrent,
+        );
+        if (!applied || !isCurrent()) return;
+        await loadQueue();
+        await loadDetail(p.id);
+        message.textContent = "Decisión registrada con auditoría.";
+      } catch (error) {
+        if (error.status === 400 || error.status === 409) {
+          await loadDetail(p.id);
+          message.textContent = "La decisión no se aplicó. Actualiza el caso y revisa sus reglas.";
+        } else failed(error);
+      }
+    };
+    const button = (label, action, status, correction) => {
+      const control = text("button", label);
+      control.type = "button";
+      control.addEventListener("click", act(action, status, correction));
+      section.append(control);
+    };
+    if (p.reviewStatus === "EN_REVISION")
+      button("Mantener publicación y resolver denuncias activas", "KEEP");
+    if (!p.closed) {
+      const correction = document.createElement("details");
+      correction.append(text("summary", "Preparar corrección sustancial"));
+      const fields = {};
+      for (const [key, label, value] of [
+        ["title", "Nombre o tramo", p.title],
+        ["description", "Descripción", p.description],
+        ["location", "Sector o lugar público", p.location],
+      ]) {
+        const wrapper = text("label", label);
+        const input = document.createElement(key === "description" ? "textarea" : "input");
+        input.value = value ?? "";
+        input.maxLength = key === "title" ? 120 : key === "description" ? 1000 : 160;
+        wrapper.append(input);
+        correction.append(wrapper);
+        fields[key] = input;
+      }
+      for (const key of ["latitude", "longitude"]) {
+        const wrapper = text("label", key === "latitude" ? "Latitud" : "Longitud");
+        const input = document.createElement("input");
+        input.type = "number";
+        input.step = "any";
+        input.value = p[key];
+        wrapper.append(input);
+        correction.append(wrapper);
+        fields[key] = input;
+      }
+      if (p.category === "ASSISTANCE") {
+        const wrapper = text("label", "Subtipo de asistencia");
+        const input = document.createElement("select");
+        for (const [value, label] of [
+          ["SHELTER", "Refugio"],
+          ["COLLECTION", "Centro de acopio"],
+          ["MEDICAL_CENTER", "Centro médico"],
+        ]) {
+          const option = text("option", label);
+          option.value = value;
+          input.append(option);
+        }
+        input.value = p.assistanceSubtype;
+        wrapper.append(input);
+        correction.append(wrapper);
+        fields.assistanceSubtype = input;
+      } else {
+        const wrapper = text("label", "Tipo de afectación");
+        const input = document.createElement("select");
+        for (const value of ["DERRUMBE", "INUNDACIÓN", "DAÑO ESTRUCTURAL", "OTRO"]) {
+          const option = text("option", value);
+          option.value = value;
+          input.append(option);
+        }
+        input.value = p.impactType;
+        wrapper.append(input);
+        correction.append(wrapper);
+        fields.impactType = input;
+      }
+      const submitCorrection = text("button", "Aplicar corrección y anular respaldos vigentes");
+      submitCorrection.type = "button";
+      submitCorrection.addEventListener(
+        "click",
+        act("CORRECT", undefined, () => ({
+          category: p.category,
+          assistanceSubtype: fields.assistanceSubtype?.value ?? null,
+          title: fields.title.value,
+          description: fields.description.value,
+          location: fields.location.value,
+          operationalStatus: p.operationalStatus,
+          impactType: fields.impactType?.value ?? null,
+          latitude: Number(fields.latitude.value),
+          longitude: Number(fields.longitude.value),
+        })),
+      );
+      correction.append(submitCorrection);
+      section.append(correction);
+    }
+    if (context.visible) button("Ocultar publicación", "HIDE");
+    else button("Restituir visibilidad", "RESTORE");
+    if (!p.closed)
+      button(
+        "Cerrar según estado terminal",
+        "CLOSE",
+        p.category === "ASSISTANCE" ? "CERRADO" : "HABILITADA",
+      );
+    if (p.closed) {
+      for (const status of p.category === "ASSISTANCE"
+        ? ["DISPONIBLE", "CAPACIDAD LIMITADA"]
+        : ["BLOQUEADA", "PARCIALMENTE HABILITADA"])
+        button(`Reabrir como ${status}`, "REOPEN", status);
+    }
+    container.append(section);
   }
 
   async function loadPermissions() {

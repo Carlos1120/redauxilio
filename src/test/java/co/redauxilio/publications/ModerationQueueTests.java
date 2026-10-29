@@ -49,6 +49,8 @@ class ModerationQueueTests {
   @AfterEach
   void cleanup() {
     for (long id : publications) {
+      jdbc.update("DELETE FROM publication_moderation_action WHERE publication_id = ?", id);
+      jdbc.update("DELETE FROM publication_confirmation_invalidation WHERE publication_id = ?", id);
       jdbc.update("DELETE FROM publication_content_report WHERE publication_id = ?", id);
       jdbc.update("DELETE FROM citizen_publication_change WHERE publication_id = ?", id);
       jdbc.update("DELETE FROM publication_confirmation WHERE publication_id = ?", id);
@@ -60,6 +62,138 @@ class ModerationQueueTests {
       jdbc.update("DELETE FROM operator_permission WHERE account_id = ?", id);
       jdbc.update("DELETE FROM citizen_account WHERE id = ?", id);
     }
+  }
+
+  @Test
+  void operatorKeepsReportRoundsAndAllowsSameReporterToReportAgain() throws Exception {
+    long id = publication();
+    String reporter = account();
+    report(id, reporter);
+    report(id);
+    report(id);
+    decide(id, "KEEP", "Se conserva por corroboración", null, null)
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.reviewStatus").value("SIN_REVISION"));
+    assertEquals(
+        0,
+        jdbc.queryForObject(
+            "SELECT COUNT(*) FROM publication_content_report WHERE publication_id = ? AND active_slot = 1",
+            Integer.class,
+            id));
+    assertEquals(
+        3,
+        jdbc.queryForObject(
+            "SELECT COUNT(*) FROM publication_content_report WHERE publication_id = ? AND active_slot IS NULL",
+            Integer.class,
+            id));
+    report(id, reporter);
+    assertEquals(
+        1,
+        jdbc.queryForObject(
+            "SELECT COUNT(*) FROM publication_content_report WHERE publication_id = ? AND active_slot = 1",
+            Integer.class,
+            id));
+    mvc.perform(get("/api/operator/publications/{id}", id).with(user(operator).roles("OPERATOR")))
+        .andExpect(jsonPath("$.reports.length()").value(4))
+        .andExpect(jsonPath("$.decisions[0].action").value("KEEP"))
+        .andExpect(jsonPath("$.decisions[0].reason").value("Se conserva por corroboración"));
+  }
+
+  @Test
+  void operatorCanCorrectHideRestoreCloseAndReopenWithPrivateAudit() throws Exception {
+    long id = publication();
+    jdbc.update("UPDATE citizen_publication SET review_status = 'EN_REVISION' WHERE id = ?", id);
+    long version =
+        jdbc.queryForObject(
+            "SELECT confirmation_version FROM citizen_publication WHERE id = ?", Long.class, id);
+    decide(
+            id,
+            "CORRECT",
+            "Se precisa la ubicación",
+            null,
+            "\"correction\":{\"category\":\"ASSISTANCE\",\"assistanceSubtype\":\"SHELTER\",\"title\":\"Refugio corregido\",\"description\":\"Descripción corregida\",\"location\":\"Zona norte\",\"operationalStatus\":\"DISPONIBLE\",\"impactType\":null,\"latitude\":4.2,\"longitude\":-73.6}")
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.action").value("CORRECT"));
+    assertEquals(
+        version + 1,
+        jdbc.queryForObject(
+            "SELECT confirmation_version FROM citizen_publication WHERE id = ?", Long.class, id));
+    assertEquals(
+        0,
+        jdbc.queryForObject(
+            "SELECT COUNT(*) FROM citizen_publication_change WHERE publication_id = ? AND action = 'CORRECT'",
+            Integer.class,
+            id));
+    decide(id, "HIDE", "Ocultar por riesgo concreto", null, null).andExpect(status().isOk());
+    decide(id, "RESTORE", "La información ya puede consultarse", null, null)
+        .andExpect(status().isOk());
+    decide(id, "CLOSE", "Se confirma la finalización", "CERRADO", null)
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.closed").value(true));
+    decide(id, "REOPEN", "La necesidad continúa", "DISPONIBLE", null)
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.closed").value(false));
+    assertEquals(
+        5,
+        jdbc.queryForObject(
+            "SELECT COUNT(*) FROM publication_moderation_action WHERE publication_id = ?",
+            Integer.class,
+            id));
+    assertEquals(
+        3,
+        jdbc.queryForObject(
+            "SELECT COUNT(*) FROM publication_confirmation_invalidation WHERE publication_id = ?",
+            Integer.class,
+            id));
+  }
+
+  @Test
+  void operatorActionsRequireReasonAndRejectInvalidTransitions() throws Exception {
+    long id = publication();
+    jdbc.update("UPDATE citizen_publication SET review_status = 'EN_REVISION' WHERE id = ?", id);
+    decide(id, "HIDE", " ", null, null).andExpect(status().isBadRequest());
+    decide(id, "CLOSE", "No terminal", "DISPONIBLE", null).andExpect(status().isBadRequest());
+    mvc.perform(
+            post("/api/operator/publications/{id}/actions", id)
+                .with(user("no-es-operador@example.invalid").roles("OPERATOR"))
+                .with(csrf())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"action\":\"HIDE\",\"reason\":\"x\"}"))
+        .andExpect(status().isForbidden());
+    mvc.perform(
+            post("/api/operator/publications/{id}/actions", id)
+                .with(user(operator).roles("OPERATOR"))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"action\":\"HIDE\",\"reason\":\"sin token CSRF\"}"))
+        .andExpect(status().isForbidden());
+    assertEquals(
+        0,
+        jdbc.queryForObject(
+            "SELECT COUNT(*) FROM publication_moderation_action WHERE publication_id = ?",
+            Integer.class,
+            id));
+  }
+
+  @Test
+  void failedPrivateAuditRollsBackTheModerationWrite() throws Exception {
+    long id = publication();
+    jdbc.update("UPDATE citizen_publication SET review_status = 'EN_REVISION' WHERE id = ?", id);
+    jdbc.execute(
+        "ALTER TABLE publication_moderation_action ADD CONSTRAINT reject_test_reason CHECK (reason <> 'fallo auditoría')");
+    try {
+      decide(id, "HIDE", "fallo auditoría", null, null).andExpect(status().isInternalServerError());
+    } finally {
+      jdbc.execute("ALTER TABLE publication_moderation_action DROP CONSTRAINT reject_test_reason");
+    }
+    assertTrue(
+        jdbc.queryForObject(
+            "SELECT visible FROM citizen_publication WHERE id = ?", Boolean.class, id));
+    assertEquals(
+        0,
+        jdbc.queryForObject(
+            "SELECT COUNT(*) FROM publication_moderation_action WHERE publication_id = ?",
+            Integer.class,
+            id));
   }
 
   @Test
@@ -326,12 +460,35 @@ class ModerationQueueTests {
   }
 
   private void report(long id) throws Exception {
+    report(id, account());
+  }
+
+  private void report(long id, String reporter) throws Exception {
     mvc.perform(
             post("/api/publications/{id}/content-reports", id)
-                .with(user(account()))
+                .with(user(reporter))
                 .with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"reason\":\"Motivo privado <script>prueba</script>\"}"))
         .andExpect(status().isOk());
+  }
+
+  private org.springframework.test.web.servlet.ResultActions decide(
+      long id, String action, String reason, String status, String extra) throws Exception {
+    String body =
+        "{\"action\":\""
+            + action
+            + "\",\"reason\":\""
+            + reason
+            + "\""
+            + (status == null ? "" : ",\"operationalStatus\":\"" + status + "\"")
+            + (extra == null ? "" : "," + extra)
+            + "}";
+    return mvc.perform(
+        post("/api/operator/publications/{id}/actions", id)
+            .with(user(operator).roles("OPERATOR"))
+            .with(csrf())
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(body));
   }
 }

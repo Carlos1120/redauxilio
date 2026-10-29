@@ -99,12 +99,24 @@ class ModerationQueueService {
                     r.getTimestamp("changed_at").toInstant().toString()),
             id,
             CONTEXT_LIMIT + 1);
+    List<ModerationDecision> decisions =
+        jdbc.query(
+            "SELECT actor_id, action, before_snapshot, after_snapshot, reason, acted_at FROM publication_moderation_action WHERE publication_id = ? ORDER BY acted_at DESC, id DESC LIMIT ?",
+            (r, i) ->
+                new ModerationDecision(
+                    r.getLong("actor_id"), r.getString("action"),
+                    r.getString("before_snapshot"), r.getString("after_snapshot"),
+                    r.getString("reason"), r.getTimestamp("acted_at").toInstant().toString()),
+            id,
+            CONTEXT_LIMIT + 1);
     return new CaseDetail(
         summary,
         reports.stream().limit(CONTEXT_LIMIT).toList(),
         reports.size() > CONTEXT_LIMIT,
         changes.stream().limit(CONTEXT_LIMIT).toList(),
-        changes.size() > CONTEXT_LIMIT);
+        changes.size() > CONTEXT_LIMIT,
+        decisions.stream().limit(CONTEXT_LIMIT).toList(),
+        decisions.size() > CONTEXT_LIMIT);
   }
 
   /**
@@ -159,7 +171,17 @@ class ModerationQueueService {
       List<Report> reports,
       boolean moreReports,
       List<Change> history,
-      boolean moreHistory) {}
+      boolean moreHistory,
+      List<ModerationDecision> decisions,
+      boolean moreDecisions) {}
+
+  record ModerationDecision(
+      long actorId,
+      String action,
+      String beforeSnapshot,
+      String afterSnapshot,
+      String reason,
+      String actedAt) {}
 
   record PermissionChange(
       String requestId,

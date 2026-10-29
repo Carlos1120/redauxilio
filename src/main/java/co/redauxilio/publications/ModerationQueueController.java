@@ -25,9 +25,11 @@ import org.springframework.web.server.ResponseStatusException;
 class ModerationQueueController {
   private static final Logger LOGGER = LoggerFactory.getLogger(ModerationQueueController.class);
   private final ModerationQueueService queue;
+  private final ModerationActionService actions;
 
-  ModerationQueueController(ModerationQueueService queue) {
+  ModerationQueueController(ModerationQueueService queue, ModerationActionService actions) {
     this.queue = queue;
+    this.actions = actions;
   }
 
   @GetMapping("/operator")
@@ -47,6 +49,20 @@ class ModerationQueueController {
   @ResponseBody
   ResponseEntity<ModerationQueueService.CaseDetail> detail(@PathVariable long id) {
     return ResponseEntity.ok().cacheControl(CacheControl.noStore()).body(queue.detail(id));
+  }
+
+  /** Ejecuta una decisión solo con actor obtenido de la sesión y CSRF del formulario. */
+  @org.springframework.web.bind.annotation.PostMapping("/api/operator/publications/{id}/actions")
+  @ResponseBody
+  ResponseEntity<ModerationActionService.DecisionResult> act(
+      @org.springframework.security.core.annotation.AuthenticationPrincipal
+          org.springframework.security.core.userdetails.UserDetails operator,
+      @PathVariable long id,
+      @org.springframework.web.bind.annotation.RequestBody
+          ModerationActionService.ActionRequest request) {
+    return ResponseEntity.ok()
+        .cacheControl(CacheControl.noStore())
+        .body(actions.act(id, operator.getUsername(), request));
   }
 
   @GetMapping("/api/operator/permissions/history")

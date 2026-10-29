@@ -1370,6 +1370,10 @@ main {
   grid-column: 2;
   margin: 0;
 }
+/* La descripción conserva el mismo nivel de título y etiqueta que la ubicación. */
+.draft-section form > .description-fields {
+  grid-column: 1;
+}
 .draft-section .draft-actions {
   grid-column: 1 / -1;
   flex-direction: row;

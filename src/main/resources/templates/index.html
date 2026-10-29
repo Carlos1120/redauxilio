@@ -369,18 +369,21 @@
                 </div>
               </div>
             </div>
-            <div class="field">
-              <label for="draft-text">¿Qué quieres reportar?</label
-              ><textarea
-                id="draft-text"
-                maxlength="1000"
-                placeholder="Describe la situación sin datos personales…"
-                aria-describedby="description-help"
-              ></textarea
-              ><small id="description-help"
-                >Hasta 1000 caracteres. No incluyas datos personales.</small
-              >
-            </div>
+            <fieldset class="description-fields">
+              <legend>Descripción de la publicación</legend>
+              <div class="field">
+                <label for="draft-text">¿Qué quieres reportar?</label
+                ><textarea
+                  id="draft-text"
+                  maxlength="1000"
+                  placeholder="Describe la situación sin datos personales…"
+                  aria-describedby="description-help"
+                ></textarea
+                ><small id="description-help"
+                  >Hasta 1000 caracteres. No incluyas datos personales.</small
+                >
+              </div>
+            </fieldset>
             <fieldset>
               <legend>Ubicación de la publicación</legend>
               <div class="field">

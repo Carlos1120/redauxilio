@@ -1370,9 +1370,21 @@ main {
   grid-column: 2;
   margin: 0;
 }
-/* La descripción conserva el mismo nivel de título y etiqueta que la ubicación. */
+/* La descripción se alinea con ubicación y ocupa la altura disponible en dos columnas. */
 .draft-section form > .description-fields {
   grid-column: 1;
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+}
+.draft-section .description-fields .field {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  margin-bottom: 0;
+}
+.draft-section .description-fields textarea {
+  flex: 1;
 }
 .draft-section .draft-actions {
   grid-column: 1 / -1;
@@ -1554,6 +1566,12 @@ footer {
   .draft-section form > fieldset,
   .draft-section .draft-actions {
     grid-column: 1;
+  }
+  .draft-section form > .description-fields {
+    display: block;
+  }
+  .draft-section .description-fields .field {
+    display: block;
   }
   .draft-section .draft-actions button {
     flex: 1 1 180px;

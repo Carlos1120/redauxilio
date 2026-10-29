@@ -121,12 +121,14 @@
       assistanceSubtype: "Tipo de punto",
       impactType: "Afectación",
       closed: "Cerrado",
+      reviewStatus: "Revisión de contenido",
     };
     const actions = {
       EDIT: "Corrección",
       STATUS: "Cambio de estado",
       CLOSE: "Cierre",
       REOPEN: "Reapertura",
+      REVIEW: "Revisión de contenido",
     };
     const details = [];
     try {

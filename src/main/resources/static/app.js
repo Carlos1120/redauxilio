@@ -66,6 +66,12 @@ function showReportDetail(item, trigger, initial = false) {
           ? "Confirmada por la comunidad"
           : item.confidenceLevel,
     ],
+    [
+      "Revisión de contenido",
+      item.reviewStatus === "EN_REVISION"
+        ? "En revisión · contenido cuestionado"
+        : "Sin alerta de revisión",
+    ],
     ["Ubicación aproximada", `${item.latitude.toFixed(3)}, ${item.longitude.toFixed(3)}`],
   ]) {
     const fact = createReportElement("div", "detail-fact", "");
@@ -85,6 +91,9 @@ function showReportDetail(item, trigger, initial = false) {
   const confirmation = createReportElement("div", "confirmation-actions", "");
   detail.append(confirmation);
   window.RedAuxilioConfirmation?.render(item, confirmation);
+  const contentReport = createReportElement("div", "content-report-actions", "");
+  detail.append(contentReport);
+  window.RedAuxilioContentReport?.render(item, contentReport);
   for (const card of getElement("publications").querySelectorAll(".card")) {
     card.dataset.selected = String(card.dataset.reportId === String(item.id));
   }
@@ -173,6 +182,15 @@ function renderPublications(items) {
       const fact = document.createElement("div");
       fact.append(createReportElement("dt", "", label), createReportElement("dd", "", value));
       facts.append(fact);
+    }
+    if (item.reviewStatus === "EN_REVISION") {
+      card.append(
+        createReportElement(
+          "p",
+          "review-notice",
+          "En revisión · contenido cuestionado. No equivale a cierre ni modifica su confianza.",
+        ),
+      );
     }
     // La ficha muestra la última actualización de la API, no una fecha de verificación.
     const date = createReportElement("p", "report-date", "Actualizado: ");

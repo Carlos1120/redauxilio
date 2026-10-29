@@ -140,3 +140,21 @@ test("app e identidad sincronizan una vez sin realimentar el evento de sesión",
   assert.equal(dispatched, 1);
   assert.equal(nodes.get("identity-open").dataset.authenticated, "true");
 });
+
+test("revisión de contenido se muestra sin reemplazar confianza comunitaria", async () => {
+  const reviewed = {
+    ...report(1000000),
+    reviewStatus: "EN_REVISION",
+    confidenceLevel: "CONFIRMADA",
+  };
+  const { nodes, context } = await loadReportView([reviewed]);
+  context.selectedItem = reviewed;
+  vm.runInContext("showReportDetail(selectedItem, null, true)", context);
+  function text(node) {
+    return [node.textContent || "", ...(node.children || []).map(text)].join(" ");
+  }
+  assert.match(text(nodes.get("publications")), /En revisión · contenido cuestionado/);
+  assert.match(text(nodes.get("detail-content")), /Confirmada por la comunidad/);
+  assert.match(text(nodes.get("detail-content")), /Revisión de contenido/);
+  assert.equal(reviewed.confidenceLevel, "CONFIRMADA");
+});

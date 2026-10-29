@@ -239,7 +239,8 @@ public class PublicationService {
   /**
    * Datos públicos que Spring serializa a JSON. operationalStatus describe la situación del caso;
    * confidenceLevel describe su respaldo. closed decide la exclusión por defecto y no equivale a
-   * oculto. Los tiempos son cadenas ISO 8601; las coordenadas del demostrador son ficticias.
+   * oculto. reviewStatus es revisión de contenido independiente; no otorga ni retira confianza. Los
+   * tiempos son cadenas ISO 8601; las coordenadas del demostrador son ficticias.
    */
   public record Publication(
       long id,
@@ -257,7 +258,8 @@ public class PublicationService {
       String assistanceSubtype,
       String impactType,
       int confirmationCount,
-      long confirmationVersion) {
+      long confirmationVersion,
+      String reviewStatus) {
     /** Compatibilidad de constructores anteriores; ejemplos y pruebas sin confirmaciones. */
     public Publication(
         long id,
@@ -290,7 +292,8 @@ public class PublicationService {
           assistanceSubtype,
           impactType,
           0,
-          0);
+          0,
+          "SIN_REVISION");
     }
 
     /** Mantiene el contrato de construcción de los seis ejemplos y de la prueba de carga. */

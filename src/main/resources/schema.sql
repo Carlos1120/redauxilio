@@ -78,3 +78,21 @@ CREATE TABLE IF NOT EXISTS publication_content_report (
 );
 CREATE INDEX IF NOT EXISTS content_report_publication_active
   ON publication_content_report (publication_id, active_slot);
+
+-- RA-08: permiso interno persistente; el registro ciudadano nunca escribe estas tablas.
+CREATE TABLE IF NOT EXISTS operator_permission (
+  account_id BIGINT PRIMARY KEY REFERENCES citizen_account(id),
+  role VARCHAR(20) NOT NULL CHECK (role = 'ROLE_OPERATOR'),
+  granted_at TIMESTAMP WITH TIME ZONE NOT NULL
+);
+-- Solicitud de aprovisionamiento única: reiniciar con la misma configuración no repite ni revierte decisiones.
+CREATE TABLE IF NOT EXISTS operator_permission_audit (
+  request_id VARCHAR(36) PRIMARY KEY,
+  account_id BIGINT NOT NULL REFERENCES citizen_account(id),
+  actor VARCHAR(80) NOT NULL,
+  action VARCHAR(8) NOT NULL CHECK (action IN ('GRANT', 'REVOKE')),
+  before_granted BOOLEAN NOT NULL,
+  after_granted BOOLEAN NOT NULL,
+  reason VARCHAR(500) NOT NULL,
+  changed_at TIMESTAMP WITH TIME ZONE NOT NULL
+);

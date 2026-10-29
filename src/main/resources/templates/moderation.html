@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#d7262e" />
+    <title>Moderación privada · RedAuxilio</title>
+    <link rel="stylesheet" href="/app.css" />
+    <script src="/moderation.js" defer></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#moderation-workspace">Saltar a moderación</a>
+    <header class="site-header">
+      <div class="header-content">
+        <a class="brand" href="/"
+          ><img src="/icon.svg" width="36" height="36" alt="" /><span
+            >RedAuxilio<small>Moderación privada</small></span
+          ></a
+        >
+        <nav aria-label="Navegación del operador"><a href="/">Volver al mapa público</a></nav>
+        <form th:action="@{/logout}" method="post" id="operator-logout">
+          <button type="submit" class="secondary-button">Cerrar sesión</button>
+        </form>
+      </div>
+    </header>
+    <main id="moderation-workspace" class="moderation-workspace">
+      <h1>Cola de moderación</h1>
+      <p>
+        Casos en revisión. Las denuncias no prueban que la información sea falsa. Esta primera
+        entrega permite consultar, sin tomar decisiones administrativas.
+      </p>
+      <p id="moderation-message" role="status" aria-live="polite">Preparando consulta privada…</p>
+      <div class="moderation-controls">
+        <button id="moderation-refresh" type="button">Actualizar cola</button>
+        <button id="moderation-previous" type="button" class="secondary-button" disabled>
+          Anterior
+        </button>
+        <button id="moderation-next" type="button" class="secondary-button" disabled>
+          Siguiente
+        </button>
+        <button id="permission-history" type="button" class="secondary-button">
+          Consultar auditoría de permisos
+        </button>
+      </div>
+      <section aria-labelledby="moderation-list-title">
+        <h2 id="moderation-list-title">Casos en revisión</h2>
+        <div id="moderation-list" aria-busy="false"></div>
+      </section>
+      <section aria-labelledby="moderation-detail-title">
+        <h2 id="moderation-detail-title">Contexto privado del caso</h2>
+        <div id="moderation-detail" tabindex="-1"></div>
+      </section>
+      <section aria-labelledby="permission-history-title">
+        <h2 id="permission-history-title">Auditoría interna de permisos</h2>
+        <div id="permission-events"></div>
+      </section>
+      <p>
+        Datos internos: no se almacenan en caché ni se muestran sin conexión. Para volver a
+        consultar, confirma tu sesión y tu conexión.
+      </p>
+    </main>
+  </body>
+</html>

@@ -250,3 +250,27 @@ test("reporte de contenido precargado y POST con motivo fuera de caché", async 
   );
   assert.equal(worker.entries.size, 1);
 });
+
+/** RA-08 no permite que SW intercepte ni precargue páginas o respuestas privadas del operador. */
+test("moderación y auditoría privada no entran en Cache Storage ni en shell", async () => {
+  const worker = loadWorker();
+  let installation;
+  worker.listeners.get("install")({
+    waitUntil: (promise) => {
+      installation = promise;
+    },
+  });
+  await installation;
+  const existingKeys = [...worker.entries.keys()];
+  for (const path of [
+    "/operator",
+    "/api/operator/publications",
+    "/api/operator/publications/1000000",
+    "/api/operator/permissions/history",
+  ]) {
+    assert.equal(fetchEvent(worker, `http://localhost:8081${path}`), undefined);
+    assert.equal(fetchEvent(worker, `http://localhost:8081${path}`, "POST"), undefined);
+    assert.ok(!worker.precached.includes(path));
+  }
+  assert.deepEqual([...worker.entries.keys()], existingKeys);
+});

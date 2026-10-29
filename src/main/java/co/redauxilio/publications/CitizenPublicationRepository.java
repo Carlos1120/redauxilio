@@ -15,8 +15,9 @@ import org.springframework.stereotype.Repository;
 /** Persiste reportes ciudadanos y mantiene la autoría fuera del JSON público. */
 @Repository
 class CitizenPublicationRepository {
-  // Proyección compartida: agrega respaldo comunitario sin exponer autor ni auditoría.
-  private static final String PUBLIC_COLUMNS =
+  // Proyección compartida con la consulta operativa; agrega respaldo sin exponer autor ni
+  // auditoría.
+  static final String PUBLIC_COLUMNS =
       "id, category, assistance_subtype, title, description, location, operational_status,"
           + " impact_type, latitude, longitude, created_at, updated_at, closed, confirmation_version, review_status"
           + ", (SELECT COUNT(*) FROM publication_confirmation c"
@@ -111,7 +112,7 @@ class CitizenPublicationRepository {
   }
 
   /** Mapea exclusivamente el contrato público y conserva el cierre vial de altas antiguas. */
-  private static PublicationService.Publication mapPublic(ResultSet row) throws SQLException {
+  static PublicationService.Publication mapPublic(ResultSet row) throws SQLException {
     return new PublicationService.Publication(
         row.getLong("id"),
         row.getString("category"),

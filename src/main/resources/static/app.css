@@ -1775,3 +1775,25 @@ footer {
   color: var(--color-report-ink);
   background: var(--color-report-inset);
 }
+
+/* Consulta operativa privada: componentes existentes, textos largos legibles en teléfono y teclado. */
+.moderation-workspace {
+  max-width: 1100px;
+  margin: 24px auto;
+  padding: 16px;
+  overflow-wrap: anywhere;
+}
+.moderation-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 16px 0;
+}
+.moderation-workspace .report-card {
+  margin-bottom: 16px;
+}
+.moderation-workspace pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  max-width: 100%;
+}

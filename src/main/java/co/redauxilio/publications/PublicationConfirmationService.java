@@ -104,12 +104,16 @@ class PublicationConfirmationService {
   private Version lockPublication(long id) {
     return jdbc
         .query(
-            "SELECT author_id, confirmation_version, closed FROM citizen_publication WHERE id = ? AND visible = TRUE FOR UPDATE",
+            "SELECT author_id, confirmation_version, closed, category, operational_status"
+                + " FROM citizen_publication WHERE id = ? AND visible = TRUE FOR UPDATE",
             (row, index) ->
                 new Version(
                     row.getLong("author_id"),
                     row.getLong("confirmation_version"),
-                    row.getBoolean("closed")),
+                    // La vía HABILITADA heredada está cerrada aunque conserve closed=false.
+                    row.getBoolean("closed")
+                        || ("ROAD".equals(row.getString("category"))
+                            && "HABILITADA".equals(row.getString("operational_status")))),
             id)
         .stream()
         .findFirst()

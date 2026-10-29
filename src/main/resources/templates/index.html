@@ -17,6 +17,7 @@
     <script src="/publication-form.js" defer></script>
     <script src="/my-publications.js" defer></script>
     <script src="/confirmation.js" defer></script>
+    <script src="/content-report.js" defer></script>
   </head>
   <body>
     <a class="skip-link" href="#main-content">Saltar al contenido</a>
@@ -247,8 +248,14 @@
                   <option value="REPORTADA">Reportada · sin verificar</option>
                   <option value="CONFIRMADA">Confirmada por la comunidad</option>
                   <option value="VERIFICADA">Verificada oficialmente</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="review-status">Revisión de contenido</label>
+                <select id="review-status">
+                  <option value="">Cualquier estado de revisión</option>
+                  <option value="SIN_REVISION">Sin alerta de revisión</option>
                   <option value="EN_REVISION">En revisión</option>
-                  <option value="DESACTUALIZADA">Desactualizada</option>
                 </select>
               </div>
               <label class="closed-filter"

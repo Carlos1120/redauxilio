@@ -35,7 +35,8 @@ public class PublicationController {
   /**
    * Consulta reportes combinando los filtros enviados por el navegador. Sin límites geográficos
    * consulta cualquier ubicación; si se envía un límite, exige los cuatro para definir el área. Los
-   * filtros o límites inválidos producen HTTP 400, no una lista vacía engañosa.
+   * filtros de confianza y revisión son independientes; valores o límites inválidos producen HTTP
+   * 400, no una lista vacía engañosa.
    */
   @GetMapping("/api/publications")
   @ResponseBody
@@ -43,6 +44,7 @@ public class PublicationController {
       @RequestParam(required = false) String category,
       @RequestParam(required = false) String operationalStatus,
       @RequestParam(required = false) String confidenceLevel,
+      @RequestParam(required = false) String reviewStatus,
       @RequestParam(defaultValue = "false") boolean includeClosed,
       @RequestParam(required = false) Double south,
       @RequestParam(required = false) Double west,
@@ -55,7 +57,7 @@ public class PublicationController {
       bounds = new PublicationService.Bounds(south, west, north, east);
     }
     return service.findPublications(
-        category, operationalStatus, confidenceLevel, includeClosed, bounds);
+        category, operationalStatus, confidenceLevel, reviewStatus, includeClosed, bounds);
   }
 
   /** Devuelve el detalle visible; un identificador inexistente u oculto produce HTTP 404. */

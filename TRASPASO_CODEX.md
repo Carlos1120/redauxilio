@@ -1,17 +1,23 @@
 # RedAuxilio — traspaso vigente
 
-Actualización: 28 de octubre de 2026, Colombia. Comprobar remotos, PR y Trello al retomar; este resumen no sustituye la evidencia actual. Normas: `AGENTS.md` y `ESTANDARES.md`; resultados detallados en `EVIDENCIAS.md`.
+Actualización: 28 de octubre de 2026 (Colombia). Este resumen contiene el estado necesario para retomar; verificar GitHub y el árbol antes de actuar. Normas en AGENTS.md/ESTANDARES.md, contrato de esta rama en RA07.md y resultados extensos en la última sección RA-07 de EVIDENCIAS.md. No cargar el historial completo por rutina.
 
-## Base integrada y pendientes de proceso
+## Rama y base preservada
 
-`origin/develop` estaba en `7c98844` al comenzar este bloque. PR #14 integró el núcleo RA-05 como `488157d`, PR #13 añadió RA-04 e invalidación de confirmaciones como `ac18121`, y PR #12 de controles táctiles como `7c98844`. Se verificaron CI posteriores a los tres merges con éxito. GitHub no mostraba revisiones aprobatorias de #12, #13 ni #14; la integración no acredita la revisión cruzada exigida. RA-04 sigue En revisión y RA-05 En progreso en Trello; no moverlas a Terminado sin constatar criterios, validación humana y trazabilidad. Los traspasos previos en develop estaban desactualizados tras merges concurrentes.
+Trabajo activo RA-07 en `feat/RA-07-reporte-contenido`, worktree `C:\Users\cmps-\redauxilio-ra07`. El árbol estaba limpio al iniciar en `7632893`, con dos commits locales no publicados. Ese merge ya incorporaba develop `0cfdc709` (PR #15); se preservaron sus padres e historial, sin repetir merge, rebase ni force push. PR #17 permanece Draft; la corrección actual parte de f69faed y separa revisión/confianza. Comprobar su HEAD y CI en GitHub antes de continuar. No se modificaron ramas ajenas, PR #15 ni Trello.
 
-## Trabajo actual
+## Comportamiento implementado
 
-Checkout principal `C:\Users\Santiago\redauxilio`, rama `fix/RA-05-cierre-vial-heredado` creada desde `origin/develop` limpio. El problema: la API pública trataba una vía antigua `HABILITADA` con `closed=false` como cerrada, pero el servicio de confirmaciones permitía respaldarla porque consultaba solo la bandera. Codex reprodujo el fallo mediante prueba HTTP/SQL: detalle `closed=true`, confirmación 200 en vez de 409. La lectura bloqueada de confirmación ahora considera categoría y estado, igual que la proyección pública; no cambia datos heredados ni la arquitectura. La prueba específica pasa después de `mvnw clean`. La ejecución incremental previa reutilizó una clase antigua; se confirmó con `javap` y no se presenta como prueba de la corrección. La verificación final pasó con Corretto 21: 69 Java, Spotless, PMD, 54 JavaScript, Prettier y diff --check. Faltan CI y revisión de Carlos sobre el HEAD final.
+Denuncias persistentes con actor, motivo y fecha, identidad de sesión y CSRF. Una activa por cuenta/publicación; autor, duplicado, visitante y publicación oculta/inexistente/ejemplo se rechazan. Carlos confirmó que los cerrados visibles también se pueden denunciar, incluida una vía HABILITADA heredada; nunca se reabren por denunciar. La razón admite 1–500 caracteres y no aparece en respuestas públicas ni en el historial privado del autor.
 
-El worktree de PR #12 en `C:\Users\Santiago\.codex\worktrees\ra02-touch-targets\redauxilio` conserva un commit local `d2e2d39` sin publicar y diverge de la rama remota, que ya fue integrada. No descartarlo ni hacer force push. El checkout principal no modifica el worktree de Carlos.
+Tres denunciantes activos independientes activan reviewStatus EN_REVISION en una transacción con registro y auditoría. No se pierde confianza comunitaria, confirmaciones, estado operativo, cierre ni visibilidad. SIN_REVISION significa ausencia de alerta, no validación. La tabla de denuncias reserva active_slot NULL para resolución futura, conserva históricos y restringe la activa a slot 1. No hay API administrativa: RA-08 añadirá resolución y su auditoría.
 
-## Siguiente acción
+La acción Reportar contenido está en el detalle; el aviso de revisión se muestra separado de confianza. Motivos solo en memoria del formulario; se limpian en logout, selección y desconexión. No se guardan en caché ni se encolan/reintentan POST. SW v19 renueva recursos públicos.
 
-Publicar la corrección en PR nuevo hacia `develop` y pedir revisión real de Carlos. Registrar por separado CI y validación humana; no aprobar el PR propio ni afirmar que el resto de RA-05 cumple DoD. Después, refinar RA-12 si hay capacidad y diseño suficientes, sin atribuir estimaciones a Carlos.
+El comentario técnico 6484939680 detectó el filtro mezclado. Ahora reviewStatus SIN_REVISION/EN_REVISION viaja separado de confidenceLevel y se combina con AND; valores inválidos o EN_REVISION como confianza dan 400. UI sin «Desactualizada»; solo se conserva compatibilidad HTTP heredada, sin RA-06. Regresiones reproducidas antes de corregir y aprobadas después; CI final en PR #17.
+
+## Validación, límites y siguiente paso
+
+Verificación local final: 77 Java (8 específicas RA-07), Spotless/PMD, 75 JS, Prettier y diff --check aprobados. Núcleo nuevo: 62/65 líneas JaCoCo, 95,4 %. Se probaron umbral, permisos, CSRF, rollback, concurrencia, privacidad y cerrados; navegador comprobó tercera denuncia, duplicado, logout y tres tamaños sin overflow. Reutilizar resultados del mismo código; no repetir sin cambio o duda nueva.
+
+Instancia previa, sin reiniciar ni validar el nuevo servidor, en `http://127.0.0.1:52657/`, H2 exclusiva en memoria, datos sintéticos; reiniciar elimina ese estado. Preservar servidores ajenos. Falta aceptación humana de interfaz/PWA, instalación y desconexión total, y revisión cruzada de Santiago. Mantener el PR Draft hasta registrar esas validaciones y solicitar revisión; no autoaprobar ni integrar.

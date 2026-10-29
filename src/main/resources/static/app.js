@@ -66,6 +66,12 @@ function showReportDetail(item, trigger, initial = false) {
           ? "Confirmada por la comunidad"
           : item.confidenceLevel,
     ],
+    [
+      "Revisión de contenido",
+      item.reviewStatus === "EN_REVISION"
+        ? "En revisión · contenido cuestionado"
+        : "Sin alerta de revisión",
+    ],
     ["Ubicación aproximada", `${item.latitude.toFixed(3)}, ${item.longitude.toFixed(3)}`],
   ]) {
     const fact = createReportElement("div", "detail-fact", "");
@@ -85,6 +91,9 @@ function showReportDetail(item, trigger, initial = false) {
   const confirmation = createReportElement("div", "confirmation-actions", "");
   detail.append(confirmation);
   window.RedAuxilioConfirmation?.render(item, confirmation);
+  const contentReport = createReportElement("div", "content-report-actions", "");
+  detail.append(contentReport);
+  window.RedAuxilioContentReport?.render(item, contentReport);
   for (const card of getElement("publications").querySelectorAll(".card")) {
     card.dataset.selected = String(card.dataset.reportId === String(item.id));
   }
@@ -174,6 +183,15 @@ function renderPublications(items) {
       fact.append(createReportElement("dt", "", label), createReportElement("dd", "", value));
       facts.append(fact);
     }
+    if (item.reviewStatus === "EN_REVISION") {
+      card.append(
+        createReportElement(
+          "p",
+          "review-notice",
+          "En revisión · contenido cuestionado. No equivale a cierre ni modifica su confianza.",
+        ),
+      );
+    }
     // La ficha muestra la última actualización de la API, no una fecha de verificación.
     const date = createReportElement("p", "report-date", "Actualizado: ");
     const timestamp = createReportElement(
@@ -241,7 +259,7 @@ for (const button of document.querySelectorAll(".quick-filters button")) {
     loadPublications();
   });
 }
-/** Combina formulario y área del mapa, consulta la API y comunica carga, error o fuente guardada. */
+/** Combina filtros independientes de confianza/revisión y área; comunica carga, error o caché. */
 async function loadPublications() {
   const query = ++latestPublicationQueryId;
   getElement("message").textContent = "Consultando reportes…";
@@ -253,6 +271,7 @@ async function loadPublications() {
       category: getElement("category").value,
       operationalStatus: getElement("operational-status").value,
       confidenceLevel: getElement("confidence-level").value,
+      reviewStatus: getElement("review-status").value,
       includeClosed: String(getElement("include-closed").checked),
       ...reportMap?.bounds(),
     });
@@ -299,7 +318,13 @@ window.matchMedia("(min-width: 1100px)").addEventListener("change", (event) => {
     showReportDetail(selected, null, true);
   }
 });
-for (const id of ["category", "operational-status", "confidence-level", "include-closed"]) {
+for (const id of [
+  "category",
+  "operational-status",
+  "confidence-level",
+  "review-status",
+  "include-closed",
+]) {
   getElement(id).addEventListener("change", () => {
     syncQuickFilters();
     loadPublications();

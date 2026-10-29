@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.authorization.AuthorizationDecision;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -54,11 +55,18 @@ class IdentitySecurityConfiguration {
       AuthenticationSuccessHandler loginSuccessHandler,
       AuthenticationFailureHandler loginFailureHandler,
       SessionLifetimeFilter sessionLifetimeFilter,
+      OperatorPermissions operators,
       @Value("${redauxilio.security.force-https:false}") boolean forceHttps)
       throws Exception {
     http.authorizeHttpRequests(
             authorize ->
                 authorize
+                    // Se comprueba el permiso persistente en cada ruta operativa, incluso con
+                    // sesión previa.
+                    .requestMatchers("/operator", "/operator/**", "/api/operator/**")
+                    .access(
+                        (authentication, context) ->
+                            new AuthorizationDecision(operators.allows(authentication.get())))
                     .requestMatchers(
                         HttpMethod.GET,
                         "/",
@@ -75,6 +83,7 @@ class IdentitySecurityConfiguration {
                         "/my-publications.js",
                         "/confirmation.js",
                         "/content-report.js",
+                        "/moderation.js",
                         "/map.js",
                         "/sw.js",
                         "/manifest.webmanifest",
@@ -99,6 +108,9 @@ class IdentitySecurityConfiguration {
                         new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED),
                         new OrRequestMatcher(
                             new AntPathRequestMatcher("/api/places"),
+                            new AntPathRequestMatcher("/api/operator/**"),
+                            new AntPathRequestMatcher("/operator"),
+                            new AntPathRequestMatcher("/operator/**"),
                             new AntPathRequestMatcher("/api/publications", "POST"),
                             new AntPathRequestMatcher("/api/my/**"),
                             new AntPathRequestMatcher("/api/publications/*/confirmations", "POST"),

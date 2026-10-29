@@ -94,3 +94,9 @@ Leer [RA02.md](RA02.md) para contrato, proveedor, casos de prueba y pendientes. 
 ## Entender el código
 
 Leer [GUIA_CODIGO.md](GUIA_CODIGO.md): explica cada archivo principal, el recorrido de una consulta, el almacenamiento local y cómo comprobar el comportamiento. Los comentarios del código describen contratos y decisiones; actualizar ambos cuando cambie la lógica.
+
+## Moderación privada — RA-08, primer bloque
+
+`/operator` permite consultar la cola EN_REVISION, contexto de denuncias e historial interno solo con ROLE_OPERATOR persistido y vigente. Este incremento no incluye las cinco decisiones administrativas. No se cachean datos privados ni se muestran sin conexión. El registro público nunca concede ese rol y no hay cuenta o contraseña predeterminada.
+
+El aprovisionamiento inicial/retiro se ejecuta por configuración controlada sobre una cuenta existente comprobada por el administrador, con UUID idempotente, actor y justificación; se audita transaccionalmente. La revocación se comprueba en la siguiente solicitud, incluso con sesión abierta; conceder exige nuevo login si faltaba el rol. Parámetros, frontera de confianza, riesgos y pruebas en [RA08.md](RA08.md). No asignar permisos a una cuenta solo por su correo: el registro ciudadano no verifica su propiedad.

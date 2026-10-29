@@ -6,15 +6,18 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-/** Adapta la cuenta persistida al modelo de autenticación de Spring Security. */
+/** Adapta la cuenta y el permiso SQL al iniciar sesión; el registro no concede roles internos. */
 @Service
 class CitizenUserDetailsService implements UserDetailsService {
   private final CitizenAccountRepository repository;
   private final java.time.Clock clock;
+  private final OperatorPermissions operators;
 
-  CitizenUserDetailsService(CitizenAccountRepository repository, java.time.Clock clock) {
+  CitizenUserDetailsService(
+      CitizenAccountRepository repository, java.time.Clock clock, OperatorPermissions operators) {
     this.repository = repository;
     this.clock = clock;
+    this.operators = operators;
   }
 
   @Override
@@ -27,7 +30,10 @@ class CitizenUserDetailsService implements UserDetailsService {
         account.lockedUntil() != null && clock.instant().isBefore(account.lockedUntil());
     return User.withUsername(account.email())
         .password(account.passwordHash())
-        .roles("CITIZEN")
+        .roles(
+            operators.isOperator(account.email())
+                ? new String[] {"CITIZEN", "OPERATOR"}
+                : new String[] {"CITIZEN"})
         .accountLocked(locked)
         .build();
   }

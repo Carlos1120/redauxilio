@@ -1755,3 +1755,23 @@ footer {
   margin-bottom: 8px;
   overflow-wrap: anywhere;
 }
+
+/* Revisión de contenido independiente de confianza: formulario compartido, sin paleta adicional. */
+.content-report-form {
+  display: grid;
+  gap: 12px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--color-report-border);
+}
+.content-report-form textarea {
+  width: 100%;
+  min-width: 0;
+}
+.review-notice {
+  padding: 8px;
+  border: 1px solid var(--color-report-border);
+  border-radius: var(--radius-control);
+  color: var(--color-report-ink);
+  background: var(--color-report-inset);
+}

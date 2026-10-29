@@ -18,7 +18,7 @@ class CitizenPublicationRepository {
   // Proyección compartida: agrega respaldo comunitario sin exponer autor ni auditoría.
   private static final String PUBLIC_COLUMNS =
       "id, category, assistance_subtype, title, description, location, operational_status,"
-          + " impact_type, latitude, longitude, created_at, updated_at, closed, confirmation_version"
+          + " impact_type, latitude, longitude, created_at, updated_at, closed, confirmation_version, review_status"
           + ", (SELECT COUNT(*) FROM publication_confirmation c"
           + " WHERE c.publication_id = citizen_publication.id"
           + " AND c.publication_version = citizen_publication.confirmation_version"
@@ -130,6 +130,7 @@ class CitizenPublicationRepository {
         row.getString("assistance_subtype"),
         row.getString("impact_type"),
         row.getInt("confirmation_count"),
-        row.getLong("confirmation_version"));
+        row.getLong("confirmation_version"),
+        row.getString("review_status"));
   }
 }

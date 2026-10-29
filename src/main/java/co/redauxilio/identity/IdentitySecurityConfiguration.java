@@ -74,6 +74,7 @@ class IdentitySecurityConfiguration {
                         "/publication-form.js",
                         "/my-publications.js",
                         "/confirmation.js",
+                        "/content-report.js",
                         "/map.js",
                         "/sw.js",
                         "/manifest.webmanifest",
@@ -81,7 +82,10 @@ class IdentitySecurityConfiguration {
                         "/vendor/**",
                         "/api/publications/**")
                     .permitAll()
-                    .requestMatchers(HttpMethod.POST, "/api/publications/*/confirmations")
+                    .requestMatchers(
+                        HttpMethod.POST,
+                        "/api/publications/*/confirmations",
+                        "/api/publications/*/content-reports")
                     .authenticated()
                     .requestMatchers(HttpMethod.POST, "/login", "/register")
                     .permitAll()
@@ -97,7 +101,9 @@ class IdentitySecurityConfiguration {
                             new AntPathRequestMatcher("/api/places"),
                             new AntPathRequestMatcher("/api/publications", "POST"),
                             new AntPathRequestMatcher("/api/my/**"),
-                            new AntPathRequestMatcher("/api/publications/*/confirmations", "POST")))
+                            new AntPathRequestMatcher("/api/publications/*/confirmations", "POST"),
+                            new AntPathRequestMatcher(
+                                "/api/publications/*/content-reports", "POST")))
                     .defaultAuthenticationEntryPointFor(
                         new LoginUrlAuthenticationEntryPoint("/login"), AnyRequestMatcher.INSTANCE))
         .formLogin(

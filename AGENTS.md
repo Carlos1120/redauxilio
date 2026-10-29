@@ -15,7 +15,7 @@
 
 ## Mapa de trabajo
 
-- Historia en curso: RA05.md; RA-04 pendiente: PR #13 y RA04.md en su propia rama. Aceptación anterior: RA02.md; Windows: VALIDACION_WINDOWS.md; evidencias históricas: EVIDENCIAS.md.
+- Historia activa de esta rama: RA07.md y tarjeta RA-07. Para contexto integrado: RA04.md/RA05.md; corrección RA-05 pendiente: PR #15 (verificar antes de integrar). Windows: VALIDACION_WINDOWS.md; evidencias históricas: EVIDENCIAS.md.
 - Servidor: src/main/java/co/redauxilio/publications/PublicationController.java y PublicationService.java.
 - UI: src/main/resources/templates/index.html y src/main/resources/static/{app.js,map.js,app.css}.
 - PWA: src/main/resources/static/sw.js y manifest.webmanifest.

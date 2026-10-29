@@ -1,6 +1,6 @@
 # RedAuxilio — traspaso vigente RA-08
 
-Actualización: 29 de octubre de 2026 (Colombia). Repositorio `C:\Users\Santiago\redauxilio`, rama `feat/RA-08-acciones-moderacion`, basada en `origin/develop` `73034e57c92df05f69ca9d4897153c3c67513ac3`. El incremento funcional está publicado en el PR Draft [#20](https://github.com/Carlos1120/redauxilio/pull/20), hacia `develop`. El primer bloque RA-08 se integró por el PR #18. No cambiar a Terminado: aceptación y revisión cruzada de Carlos, CI del HEAD final e integración siguen pendientes.
+Actualización: 29 de octubre de 2026 (Colombia). Repositorio `C:\Users\Santiago\redauxilio`, rama `feat/RA-08-acciones-moderacion`, basada en `origin/develop` `73034e57c92df05f69ca9d4897153c3c67513ac3`. El incremento está en el PR Draft [#20](https://github.com/Carlos1120/redauxilio/pull/20), hacia `develop`; el primer bloque RA-08 se integró por el PR #18. La verificación GitHub `verify` pasó en HEAD `5a77970d97e5e1f688268dba6d365f610bcb831e`. La revisión de Carlos y aceptación cruzada siguen pendientes; todo commit posterior necesita su CI aprobada antes de integrar. No cambiar a Terminado.
 
 ## Incremento implementado
 

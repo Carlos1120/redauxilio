@@ -237,3 +237,16 @@ test("PWA precarga gestión y confirmación sin interceptar rutas privadas", asy
     undefined,
   );
 });
+
+test("reporte de contenido precargado y POST con motivo fuera de caché", async () => {
+  const worker = loadWorker();
+  let installation;
+  worker.listeners.get("install")({ waitUntil: (promise) => (installation = promise) });
+  await installation;
+  assert.ok(worker.precached.includes("/content-report.js"));
+  assert.equal(
+    fetchEvent(worker, "http://localhost:8081/api/publications/1000001/content-reports", "POST"),
+    undefined,
+  );
+  assert.equal(worker.entries.size, 1);
+});

@@ -21,6 +21,8 @@ class ModerationActionService {
   // La secuencia de publicaciones ciudadanas inicia aquí; los ejemplos fijos del mapa usan IDs
   // menores.
   private static final long FIRST_CITIZEN_PUBLICATION_ID = 1_000_000L;
+  private static final Set<String> RESOLVING_ACTIONS =
+      Set.of("KEEP", "CORRECT", "HIDE", "RESTORE", "CLOSE");
   private static final Map<String, Set<String>> TRANSITIONS =
       Map.of(
           "ASSISTANCE:DISPONIBLE", Set.of("CAPACIDAD LIMITADA", "LLENO", "CERRADO"),
@@ -73,12 +75,6 @@ class ModerationActionService {
       case "KEEP" -> {
         if (!"EN_REVISION".equals(before.reviewStatus()))
           throw conflict("El caso ya no está en revisión");
-        jdbc.update(
-            "UPDATE publication_content_report SET active_slot = NULL WHERE publication_id = ? AND active_slot = 1",
-            id);
-        jdbc.update(
-            "UPDATE citizen_publication SET review_status = 'SIN_REVISION' WHERE id = ?", id);
-        after = before.withReviewStatus("SIN_REVISION").withActiveReports(0);
       }
       case "CORRECT" -> {
         if (before.closed()) throw conflict("Reabre el caso antes de corregirlo");
@@ -136,6 +132,16 @@ class ModerationActionService {
             id, actor, closing ? "Cierre de moderación" : "Reapertura de moderación");
       }
       default -> throw invalid("Decisión de moderación desconocida");
+    }
+    // Las cinco decisiones resuelven la ronda bajo el bloqueo existente de la publicación.
+    // No borra denuncias; su resolución, la acción y la auditoría comparten rollback. REOPEN es
+    // independiente.
+    if (RESOLVING_ACTIONS.contains(action)) {
+      jdbc.update(
+          "UPDATE publication_content_report SET active_slot = NULL WHERE publication_id = ? AND active_slot = 1",
+          id);
+      jdbc.update("UPDATE citizen_publication SET review_status = 'SIN_REVISION' WHERE id = ?", id);
+      after = after.withReviewStatus("SIN_REVISION").withActiveReports(0);
     }
     audit(id, actor, action, before, after, reason, now);
     return new DecisionResult(

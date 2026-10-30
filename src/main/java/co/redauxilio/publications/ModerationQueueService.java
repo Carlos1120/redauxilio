@@ -57,27 +57,10 @@ class ModerationQueueService {
    * ejemplos/inexistentes dan 404.
    */
   CaseDetail detail(long id) {
-    CaseSummary summary =
-        jdbc
-            .query(
-                SUMMARY
-                    + " WHERE id = ? AND (visible = FALSE OR review_status = 'EN_REVISION' OR EXISTS (SELECT 1 FROM publication_content_report r WHERE r.publication_id = citizen_publication.id))",
-                (r, i) ->
-                    new CaseSummary(
-                        CitizenPublicationRepository.mapPublic(r),
-                        r.getBoolean("visible"),
-                        r.getLong("active_reports"),
-                        r.getLong("total_reports")),
-                id)
-            .stream()
-            .findFirst()
-            .orElseThrow(
-                () ->
-                    new ResponseStatusException(
-                        HttpStatus.NOT_FOUND, "Caso de moderación no disponible"));
+    CaseSummary summary = caseSummary(id);
     List<Report> reports =
         jdbc.query(
-            "SELECT id, reason, reported_at, active_slot FROM publication_content_report WHERE publication_id = ? ORDER BY reported_at DESC, id DESC LIMIT ?",
+            "SELECT id, reason, reported_at, active_slot FROM publication_content_report WHERE publication_id = ? ORDER BY id DESC LIMIT ?",
             (r, i) ->
                 new Report(
                     r.getLong("id"),
@@ -88,9 +71,10 @@ class ModerationQueueService {
             CONTEXT_LIMIT + 1);
     List<Change> changes =
         jdbc.query(
-            "SELECT actor_id, action, before_snapshot, after_snapshot, reason, changed_at FROM citizen_publication_change WHERE publication_id = ? ORDER BY changed_at DESC, id DESC LIMIT ?",
+            "SELECT id, actor_id, action, before_snapshot, after_snapshot, reason, changed_at FROM citizen_publication_change WHERE publication_id = ? ORDER BY id DESC LIMIT ?",
             (r, i) ->
                 new Change(
+                    r.getLong("id"),
                     r.getLong("actor_id"),
                     r.getString("action"),
                     r.getString("before_snapshot"),
@@ -101,12 +85,16 @@ class ModerationQueueService {
             CONTEXT_LIMIT + 1);
     List<ModerationDecision> decisions =
         jdbc.query(
-            "SELECT actor_id, action, before_snapshot, after_snapshot, reason, acted_at FROM publication_moderation_action WHERE publication_id = ? ORDER BY acted_at DESC, id DESC LIMIT ?",
+            "SELECT id, actor_id, action, before_snapshot, after_snapshot, reason, acted_at FROM publication_moderation_action WHERE publication_id = ? ORDER BY id DESC LIMIT ?",
             (r, i) ->
                 new ModerationDecision(
-                    r.getLong("actor_id"), r.getString("action"),
-                    r.getString("before_snapshot"), r.getString("after_snapshot"),
-                    r.getString("reason"), r.getTimestamp("acted_at").toInstant().toString()),
+                    r.getLong("id"),
+                    r.getLong("actor_id"),
+                    r.getString("action"),
+                    r.getString("before_snapshot"),
+                    r.getString("after_snapshot"),
+                    r.getString("reason"),
+                    r.getTimestamp("acted_at").toInstant().toString()),
             id,
             CONTEXT_LIMIT + 1);
     return new CaseDetail(
@@ -117,6 +105,82 @@ class ModerationQueueService {
         changes.size() > CONTEXT_LIMIT,
         decisions.stream().limit(CONTEXT_LIMIT).toList(),
         decisions.size() > CONTEXT_LIMIT);
+  }
+
+  /** Devuelve una página privada de entradas anteriores con cursor estable por ID descendente. */
+  HistoryPage olderHistory(long publicationId, String stream, long beforeId, int limit) {
+    if (beforeId < 1 || limit < 1 || limit > CONTEXT_LIMIT)
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Página fuera del rango permitido");
+    caseSummary(publicationId);
+    List<?> rows =
+        switch (stream) {
+          case "reports" ->
+              jdbc.query(
+                  "SELECT id, reason, reported_at, active_slot FROM publication_content_report WHERE publication_id = ? AND id < ? ORDER BY id DESC LIMIT ?",
+                  (r, i) ->
+                      new Report(
+                          r.getLong("id"),
+                          r.getString("reason"),
+                          r.getTimestamp("reported_at").toInstant().toString(),
+                          r.getObject("active_slot") != null),
+                  publicationId,
+                  beforeId,
+                  limit + 1);
+          case "changes" ->
+              jdbc.query(
+                  "SELECT id, actor_id, action, before_snapshot, after_snapshot, reason, changed_at FROM citizen_publication_change WHERE publication_id = ? AND id < ? ORDER BY id DESC LIMIT ?",
+                  (r, i) ->
+                      new Change(
+                          r.getLong("id"),
+                          r.getLong("actor_id"),
+                          r.getString("action"),
+                          r.getString("before_snapshot"),
+                          r.getString("after_snapshot"),
+                          r.getString("reason"),
+                          r.getTimestamp("changed_at").toInstant().toString()),
+                  publicationId,
+                  beforeId,
+                  limit + 1);
+          case "decisions" ->
+              jdbc.query(
+                  "SELECT id, actor_id, action, before_snapshot, after_snapshot, reason, acted_at FROM publication_moderation_action WHERE publication_id = ? AND id < ? ORDER BY id DESC LIMIT ?",
+                  (r, i) ->
+                      new ModerationDecision(
+                          r.getLong("id"),
+                          r.getLong("actor_id"),
+                          r.getString("action"),
+                          r.getString("before_snapshot"),
+                          r.getString("after_snapshot"),
+                          r.getString("reason"),
+                          r.getTimestamp("acted_at").toInstant().toString()),
+                  publicationId,
+                  beforeId,
+                  limit + 1);
+          default ->
+              throw new ResponseStatusException(
+                  HttpStatus.BAD_REQUEST, "Historial solicitado no disponible");
+        };
+    return new HistoryPage(stream, limit, rows.stream().limit(limit).toList(), rows.size() > limit);
+  }
+
+  private CaseSummary caseSummary(long id) {
+    return jdbc
+        .query(
+            SUMMARY
+                + " WHERE id = ? AND (visible = FALSE OR review_status = 'EN_REVISION' OR EXISTS (SELECT 1 FROM publication_content_report r WHERE r.publication_id = citizen_publication.id))",
+            (r, i) ->
+                new CaseSummary(
+                    CitizenPublicationRepository.mapPublic(r),
+                    r.getBoolean("visible"),
+                    r.getLong("active_reports"),
+                    r.getLong("total_reports")),
+            id)
+        .stream()
+        .findFirst()
+        .orElseThrow(
+            () ->
+                new ResponseStatusException(
+                    HttpStatus.NOT_FOUND, "Caso de moderación no disponible"));
   }
 
   /**
@@ -154,11 +218,14 @@ class ModerationQueueService {
 
   record Page(List<CaseSummary> items, int limit, int offset, boolean hasMore) {}
 
+  record HistoryPage(String stream, int limit, List<?> items, boolean hasMore) {}
+
   // No se devuelve la identidad del denunciante: razón, fecha y vigencia bastan para este
   // incremento.
   record Report(long id, String reason, String reportedAt, boolean active) {}
 
   record Change(
+      long id,
       long actorId,
       String action,
       String beforeSnapshot,
@@ -176,6 +243,7 @@ class ModerationQueueService {
       boolean moreDecisions) {}
 
   record ModerationDecision(
+      long id,
       long actorId,
       String action,
       String beforeSnapshot,

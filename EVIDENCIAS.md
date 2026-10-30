@@ -722,6 +722,12 @@ Inspección visual de **360×800, 768×1024 y 1366×768**, con clientWidth/scrol
 
 Se preservaron worktrees y servidores ajenos (incluido 57656). Trello registra inicio y excepción temporal WIP 3 frente a 2, sin cerrar RA-04/05/07. Al cerrar el primer incremento, las políticas de corrección, nuevas denuncias y reapertura estaban pendientes; Santiago las aceptó después para este segundo bloque. No se declara RF-17/23 completo ni aprobación cruzada.
 
+### Paginación del historial del caso — trabajo de Codex, 29/10/2026
+
+En `feat/RA-08-acciones-moderacion` se agregó `GET /api/operator/publications/{id}/history/{stream}` para consultar páginas previas de denuncias, cambios y decisiones. El cursor usa el ID de la última entrada recibida y el orden descendente, así las entradas nuevas no desplazan el recorrido. Cada página acepta hasta 50 registros; el stream se valida, el contexto se comprueba de nuevo y las respuestas son `no-store`. Se agregó un índice compuesto `(publication_id, id)` para el recorrido eficiente de denuncias. La vista agrega cada página como texto y descarta respuestas de otro caso o sesión. `RA08.md` documenta el contrato. No se modificó la identidad pública ni se almacenan motivos en el navegador.
+
+Verificación final local antes de actualizar el PR: Corretto 21, `mvnw verify` **96/96 Java**, Spotless y PMD aprobados; `npm ci` sin vulnerabilidades, `npm test` **87/87 JS**, `npm run format:check` y `git diff --check` aprobados. JaCoCo para `ModerationQueueService`: **123/124 líneas (99.2 %)** y **27/32 ramas (84.4 %)**. Pruebas de integración usan H2; no certifican PostgreSQL. Inspección visual manual en 360×800, 768×1024 y 1366×768 queda pendiente. Estas son ejecuciones de herramientas automatizadas por Codex, no aceptación humana ni CI del nuevo HEAD.
+
 ## RA-08 — decisiones administrativas motivadas — 29/10/2026
 
 Trabajo de Codex en `feat/RA-08-acciones-moderacion`, con base verificada `73034e57c92df05f69ca9d4897153c3c67513ac3` (origin/develop). Santiago aceptó las cinco políticas del segundo bloque en esta conversación. Esta aceptación funcional no sustituye la revisión cruzada. No se editó Trello ni se presenta la historia completa como terminada.

@@ -204,6 +204,7 @@ class ModerationQueueTests {
             "/operator",
             "/api/operator/publications",
             "/api/operator/publications/" + id,
+            "/api/operator/publications/" + id + "/history/reports?beforeId=10",
             "/api/operator/permissions/history")) {
       mvc.perform(get(path)).andExpect(status().isUnauthorized());
       mvc.perform(get(path).with(user(operator))).andExpect(status().isForbidden());
@@ -366,6 +367,85 @@ class ModerationQueueTests {
   }
 
   @Test
+  void operatorCanPageOlderPrivateHistoryWithoutRepeatingRecentEntries() throws Exception {
+    long id = publication();
+    jdbc.update("UPDATE citizen_publication SET review_status = 'EN_REVISION' WHERE id = ?", id);
+    long reporter = accountId(account());
+    Timestamp time = Timestamp.from(Instant.now());
+    for (int i = 0; i < 52; i++) {
+      jdbc.update(
+          "INSERT INTO publication_content_report (publication_id, reporter_id, reason, reported_at, active_slot) VALUES (?, ?, ?, ?, NULL)",
+          id,
+          reporter,
+          "Denuncia ficticia " + i,
+          time);
+      jdbc.update(
+          "INSERT INTO citizen_publication_change (publication_id, actor_id, action, before_snapshot, after_snapshot, reason, changed_at) VALUES (?, ?, 'EDIT', '{}', '{}', ?, ?)",
+          id,
+          reporter,
+          "Cambio ficticio " + i,
+          time);
+      jdbc.update(
+          "INSERT INTO publication_moderation_action (publication_id, actor_id, action, before_snapshot, after_snapshot, reason, acted_at) VALUES (?, ?, 'HIDE', '{}', '{}', ?, ?)",
+          id,
+          accountId(operator),
+          "Decisión ficticia " + i,
+          time);
+    }
+    mvc.perform(get("/api/operator/publications/{id}", id).with(user(operator).roles("OPERATOR")))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.reports.length()").value(50))
+        .andExpect(jsonPath("$.moreReports").value(true))
+        .andExpect(jsonPath("$.history.length()").value(50))
+        .andExpect(jsonPath("$.moreHistory").value(true))
+        .andExpect(jsonPath("$.decisions.length()").value(50))
+        .andExpect(jsonPath("$.moreDecisions").value(true));
+
+    for (String stream : List.of("reports", "changes", "decisions")) {
+      String table =
+          switch (stream) {
+            case "reports" -> "publication_content_report";
+            case "changes" -> "citizen_publication_change";
+            default -> "publication_moderation_action";
+          };
+      List<Long> recentIds =
+          jdbc.queryForList(
+              "SELECT id FROM " + table + " WHERE publication_id = ? ORDER BY id DESC LIMIT 50",
+              Long.class,
+              id);
+      mvc.perform(
+              get("/api/operator/publications/{id}/history/{stream}", id, stream)
+                  .param("beforeId", recentIds.get(recentIds.size() - 1).toString())
+                  .with(user(operator).roles("OPERATOR")))
+          .andExpect(status().isOk())
+          .andExpect(
+              header().string("Cache-Control", org.hamcrest.Matchers.containsString("no-store")))
+          .andExpect(jsonPath("$.stream").value(stream))
+          .andExpect(jsonPath("$.items.length()").value(2))
+          .andExpect(jsonPath("$.items[0].id").value(recentIds.get(49) - 1))
+          .andExpect(jsonPath("$.hasMore").value(false));
+    }
+    mvc.perform(
+            get("/api/operator/publications/{id}/history/unknown", id)
+                .param("beforeId", "1")
+                .with(user(operator).roles("OPERATOR")))
+        .andExpect(status().isBadRequest());
+    for (String cursor : List.of("0", "-1"))
+      mvc.perform(
+              get("/api/operator/publications/{id}/history/reports", id)
+                  .param("beforeId", cursor)
+                  .with(user(operator).roles("OPERATOR")))
+          .andExpect(status().isBadRequest());
+    for (String limit : List.of("0", "51"))
+      mvc.perform(
+              get("/api/operator/publications/{id}/history/reports", id)
+                  .param("beforeId", "1")
+                  .param("limit", limit)
+                  .with(user(operator).roles("OPERATOR")))
+          .andExpect(status().isBadRequest());
+  }
+
+  @Test
   void invalidPagesAndMissingContextsFailClearlyWithoutWriting() throws Exception {
     for (String path : List.of("/api/operator/publications", "/api/operator/permissions/history")) {
       for (String limit : List.of("0", "51", "-1", "abc"))
@@ -379,6 +459,11 @@ class ModerationQueueTests {
     for (long id : List.of(1L, Long.MAX_VALUE, ordinary))
       mvc.perform(get("/api/operator/publications/{id}", id).with(user(operator).roles("OPERATOR")))
           .andExpect(status().isNotFound());
+    mvc.perform(
+            get("/api/operator/publications/{id}/history/reports", ordinary)
+                .param("beforeId", "1")
+                .with(user(operator).roles("OPERATOR")))
+        .andExpect(status().isNotFound());
     assertEquals(
         0,
         jdbc.queryForObject(

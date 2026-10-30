@@ -117,9 +117,10 @@ async function setup(implementation = async () => response(page())) {
 test("cola privada muestra dimensiones y contexto como texto, sin escribir ni cachear", async () => {
   const detail = {
     context: { publication: publication(), visible: true },
-    reports: [{ reportedAt: "hoy", active: true, reason: "<script>privado</script>" }],
+    reports: [{ id: 50, reportedAt: "hoy", active: true, reason: "<script>privado</script>" }],
     history: [
       {
+        id: 40,
         changedAt: "hoy",
         action: "REVIEW",
         actorId: 9,
@@ -130,6 +131,7 @@ test("cola privada muestra dimensiones y contexto como texto, sin escribir ni ca
     ],
     moreReports: true,
     moreHistory: true,
+    decisions: [],
   };
   const ui = await setup(async (url) => response(url.includes("/1000000") ? detail : page()));
   assert.match(dump(ui.element("moderation-list")), /EN_REVISION.*CONFIRMADA/);
@@ -138,8 +140,7 @@ test("cola privada muestra dimensiones y contexto como texto, sin escribir ni ca
   await card.children.at(-1).listeners.click();
   assert.match(dump(ui.element("moderation-detail")), /<script>privado<\/script>/);
   assert.match(dump(ui.element("moderation-detail")), /<img onerror=malicioso>/);
-  assert.match(dump(ui.element("moderation-detail")), /50 denuncias/);
-  assert.match(dump(ui.element("moderation-detail")), /50 cambios/);
+  assert.match(dump(ui.element("moderation-detail")), /Cargar 50 entradas anteriores/);
   assert.equal(ui.element("moderation-detail").focused, true);
   assert.ok(
     ui.requests.every(
@@ -149,6 +150,78 @@ test("cola privada muestra dimensiones y contexto como texto, sin escribir ni ca
         !r.options.method,
     ),
   );
+});
+
+test("carga páginas anteriores de cada historial privado con cursor y sin HTML", async () => {
+  const detail = {
+    context: { publication: publication(), visible: true },
+    reports: [{ id: 300, reportedAt: "hoy", active: false, reason: "Denuncia reciente" }],
+    history: [
+      {
+        id: 200,
+        changedAt: "hoy",
+        action: "EDIT",
+        actorId: 9,
+        reason: "Cambio reciente",
+        beforeSnapshot: "{}",
+        afterSnapshot: "{}",
+      },
+    ],
+    decisions: [
+      {
+        id: 100,
+        actedAt: "hoy",
+        action: "HIDE",
+        actorId: 9,
+        reason: "Decisión reciente",
+        beforeSnapshot: "{}",
+        afterSnapshot: "{}",
+      },
+    ],
+    moreReports: true,
+    moreHistory: true,
+    moreDecisions: true,
+  };
+  const ui = await setup(async (url) => {
+    if (url.includes("/history/")) {
+      const stream = url.split("/history/")[1].split("?")[0];
+      return response({
+        stream,
+        items: [
+          {
+            id: 1,
+            reportedAt: "ayer",
+            active: false,
+            reason: "<script>entrada privada anterior</script>",
+            changedAt: "ayer",
+            actedAt: "ayer",
+            action: "KEEP",
+            actorId: 9,
+            beforeSnapshot: "{}",
+            afterSnapshot: "{}",
+          },
+        ],
+        hasMore: false,
+      });
+    }
+    return response(url.includes("/1000000") ? detail : page());
+  });
+  await ui.element("moderation-list").children[0].children.at(-1).listeners.click();
+  const buttons = [];
+  const collect = (node) => {
+    if (node.tagName === "button" && node.textContent === "Cargar 50 entradas anteriores")
+      buttons.push(node);
+    for (const child of node.children) collect(child);
+  };
+  collect(ui.element("moderation-detail"));
+  assert.equal(buttons.length, 3);
+  for (const loadButton of buttons) await loadButton.listeners.click();
+  assert.ok(ui.requests.some((request) => request.url.includes("/history/reports?beforeId=300")));
+  assert.ok(ui.requests.some((request) => request.url.includes("/history/changes?beforeId=200")));
+  assert.ok(ui.requests.some((request) => request.url.includes("/history/decisions?beforeId=100")));
+  assert.match(dump(ui.element("moderation-detail")), /<script>entrada privada anterior<\/script>/);
+  assert.ok(buttons.every((loadButton) => loadButton.disabled));
+  assert.ok(ui.requests.every((request) => request.options.cache === "no-store"));
 });
 
 test("una decisión usa motivo obligatorio, CSRF y espera confirmación del servidor", async () => {

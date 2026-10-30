@@ -136,58 +136,106 @@
         text("p", p.description),
         text("p", `${p.location} · ${p.latitude}, ${p.longitude}`),
         text("p", `Creada: ${p.createdAt}. Actualizada: ${p.updatedAt}.`),
-        text("h3", "Denuncias privadas"),
       );
-      for (const report of data.reports)
-        detail.append(
-          text(
-            "p",
-            `${report.reportedAt} · ${report.active ? "Activa" : "Histórica"} · ${report.reason}`,
-          ),
-        );
-      if (data.moreReports)
-        detail.append(
-          text(
-            "p",
-            "Se muestran las 50 denuncias más recientes; el resto permanece en la base de datos.",
-          ),
-        );
-      detail.append(text("h3", "Historial del caso, más reciente primero"));
-      for (const change of data.history) {
-        detail.append(
-          text(
-            "p",
-            `${change.changedAt} · ${change.action} · actor interno ${change.actorId} · ${change.reason ?? "Sin motivo adicional"}`,
-          ),
-          text("pre", `Antes: ${change.beforeSnapshot}\nDespués: ${change.afterSnapshot}`),
-        );
-      }
-      if (data.moreHistory)
-        detail.append(
-          text(
-            "p",
-            "Se muestran los 50 cambios más recientes; el resto permanece en la base de datos.",
-          ),
-        );
-      detail.append(text("h3", "Decisiones de moderación, más reciente primero"));
-      for (const decision of data.decisions ?? [])
-        detail.append(
-          text(
-            "p",
-            `${decision.actedAt} · ${decision.action} · operador ${decision.actorId} · ${decision.reason}`,
-          ),
-          text("pre", `Antes: ${decision.beforeSnapshot}\nDespués: ${decision.afterSnapshot}`),
-        );
-      if (data.moreDecisions)
-        detail.append(
-          text("p", "Se muestran las 50 decisiones más recientes; el resto se conserva."),
-        );
+      const isCurrent = () => version === generation && selected === selection;
+      appendHistorySection(
+        detail,
+        "Denuncias privadas, más recientes primero",
+        "reports",
+        data.reports,
+        data.moreReports,
+        id,
+        isCurrent,
+      );
+      appendHistorySection(
+        detail,
+        "Historial del caso, más reciente primero",
+        "changes",
+        data.history,
+        data.moreHistory,
+        id,
+        isCurrent,
+      );
+      appendHistorySection(
+        detail,
+        "Decisiones de moderación, más recientes primero",
+        "decisions",
+        data.decisions ?? [],
+        data.moreDecisions,
+        id,
+        isCurrent,
+      );
       appendActions(detail, data.context);
       detail.focus();
       message.textContent = "Contexto privado cargado.";
     } catch (error) {
       if (version === generation && selected === selection) failed(error);
     }
+  }
+
+  /** Añade un registro privado con texto plano para el flujo seleccionado. */
+  function appendHistoryItem(stream, item, container) {
+    if (stream === "reports") {
+      container.append(
+        text("p", `${item.reportedAt} · ${item.active ? "Activa" : "Histórica"} · ${item.reason}`),
+      );
+      return;
+    }
+    const date = stream === "changes" ? item.changedAt : item.actedAt;
+    const actor = stream === "changes" ? "actor interno" : "operador";
+    container.append(
+      text(
+        "p",
+        `${date} · ${item.action} · ${actor} ${item.actorId} · ${item.reason ?? "Sin motivo adicional"}`,
+      ),
+      text("pre", `Antes: ${item.beforeSnapshot}\nDespués: ${item.afterSnapshot}`),
+    );
+  }
+
+  /** Carga páginas anteriores sin almacenar datos y descarta respuestas de otro contexto. */
+  function appendHistorySection(container, title, stream, items, hasMore, id, isCurrent) {
+    const section = document.createElement("section");
+    const entries = document.createElement("div");
+    section.append(text("h3", title), entries);
+    for (const item of items) appendHistoryItem(stream, item, entries);
+    if (hasMore && items.length) {
+      const loadButton = document.createElement("button");
+      loadButton.type = "button";
+      loadButton.className = "secondary-button";
+      loadButton.textContent = "Cargar 50 entradas anteriores";
+      loadButton.addEventListener("click", async () => {
+        if (loadButton.disabled || !isCurrent()) return;
+        loadButton.disabled = true;
+        message.textContent = "Consultando entradas anteriores…";
+        try {
+          const beforeId = items.at(-1).id;
+          const page = await read(
+            `/api/operator/publications/${id}/history/${stream}?beforeId=${beforeId}&limit=50`,
+          );
+          if (!isCurrent()) return;
+          for (const item of page.items) {
+            appendHistoryItem(stream, item, entries);
+            items.push(item);
+          }
+          loadButton.disabled = !page.hasMore;
+          loadButton.textContent = page.hasMore
+            ? "Cargar 50 entradas anteriores"
+            : "No hay entradas anteriores";
+          message.textContent = `${page.items.length} entradas anteriores cargadas.`;
+        } catch (error) {
+          if (isCurrent()) failed(error);
+        } finally {
+          if (
+            isCurrent() &&
+            loadButton.disabled &&
+            loadButton.textContent === "Cargar 50 entradas anteriores"
+          )
+            loadButton.disabled = false;
+        }
+      });
+      section.append(loadButton);
+    }
+    container.append(section);
   }
 
   /** Presenta campos etiquetados y acciones explícitas según estado y categoría del caso. */

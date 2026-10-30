@@ -78,6 +78,8 @@ CREATE TABLE IF NOT EXISTS publication_content_report (
 );
 CREATE INDEX IF NOT EXISTS content_report_publication_active
   ON publication_content_report (publication_id, active_slot);
+CREATE INDEX IF NOT EXISTS content_report_publication_history
+  ON publication_content_report (publication_id, id);
 
 -- RA-08: decisiones internas separadas del historial visible al autor.
 CREATE TABLE IF NOT EXISTS publication_moderation_action (

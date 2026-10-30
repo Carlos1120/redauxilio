@@ -51,6 +51,19 @@ class ModerationQueueController {
     return ResponseEntity.ok().cacheControl(CacheControl.noStore()).body(queue.detail(id));
   }
 
+  /** Paginación privada de denuncias, cambios o decisiones previas del caso seleccionado. */
+  @GetMapping("/api/operator/publications/{id}/history/{stream}")
+  @ResponseBody
+  ResponseEntity<ModerationQueueService.HistoryPage> olderHistory(
+      @PathVariable long id,
+      @PathVariable String stream,
+      @RequestParam long beforeId,
+      @RequestParam(defaultValue = "50") int limit) {
+    return ResponseEntity.ok()
+        .cacheControl(CacheControl.noStore())
+        .body(queue.olderHistory(id, stream, beforeId, limit));
+  }
+
   /** Ejecuta una decisión solo con actor obtenido de la sesión y CSRF del formulario. */
   @org.springframework.web.bind.annotation.PostMapping("/api/operator/publications/{id}/actions")
   @ResponseBody

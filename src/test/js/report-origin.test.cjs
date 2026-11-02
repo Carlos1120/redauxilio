@@ -7,7 +7,8 @@ const { join } = require("node:path");
 const vm = require("node:vm");
 
 /** Ejecuta la consulta real con dobles mínimos de DOM; no simula revisión humana ni cartografía. */
-async function loadReportView(items, savedAt = null) {
+async function loadReportView(items, savedAt = null, options = {}) {
+  let mapItems = [];
   const nodes = new Map();
   const listeners = new Map();
   function element(id = "") {
@@ -54,13 +55,32 @@ async function loadReportView(items, savedAt = null) {
     nodes.set(id, node);
     return node;
   }
+  element("freshness-status").value = options.filter ?? "";
   const context = vm.createContext({
+    Date:
+      options.now === undefined
+        ? Date
+        : class extends Date {
+            static now() {
+              return options.now;
+            }
+          },
     document: {
       getElementById: element,
       createElement: () => element(Symbol()),
       querySelectorAll: () => [],
     },
     window: {
+      RedAuxilioMap: options.captureMap
+        ? {
+            create: () => ({
+              bounds: () => ({}),
+              render(items) {
+                mapItems = items;
+              },
+            }),
+          }
+        : undefined,
       matchMedia: () => ({ matches: false, addEventListener() {} }),
       addEventListener(name, fn) {
         if (!listeners.has(name)) listeners.set(name, []);
@@ -88,7 +108,7 @@ async function loadReportView(items, savedAt = null) {
     { filename: "app.js" },
   );
   await new Promise((resolve) => setImmediate(resolve));
-  return { nodes, context, listeners, element };
+  return { nodes, context, listeners, element, getMapItems: () => mapItems };
 }
 
 function report(id) {
@@ -250,3 +270,39 @@ test("respuesta offline expirada conserva revisión/confianza y advierte su anti
   await vm.runInContext("loadPublications()", context);
   assert.match(requests[0], /freshnessStatus=DESACTUALIZADA/);
 });
+
+/** P2: un reloj cliente adelantado solo puede degradar copias marcadas por el SW. */
+for (const cached of [false, true])
+  test(`reloj adelantado: ${cached ? "caché" : "red"}, filtro Vigente y detalle`, async () => {
+    const item = {
+      ...report(1000000),
+      freshnessStatus: "VIGENTE",
+      freshnessExpiresAt: "2030-01-02T00:00:00Z",
+      lastValidActivityAt: "2030-01-01T00:00:00Z",
+      confidenceLevel: "CONFIRMADA",
+      reviewStatus: "EN_REVISION",
+    };
+    const options = { now: Date.parse("2040-01-01T00:00:00Z"), captureMap: true };
+    const view = await loadReportView([item], cached ? "2030-01-01T00:00:00Z" : null, options);
+    const text = (n) => [n.textContent || "", ...(n.children || []).map(text)].join(" ");
+    const expected = cached ? "DESACTUALIZADA" : "VIGENTE";
+    assert.equal(view.getMapItems()[0].freshnessStatus, expected);
+    assert.match(text(view.nodes.get("publications")), new RegExp(`Vigencia: ${expected}`));
+    assert.match(
+      text(view.nodes.get("detail-content")),
+      cached ? /Información desactualizada/ : /Vigente/,
+    );
+    if (!cached)
+      assert.doesNotMatch(text(view.nodes.get("detail-content")), /Información desactualizada/);
+    assert.equal(view.getMapItems()[0].confidenceLevel, "CONFIRMADA");
+    assert.equal(view.getMapItems()[0].reviewStatus, "EN_REVISION");
+    const filtered = await loadReportView([item], cached ? "2030-01-01T00:00:00Z" : null, {
+      ...options,
+      filter: "VIGENTE",
+    });
+    assert.equal(filtered.getMapItems().length, cached ? 0 : 1);
+    assert.match(
+      filtered.nodes.get("message").textContent,
+      cached ? /puede estar desactualizada/ : /Datos obtenidos del servidor/,
+    );
+  });

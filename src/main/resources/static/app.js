@@ -35,7 +35,7 @@ let currentSourceMessage = "";
 let suppressFocusReturn = false;
 /** El panel usa el objeto ya consultado; en ancho estrecho conserva el diálogo modal. */
 function showReportDetail(item, trigger, initial = false) {
-  item = window.RedAuxilioFreshness?.normalize(item) ?? item;
+  // Usa el objeto de la carga compartido con mapa/lista: la red conserva autoridad del servidor.
   if (trigger) detailTrigger = trigger;
   selectedReportId = item.id;
   getElement("detail-kicker").textContent =
@@ -325,9 +325,9 @@ async function loadPublications() {
     if (query !== latestPublicationQueryId) return;
     // El service worker añade esta cabecera SOLO a la copia guardada, para advertir su antigüedad.
     const savedAt = response.headers.get("X-RedAuxilio-Saved-At");
-    // Recalcula expiración de caché ANTES de filtrar o compartir objetos con mapa/lista/detalle.
+    // Solo una copia marcada por el SW se recalcula localmente; la red conserva la vigencia del servidor.
     currentItems = items
-      .map((item) => window.RedAuxilioFreshness?.normalize(item) ?? item)
+      .map((item) => (savedAt ? (window.RedAuxilioFreshness?.normalize(item) ?? item) : item))
       .filter(
         (item) =>
           !getElement("freshness-status").value ||

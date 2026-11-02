@@ -4,12 +4,13 @@
  * Intenta primero la red; solo ante un fallo de red utiliza una copia previamente guardada.
  * No almacena borradores, operaciones de escritura, bibliotecas CDN ni cartografía externa.
  */
-// La versión 20 renueva la interfaz de decisiones RA-08; motivos y escrituras nunca entran en caché.
-const CACHE = "redauxilio-demo-v20";
+// RA-06 renueva el shell público para recalcular vigencia de respuestas guardadas.
+const CACHE = "redauxilio-demo-v21";
 const SHELL = [
   "/",
   "/app.css",
   "/app.js",
+  "/freshness.js",
   "/identity-forms.js",
   "/identity-status.js",
   "/publication-form.js",

@@ -35,6 +35,7 @@ let currentSourceMessage = "";
 let suppressFocusReturn = false;
 /** El panel usa el objeto ya consultado; en ancho estrecho conserva el diálogo modal. */
 function showReportDetail(item, trigger, initial = false) {
+  item = window.RedAuxilioFreshness?.normalize(item) ?? item;
   if (trigger) detailTrigger = trigger;
   selectedReportId = item.id;
   getElement("detail-kicker").textContent =
@@ -72,12 +73,38 @@ function showReportDetail(item, trigger, initial = false) {
         ? "En revisión · contenido cuestionado"
         : "Sin alerta de revisión",
     ],
+    [
+      "Vigencia",
+      item.freshnessStatus === "DESACTUALIZADA"
+        ? "Desactualizada · requiere información reciente"
+        : item.freshnessStatus === "VIGENTE"
+          ? "Vigente"
+          : "Vigencia no disponible",
+    ],
+    [
+      "Última actividad válida",
+      item.lastValidActivityAt
+        ? new Date(item.lastValidActivityAt).toLocaleString("es-CO")
+        : "Sin dato",
+    ],
     ["Ubicación aproximada", `${item.latitude.toFixed(3)}, ${item.longitude.toFixed(3)}`],
   ]) {
     const fact = createReportElement("div", "detail-fact", "");
     fact.append(createReportElement("small", "", label), createReportElement("strong", "", value));
     facts.append(fact);
   }
+  if (item.reviewStatus === "EN_REVISION")
+    detail.append(
+      createReportElement("p", "review-notice", "En revisión · contenido cuestionado."),
+    );
+  if (item.freshnessStatus === "DESACTUALIZADA")
+    detail.append(
+      createReportElement(
+        "p",
+        "freshness-notice",
+        "Información desactualizada: consulta una actualización reciente. No significa que sea falsa ni que el caso esté cerrado.",
+      ),
+    );
   detail.append(
     createReportElement("p", "detail-location", item.location),
     createReportElement("p", "detail-description", item.description),
@@ -192,6 +219,21 @@ function renderPublications(items) {
         ),
       );
     }
+    if (item.freshnessStatus === "DESACTUALIZADA")
+      card.append(
+        createReportElement(
+          "p",
+          "freshness-notice",
+          "Desactualizada · no hay respaldo reciente. El caso y su confianza se conservan.",
+        ),
+      );
+    card.append(
+      createReportElement(
+        "p",
+        "report-date",
+        `Vigencia: ${item.freshnessStatus ?? "No disponible"} · Actividad válida: ${item.lastValidActivityAt ? new Date(item.lastValidActivityAt).toLocaleString("es-CO") : "Sin dato"}`,
+      ),
+    );
     // La ficha muestra la última actualización de la API, no una fecha de verificación.
     const date = createReportElement("p", "report-date", "Actualizado: ");
     const timestamp = createReportElement(
@@ -272,6 +314,7 @@ async function loadPublications() {
       operationalStatus: getElement("operational-status").value,
       confidenceLevel: getElement("confidence-level").value,
       reviewStatus: getElement("review-status").value,
+      freshnessStatus: getElement("freshness-status").value,
       includeClosed: String(getElement("include-closed").checked),
       ...reportMap?.bounds(),
     });
@@ -282,11 +325,18 @@ async function loadPublications() {
     if (query !== latestPublicationQueryId) return;
     // El service worker añade esta cabecera SOLO a la copia guardada, para advertir su antigüedad.
     const savedAt = response.headers.get("X-RedAuxilio-Saved-At");
-    currentItems = items;
+    // Recalcula expiración de caché ANTES de filtrar o compartir objetos con mapa/lista/detalle.
+    currentItems = items
+      .map((item) => window.RedAuxilioFreshness?.normalize(item) ?? item)
+      .filter(
+        (item) =>
+          !getElement("freshness-status").value ||
+          item.freshnessStatus === getElement("freshness-status").value,
+      );
     currentSourceMessage = savedAt
       ? `Consulta almacenada el ${new Date(savedAt).toLocaleString("es-CO")}; puede estar desactualizada.`
       : "Datos obtenidos del servidor.";
-    const countLabel = describeReportCount(items);
+    const countLabel = describeReportCount(currentItems);
     currentQueryMessage = `${countLabel} ${currentSourceMessage}`;
     renderSearchResults();
   } catch {
@@ -323,6 +373,7 @@ for (const id of [
   "operational-status",
   "confidence-level",
   "review-status",
+  "freshness-status",
   "include-closed",
 ]) {
   getElement(id).addEventListener("change", () => {

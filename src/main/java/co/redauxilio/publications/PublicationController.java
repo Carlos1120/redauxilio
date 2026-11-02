@@ -45,6 +45,7 @@ public class PublicationController {
       @RequestParam(required = false) String operationalStatus,
       @RequestParam(required = false) String confidenceLevel,
       @RequestParam(required = false) String reviewStatus,
+      @RequestParam(required = false) String freshnessStatus,
       @RequestParam(defaultValue = "false") boolean includeClosed,
       @RequestParam(required = false) Double south,
       @RequestParam(required = false) Double west,
@@ -57,7 +58,13 @@ public class PublicationController {
       bounds = new PublicationService.Bounds(south, west, north, east);
     }
     return service.findPublications(
-        category, operationalStatus, confidenceLevel, reviewStatus, includeClosed, bounds);
+        category,
+        operationalStatus,
+        confidenceLevel,
+        reviewStatus,
+        freshnessStatus,
+        includeClosed,
+        bounds);
   }
 
   /** Devuelve el detalle visible; un identificador inexistente u oculto produce HTTP 404. */

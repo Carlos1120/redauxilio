@@ -1863,3 +1863,13 @@ footer {
   max-width: 100%;
   white-space: normal;
 }
+
+/* RA-06: advertencia temporal subordinada a revisión, independiente del respaldo. */
+.freshness-notice {
+  padding: 10px;
+  border-left: 3px solid #876015;
+  color: #6a4b12;
+  background: #fff5dd;
+  font-size: 13px;
+  line-height: 1.5;
+}

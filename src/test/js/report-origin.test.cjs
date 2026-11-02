@@ -7,7 +7,7 @@ const { join } = require("node:path");
 const vm = require("node:vm");
 
 /** Ejecuta la consulta real con dobles mínimos de DOM; no simula revisión humana ni cartografía. */
-async function loadReportView(items) {
+async function loadReportView(items, savedAt = null) {
   const nodes = new Map();
   const listeners = new Map();
   function element(id = "") {
@@ -23,7 +23,13 @@ async function loadReportView(items) {
         this.listeners[name] = fn;
       },
       reset() {
-        for (const id of ["category", "operational-status", "confidence-level", "review-status"]) {
+        for (const id of [
+          "category",
+          "operational-status",
+          "confidence-level",
+          "review-status",
+          "freshness-status",
+        ]) {
           element(id).value = "";
         }
         element("include-closed").checked = false;
@@ -66,12 +72,16 @@ async function loadReportView(items) {
     fetch: async () => ({
       ok: true,
       json: async () => items,
-      headers: { get: () => null },
+      headers: { get: () => savedAt },
     }),
     URLSearchParams,
     setTimeout,
     clearTimeout,
   });
+  vm.runInContext(
+    readFileSync(join(__dirname, "../../main/resources/static/freshness.js"), "utf8"),
+    context,
+  );
   vm.runInContext(
     readFileSync(join(__dirname, "../../main/resources/static/app.js"), "utf8"),
     context,
@@ -211,4 +221,32 @@ test("cambiar revisión actualiza consulta y limpiar filtros restablece ambas di
   await new Promise((resolve) => setImmediate(resolve));
   assert.equal(requests[1].get("reviewStatus"), "");
   assert.equal(requests[1].get("confidenceLevel"), "");
+});
+
+/** La respuesta almacenada se degrada antes de compartirse con lista y detalle. */
+test("respuesta offline expirada conserva revisión/confianza y advierte su antigüedad", async () => {
+  const item = {
+    ...report(1000000),
+    reviewStatus: "EN_REVISION",
+    confidenceLevel: "CONFIRMADA",
+    freshnessStatus: "VIGENTE",
+    lastValidActivityAt: "2020-01-01T00:00:00Z",
+    freshnessExpiresAt: "2020-01-02T00:00:00Z",
+  };
+  const { nodes, context } = await loadReportView([item], "2020-01-01T10:00:00Z");
+  const text = (n) => [n.textContent || "", ...(n.children || []).map(text)].join(" ");
+  const cards = text(nodes.get("publications"));
+  assert.match(cards, /Desactualizada/);
+  assert.match(cards, /Confirmada por la comunidad/);
+  assert.ok(cards.indexOf("En revisión") < cards.indexOf("Desactualizada"));
+  assert.match(nodes.get("message").textContent, /puede estar desactualizada/);
+  assert.match(text(nodes.get("detail-content")), /Información desactualizada/);
+  const requests = [];
+  context.fetch = async (url) => {
+    requests.push(url);
+    return { ok: true, json: async () => [], headers: { get: () => null } };
+  };
+  nodes.get("freshness-status").value = "DESACTUALIZADA";
+  await vm.runInContext("loadPublications()", context);
+  assert.match(requests[0], /freshnessStatus=DESACTUALIZADA/);
 });

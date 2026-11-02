@@ -17,7 +17,7 @@
     host.replaceChildren();
     if (!selected || selected.id < 1000000) return;
     const count = document.createElement("p");
-    count.textContent = `${selected.confirmationCount || 0} confirmaciones independientes vigentes. No es verificación oficial.`;
+    count.textContent = `${selected.confirmationCount || 0} confirmaciones independientes de esta versión. No es verificación oficial.`;
     const message = document.createElement("p");
     message.setAttribute("role", "status");
     message.setAttribute("aria-live", "polite");

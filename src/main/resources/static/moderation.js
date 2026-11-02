@@ -497,7 +497,7 @@
         if (!isCurrent()) return;
         if (error.status === 400 || error.status === 409) {
           const nextSelection = selection + 1;
-          if ((await loadDetail(p.id)) && isCurrent() && selection === nextSelection)
+          if ((await loadDetail(p.id)) && generation === version && selection === nextSelection)
             message.textContent =
               "La decisión no se aplicó. Actualiza el caso y revisa sus reglas.";
         } else failed(error);

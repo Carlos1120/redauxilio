@@ -734,3 +734,32 @@ test("logout durante refresco posterior a una decisión no anuncia éxito ni rep
 test("script sin página operativa no consulta ni altera la pantalla pública", () => {
   vm.runInNewContext(source, { document: { getElementById: () => null } });
 });
+
+// QA: el refresco cambia selecci�n; el rechazo sigue visible sin revivir otra sesi�n.
+for (const status of [400, 409])
+  test(`rechazo ${status} conserva mensaje despu�s de refrescar contexto`, async () => {
+    const detail = {
+      context: { publication: publication(), visible: true, activeReports: 0 },
+      reports: [],
+      history: [],
+      decisions: [],
+    };
+    const ui = await setup(async (url, options) => {
+      if (url === "/csrf") return response({ headerName: "X-CSRF-TOKEN", token: "t" });
+      if (options.method === "POST") return response({}, status);
+      return response(url.endsWith("/1000000") ? detail : page());
+    });
+    await ui.element("moderation-list").children[0].children.at(-1).listeners.click();
+    const all = [];
+    function collect(n) {
+      all.push(n);
+      n.children.forEach(collect);
+    }
+    collect(ui.element("moderation-detail"));
+    all.find((n) => n.tagName === "textarea").value = "Motivo";
+    await all.find((n) => n.textContent.includes("mantener")).listeners.click();
+    assert.match(ui.element("moderation-message").textContent, /no se aplic/);
+    assert.doesNotMatch(ui.element("moderation-message").textContent, /Decisi�n registrada/);
+    ui.listeners.get("redauxilio:identity-change")();
+    assert.equal(ui.element("moderation-detail").children.length, 0);
+  });

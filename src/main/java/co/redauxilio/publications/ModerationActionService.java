@@ -72,6 +72,14 @@ class ModerationActionService {
     String action =
         request.action() == null ? "" : request.action().trim().toUpperCase(Locale.ROOT);
     switch (action) {
+      case "REVIEW" -> {
+        // RF-16: revisión manual independiente de denuncias, confianza y estado operativo.
+        if ("EN_REVISION".equals(before.reviewStatus()))
+          throw conflict("El caso ya está en revisión");
+        jdbc.update(
+            "UPDATE citizen_publication SET review_status = 'EN_REVISION' WHERE id = ?", id);
+        after = before.withReviewStatus("EN_REVISION");
+      }
       case "KEEP" -> {
         if (!"EN_REVISION".equals(before.reviewStatus()))
           throw conflict("El caso ya no está en revisión");

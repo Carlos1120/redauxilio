@@ -447,6 +447,145 @@ test("auditoría de permisos privada y errores con referencia segura", async () 
   assert.equal(error.element("moderation-list").children.length, 0);
 });
 
+/** RF-16 comparte el endpoint seguro y nunca anuncia éxito antes de la respuesta. */
+test("revisión manual espera servidor, renueva CSRF y refresca cola sin denuncias", async () => {
+  let finish;
+  const ui = await setup(async (url, options) => {
+    if (url === "/csrf") return response({ headerName: "X-CSRF-TOKEN", token: "nuevo" });
+    if (options.method === "POST")
+      return new Promise((resolve) => {
+        finish = resolve;
+      });
+    if (url.endsWith("/1000000"))
+      return response({
+        context: { publication: publication(), visible: true },
+        reports: [],
+        history: [],
+        decisions: [
+          {
+            action: "REVIEW",
+            reason: "Revisar contexto",
+            actorId: 9,
+            actedAt: "hoy",
+            beforeSnapshot: "SIN_REVISION",
+            afterSnapshot: "EN_REVISION",
+          },
+        ],
+      });
+    const result = page();
+    result.items[0].activeReports = 0;
+    result.items[0].totalReports = 0;
+    return response(result);
+  });
+  ui.element("manual-review-id").value = "1000000";
+  ui.element("manual-review-reason").value = "  Revisar contexto  ";
+  const submit = () => ui.element("manual-review-form").listeners.submit({ preventDefault() {} });
+  const pending = submit();
+  await flush();
+  assert.match(ui.element("moderation-message").textContent, /Enviando/);
+  assert.equal(ui.element("manual-review-submit").disabled, true);
+  await submit();
+  const writes = ui.requests.filter((r) => r.options.method === "POST");
+  assert.equal(writes.length, 1);
+  assert.equal(writes[0].url, "/api/operator/publications/1000000/actions");
+  assert.equal(writes[0].options.headers["X-CSRF-TOKEN"], "nuevo");
+  assert.deepEqual(JSON.parse(writes[0].options.body), {
+    action: "REVIEW",
+    reason: "Revisar contexto",
+  });
+  finish(response({ reviewStatus: "EN_REVISION" }));
+  await pending;
+  assert.match(ui.element("moderation-message").textContent, /enviada a revisión con auditoría/);
+  assert.equal(ui.element("manual-review-id").value, "");
+  assert.equal(ui.element("manual-review-reason").value, "");
+  assert.equal(ui.element("manual-review-submit").disabled, false);
+  assert.ok(ui.requests.some((r) => r.url.includes("offset=0")));
+  assert.match(dump(ui.element("moderation-list")), /0 denuncias activas \/ 0 totales/);
+  assert.match(dump(ui.element("moderation-detail")), /REVIEW.*Revisar contexto/);
+});
+
+test("revisión manual valida campos, rechazos y desconexión sin falso éxito", async () => {
+  const ui = await setup(async (url, options) =>
+    response(
+      url === "/csrf" ? { headerName: "X-CSRF-TOKEN", token: "t" } : page(),
+      options.method === "POST" ? 409 : 200,
+    ),
+  );
+  const submit = () => ui.element("manual-review-form").listeners.submit({ preventDefault() {} });
+  for (const [id, reason] of [
+    ["0", "Motivo"],
+    ["1.5", "Motivo"],
+    ["1000000", " "],
+    ["1000000", "x".repeat(501)],
+  ]) {
+    ui.element("manual-review-id").value = id;
+    ui.element("manual-review-reason").value = reason;
+    await submit();
+    assert.match(ui.element("moderation-message").textContent, /válido/);
+  }
+  assert.equal(ui.requests.filter((r) => r.options.method === "POST").length, 0);
+  ui.element("manual-review-id").value = "1000000";
+  ui.element("manual-review-reason").value = "Motivo";
+  await submit();
+  assert.match(ui.element("moderation-message").textContent, /No se aplicó/);
+  ui.navigator.onLine = false;
+  await submit();
+  assert.match(ui.element("moderation-message").textContent, /Sin conexión/);
+  assert.equal(ui.requests.filter((r) => r.options.method === "POST").length, 1);
+});
+
+test("revisión manual descarta respuesta tardía después de cambiar sesión", async () => {
+  let finish;
+  const ui = await setup(async (url, options) => {
+    if (url === "/csrf") return response({ headerName: "X-CSRF-TOKEN", token: "t" });
+    if (options.method === "POST")
+      return new Promise((resolve) => {
+        finish = resolve;
+      });
+    return response(page());
+  });
+  ui.element("manual-review-id").value = "1000000";
+  ui.element("manual-review-reason").value = "Motivo privado";
+  const pending = ui.element("manual-review-form").listeners.submit({ preventDefault() {} });
+  await flush();
+  ui.listeners.get("redauxilio:identity-change")();
+  finish(response({}));
+  await pending;
+  assert.doesNotMatch(ui.element("moderation-message").textContent, /enviada a revisión/);
+  assert.equal(ui.element("manual-review-reason").value, "");
+  assert.equal(ui.element("moderation-list").children.length, 0);
+});
+
+test("revisión manual cancelada durante CSRF no escribe; un fallo de red nunca anuncia éxito", async () => {
+  let finish;
+  const ui = await setup(async (url) =>
+    url === "/csrf"
+      ? new Promise((resolve) => {
+          finish = resolve;
+        })
+      : response(page()),
+  );
+  ui.element("manual-review-id").value = "1000000";
+  ui.element("manual-review-reason").value = "Motivo";
+  const pending = ui.element("manual-review-form").listeners.submit({ preventDefault() {} });
+  await flush();
+  ui.listeners.get("offline")();
+  finish(response({ headerName: "X-CSRF-TOKEN", token: "t" }));
+  await pending;
+  assert.equal(ui.requests.filter((r) => r.options.method === "POST").length, 0);
+  const network = await setup(async (url, options) => {
+    if (url === "/csrf") return response({ headerName: "X-CSRF-TOKEN", token: "t" });
+    if (options.method === "POST") throw new Error("Red no disponible");
+    return response(page());
+  });
+  network.element("manual-review-id").value = "1000000";
+  network.element("manual-review-reason").value = "Motivo";
+  await network.element("manual-review-form").listeners.submit({ preventDefault() {} });
+  assert.match(network.element("moderation-message").textContent, /No se pudo/);
+  assert.doesNotMatch(network.element("moderation-message").textContent, /enviada a revisión/);
+  assert.equal(network.element("manual-review-submit").disabled, false);
+});
+
 test("script sin página operativa no consulta ni altera la pantalla pública", () => {
   vm.runInNewContext(source, { document: { getElementById: () => null } });
 });

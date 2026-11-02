@@ -18,8 +18,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.server.ResponseStatusException;
 
 /**
- * HTTP solo lectura protegido en Spring Security; nunca incorpora información privada al shell
- * público.
+ * Consultas y decisiones privadas protegidas en Spring Security; nunca incorpora información
+ * privada al shell público.
  */
 @Controller
 class ModerationQueueController {

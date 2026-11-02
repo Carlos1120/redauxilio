@@ -167,7 +167,8 @@ class ModerationQueueService {
     return jdbc
         .query(
             SUMMARY
-                + " WHERE id = ? AND (visible = FALSE OR review_status = 'EN_REVISION' OR EXISTS (SELECT 1 FROM publication_content_report r WHERE r.publication_id = citizen_publication.id))",
+                // La revisión manual sin denuncias conserva contexto auditable tras resolverse.
+                + " WHERE id = ? AND (visible = FALSE OR review_status = 'EN_REVISION' OR EXISTS (SELECT 1 FROM publication_content_report r WHERE r.publication_id = citizen_publication.id) OR EXISTS (SELECT 1 FROM publication_moderation_action a WHERE a.publication_id = citizen_publication.id))",
             (r, i) ->
                 new CaseSummary(
                     CitizenPublicationRepository.mapPublic(r),

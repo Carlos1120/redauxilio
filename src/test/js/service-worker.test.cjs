@@ -68,6 +68,7 @@ test("el shell precarga el script que mantiene el indicador de sesiÃ³n y conexiÃ
   await installation;
 
   assert.ok(worker.precached.includes("/identity-status.js"));
+  assert.ok(worker.precached.includes("/freshness.js"));
 });
 
 test("el service worker no intercepta rutas de acceso independientes ni escrituras", () => {

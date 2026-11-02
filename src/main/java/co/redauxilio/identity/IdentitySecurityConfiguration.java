@@ -77,6 +77,7 @@ class IdentitySecurityConfiguration {
                         "/favicon.ico",
                         "/app.css",
                         "/app.js",
+                        "/freshness.js",
                         "/identity-forms.js",
                         "/identity-status.js",
                         "/publication-form.js",

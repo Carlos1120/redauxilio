@@ -23,8 +23,18 @@ class CitizenPublicationRepository {
           + ", (SELECT COUNT(*) FROM publication_confirmation c"
           + " WHERE c.publication_id = citizen_publication.id"
           + " AND c.publication_version = citizen_publication.confirmation_version"
-          + " AND c.confirmer_id <> citizen_publication.author_id) AS confirmation_count";
+          + " AND c.confirmer_id <> citizen_publication.author_id) AS confirmation_count"
+          + ", (SELECT MAX(c.confirmed_at) FROM publication_confirmation c"
+          + " WHERE c.publication_id = citizen_publication.id"
+          + " AND c.publication_version = citizen_publication.confirmation_version"
+          + " AND c.confirmer_id <> citizen_publication.author_id) AS last_confirmation_at";
   private final JdbcTemplate jdbc;
+  private java.time.Clock clock = java.time.Clock.systemUTC();
+
+  @org.springframework.beans.factory.annotation.Autowired
+  void setClock(java.time.Clock clock) {
+    this.clock = clock;
+  }
 
   CitizenPublicationRepository(JdbcTemplate jdbc) {
     this.jdbc = jdbc;
@@ -92,7 +102,7 @@ class CitizenPublicationRepository {
   List<PublicationService.Publication> findVisible() {
     return jdbc.query(
         "SELECT " + PUBLIC_COLUMNS + " FROM citizen_publication WHERE visible = TRUE",
-        (row, index) -> mapPublic(row));
+        (row, index) -> mapPublic(row).withFreshness(clock));
   }
 
   /**
@@ -107,31 +117,37 @@ class CitizenPublicationRepository {
             + " FROM citizen_publication"
             + " WHERE author_id = (SELECT id FROM citizen_account WHERE email = ?)"
             + " AND visible = TRUE ORDER BY created_at DESC, id DESC",
-        (row, index) -> mapPublic(row),
+        (row, index) -> mapPublic(row).withFreshness(clock),
         email);
   }
 
   /** Mapea exclusivamente el contrato público y conserva el cierre vial de altas antiguas. */
   static PublicationService.Publication mapPublic(ResultSet row) throws SQLException {
     return new PublicationService.Publication(
-        row.getLong("id"),
-        row.getString("category"),
-        row.getString("title"),
-        row.getString("location"),
-        row.getString("operational_status"),
-        row.getInt("confirmation_count") >= 3 ? "CONFIRMADA" : "REPORTADA",
-        row.getTimestamp("updated_at").toInstant().toString(),
-        row.getDouble("latitude"),
-        row.getDouble("longitude"),
-        row.getString("description"),
-        row.getTimestamp("created_at").toInstant().toString(),
-        row.getBoolean("closed")
-            || ("ROAD".equals(row.getString("category"))
-                && "HABILITADA".equals(row.getString("operational_status"))),
-        row.getString("assistance_subtype"),
-        row.getString("impact_type"),
-        row.getInt("confirmation_count"),
-        row.getLong("confirmation_version"),
-        row.getString("review_status"));
+            row.getLong("id"),
+            row.getString("category"),
+            row.getString("title"),
+            row.getString("location"),
+            row.getString("operational_status"),
+            row.getInt("confirmation_count") >= 3 ? "CONFIRMADA" : "REPORTADA",
+            row.getTimestamp("updated_at").toInstant().toString(),
+            row.getDouble("latitude"),
+            row.getDouble("longitude"),
+            row.getString("description"),
+            row.getTimestamp("created_at").toInstant().toString(),
+            row.getBoolean("closed")
+                || ("ROAD".equals(row.getString("category"))
+                    && "HABILITADA".equals(row.getString("operational_status"))),
+            row.getString("assistance_subtype"),
+            row.getString("impact_type"),
+            row.getInt("confirmation_count"),
+            row.getLong("confirmation_version"),
+            row.getString("review_status"),
+            null,
+            row.getTimestamp("last_confirmation_at") == null
+                ? row.getTimestamp("updated_at").toInstant().toString()
+                : row.getTimestamp("last_confirmation_at").toInstant().toString(),
+            null)
+        .withFreshness(java.time.Clock.systemUTC());
   }
 }

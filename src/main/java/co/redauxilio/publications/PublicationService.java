@@ -32,8 +32,16 @@ public class PublicationService {
           "SATISFECHA");
   private static final Set<String> CONFIDENCE =
       Set.of("REPORTADA", "CONFIRMADA", "VERIFICADA", "DESACTUALIZADA");
-  // DESACTUALIZADA se admite por compatibilidad histórica; RA-07 no calcula vigencia (RA-06).
+  // DESACTUALIZADA en confianza conserva la comparación histórica; nunca equivale al filtro
+  // temporal.
   private static final Set<String> REVIEW = Set.of("SIN_REVISION", "EN_REVISION");
+  private java.time.Clock clock = java.time.Clock.systemUTC();
+
+  @Autowired
+  void setClock(java.time.Clock clock) {
+    this.clock = clock;
+  }
+
   private final List<Entry> publications;
   private CitizenPublicationRepository citizenPublications;
 
@@ -127,9 +135,11 @@ public class PublicationService {
   private Stream<Publication> visiblePublications() {
     Stream<Publication> examples =
         publications.stream().filter(Entry::visible).map(Entry::publication);
-    return citizenPublications == null
-        ? examples
-        : Stream.concat(examples, citizenPublications.findVisible().stream());
+    Stream<Publication> all =
+        citizenPublications == null
+            ? examples
+            : Stream.concat(examples, citizenPublications.findVisible().stream());
+    return all.map(p -> p.withFreshness(clock));
   }
 
   private static Publication sample(
@@ -169,6 +179,21 @@ public class PublicationService {
       String reviewStatus,
       boolean includeClosed,
       Bounds bounds) {
+    return findPublications(
+        category, operationalStatus, confidenceLevel, reviewStatus, null, includeClosed, bounds);
+  }
+
+  /** RA-06 combina vigencia con los filtros existentes, sin reinterpretar confianza histórica. */
+  public List<Publication> findPublications(
+      String category,
+      String operationalStatus,
+      String confidenceLevel,
+      String reviewStatus,
+      String freshnessStatus,
+      boolean includeClosed,
+      Bounds bounds) {
+    String freshnessFilter =
+        normalize(freshnessStatus, Set.of("VIGENTE", "DESACTUALIZADA"), "Vigencia");
     String categoryFilter = normalize(category, CATEGORIES, "Categoría");
     String statusFilter = normalize(operationalStatus, STATUSES, "Estado");
     String confidenceFilter = normalize(confidenceLevel, CONFIDENCE, "Confianza");
@@ -183,6 +208,7 @@ public class PublicationService {
                     || p.operationalStatus().toUpperCase(Locale.ROOT).equals(statusFilter))
         .filter(p -> confidenceFilter.isEmpty() || p.confidenceLevel().equals(confidenceFilter))
         .filter(p -> reviewFilter.isEmpty() || p.reviewStatus().equals(reviewFilter))
+        .filter(p -> freshnessFilter.isEmpty() || p.freshnessStatus().equals(freshnessFilter))
         .filter(p -> bounds == null || bounds.contains(p.latitude(), p.longitude()))
         .toList();
   }
@@ -265,7 +291,82 @@ public class PublicationService {
       String impactType,
       int confirmationCount,
       long confirmationVersion,
-      String reviewStatus) {
+      String reviewStatus,
+      String freshnessStatus,
+      String lastValidActivityAt,
+      String freshnessExpiresAt) {
+    /** Conserva la firma previa; la vigencia se deriva al consultar, nunca en persistencia. */
+    public Publication(
+        long id,
+        String category,
+        String title,
+        String location,
+        String operationalStatus,
+        String confidenceLevel,
+        String updatedAt,
+        double latitude,
+        double longitude,
+        String description,
+        String createdAt,
+        boolean closed,
+        String assistanceSubtype,
+        String impactType,
+        int confirmationCount,
+        long confirmationVersion,
+        String reviewStatus) {
+      this(
+          id,
+          category,
+          title,
+          location,
+          operationalStatus,
+          confidenceLevel,
+          updatedAt,
+          latitude,
+          longitude,
+          description,
+          createdAt,
+          closed,
+          assistanceSubtype,
+          impactType,
+          confirmationCount,
+          confirmationVersion,
+          reviewStatus,
+          null,
+          updatedAt,
+          null);
+    }
+
+    Publication withFreshness(java.time.Clock clock) {
+      PublicationFreshness freshness =
+          PublicationFreshness.evaluate(
+              category,
+              java.time.Instant.parse(updatedAt),
+              lastValidActivityAt == null ? null : java.time.Instant.parse(lastValidActivityAt),
+              clock);
+      return new Publication(
+          id,
+          category,
+          title,
+          location,
+          operationalStatus,
+          confidenceLevel,
+          updatedAt,
+          latitude,
+          longitude,
+          description,
+          createdAt,
+          closed,
+          assistanceSubtype,
+          impactType,
+          confirmationCount,
+          confirmationVersion,
+          reviewStatus,
+          freshness.status(),
+          freshness.activityAt(),
+          freshness.expiresAt());
+    }
+
     /** Compatibilidad de constructores anteriores; ejemplos y pruebas sin confirmaciones. */
     public Publication(
         long id,

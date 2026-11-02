@@ -73,20 +73,6 @@ class PublicationMaintenanceService {
         || !valid.operationalStatus().equals(before.operationalStatus())) {
       throw invalid("La categoría y el estado se cambian en flujos distintos");
     }
-    Instant now = clock.instant();
-    jdbc.update(
-        "UPDATE citizen_publication SET assistance_subtype = ?, title = ?, description = ?,"
-            + " location = ?, impact_type = ?, latitude = ?, longitude = ?, updated_at = ?"
-            + " WHERE id = ?",
-        valid.assistanceSubtype(),
-        valid.title(),
-        valid.description(),
-        valid.location(),
-        valid.impactType(),
-        valid.latitude(),
-        valid.longitude(),
-        Timestamp.from(now),
-        id);
     Owned after =
         new Owned(
             before.id(),
@@ -101,11 +87,25 @@ class PublicationMaintenanceService {
             valid.latitude(),
             valid.longitude(),
             before.closed());
+    // Un guardado idéntico no crea actividad, auditoría ni invalida respaldos.
+    if (before.equals(after)) return publications.findPublication(id);
+    Instant now = clock.instant();
+    jdbc.update(
+        "UPDATE citizen_publication SET assistance_subtype = ?, title = ?, description = ?,"
+            + " location = ?, impact_type = ?, latitude = ?, longitude = ?, updated_at = ?"
+            + " WHERE id = ?",
+        valid.assistanceSubtype(),
+        valid.title(),
+        valid.description(),
+        valid.location(),
+        valid.impactType(),
+        valid.latitude(),
+        valid.longitude(),
+        Timestamp.from(now),
+        id);
     audit(before, after, "EDIT", null, now);
     // Toda modificación real de contenido invalida el respaldo anterior en la misma transacción.
-    if (!before.equals(after)) {
-      confirmations.invalidateForSubstantialChange(id, email, "Edición de la publicación");
-    }
+    confirmations.invalidateForSubstantialChange(id, email, "Edición de la publicación");
     return publications.findPublication(id);
   }
 

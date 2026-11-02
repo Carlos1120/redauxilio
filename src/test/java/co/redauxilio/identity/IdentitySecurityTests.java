@@ -315,6 +315,7 @@ class IdentitySecurityTests {
                 org.springframework.test.web.servlet.result.MockMvcResultMatchers.header()
                     .string("Cache-Control", "no-store"))
             .andExpect(jsonPath("$.parameterName").value("_csrf"))
+            .andExpect(jsonPath("$.headerName").value("X-CSRF-TOKEN"))
             .andExpect(jsonPath("$.token").isNotEmpty())
             .andReturn();
     String token =

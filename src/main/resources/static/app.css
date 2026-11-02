@@ -1797,3 +1797,54 @@ footer {
   overflow-wrap: anywhere;
   max-width: 100%;
 }
+.moderation-decision {
+  display: grid;
+  justify-items: start;
+  gap: 12px;
+  margin-top: 24px;
+  padding: 16px;
+  border: 1px solid var(--color-report-border);
+  border-radius: var(--radius-report);
+  background: #fff;
+}
+.moderation-decision label {
+  display: grid;
+  gap: 6px;
+  width: min(100%, 640px);
+  font-weight: 600;
+}
+.moderation-decision textarea,
+.moderation-decision input,
+.moderation-decision select {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid var(--color-report-border);
+  border-radius: var(--radius-control);
+  color: var(--color-report-ink);
+  background: var(--color-report-inset);
+  font: inherit;
+}
+.moderation-decision textarea {
+  min-height: 92px;
+  resize: vertical;
+}
+.moderation-decision details {
+  display: grid;
+  gap: 12px;
+  width: 100%;
+  max-width: 640px;
+  padding: 12px;
+  border: 1px solid var(--color-report-border);
+  border-radius: var(--radius-control);
+}
+.moderation-decision summary {
+  cursor: pointer;
+  font-weight: 700;
+}
+.moderation-decision button {
+  min-height: 44px;
+  max-width: 100%;
+  white-space: normal;
+}

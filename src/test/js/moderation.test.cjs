@@ -82,7 +82,11 @@ async function setup(implementation = async () => response(page())) {
   const document = {
     hidden: false,
     getElementById: element,
-    createElement: () => element(Symbol()),
+    createElement: (tagName) => {
+      const node = element(Symbol());
+      node.tagName = tagName;
+      return node;
+    },
     addEventListener: (event, fn) => listeners.set(`document:${event}`, fn),
   };
   const navigator = { onLine: true };
@@ -112,10 +116,11 @@ async function setup(implementation = async () => response(page())) {
 
 test("cola privada muestra dimensiones y contexto como texto, sin escribir ni cachear", async () => {
   const detail = {
-    context: { publication: publication() },
-    reports: [{ reportedAt: "hoy", active: true, reason: "<script>privado</script>" }],
+    context: { publication: publication(), visible: true },
+    reports: [{ id: 50, reportedAt: "hoy", active: true, reason: "<script>privado</script>" }],
     history: [
       {
+        id: 40,
         changedAt: "hoy",
         action: "REVIEW",
         actorId: 9,
@@ -126,6 +131,7 @@ test("cola privada muestra dimensiones y contexto como texto, sin escribir ni ca
     ],
     moreReports: true,
     moreHistory: true,
+    decisions: [],
   };
   const ui = await setup(async (url) => response(url.includes("/1000000") ? detail : page()));
   assert.match(dump(ui.element("moderation-list")), /EN_REVISION.*CONFIRMADA/);
@@ -134,8 +140,7 @@ test("cola privada muestra dimensiones y contexto como texto, sin escribir ni ca
   await card.children.at(-1).listeners.click();
   assert.match(dump(ui.element("moderation-detail")), /<script>privado<\/script>/);
   assert.match(dump(ui.element("moderation-detail")), /<img onerror=malicioso>/);
-  assert.match(dump(ui.element("moderation-detail")), /50 denuncias/);
-  assert.match(dump(ui.element("moderation-detail")), /50 cambios/);
+  assert.match(dump(ui.element("moderation-detail")), /Cargar 50 entradas anteriores/);
   assert.equal(ui.element("moderation-detail").focused, true);
   assert.ok(
     ui.requests.every(
@@ -144,6 +149,187 @@ test("cola privada muestra dimensiones y contexto como texto, sin escribir ni ca
         r.options.credentials === "same-origin" &&
         !r.options.method,
     ),
+  );
+});
+
+test("carga páginas anteriores de cada historial privado con cursor y sin HTML", async () => {
+  const detail = {
+    context: { publication: publication(), visible: true },
+    reports: [{ id: 300, reportedAt: "hoy", active: false, reason: "Denuncia reciente" }],
+    history: [
+      {
+        id: 200,
+        changedAt: "hoy",
+        action: "EDIT",
+        actorId: 9,
+        reason: "Cambio reciente",
+        beforeSnapshot: "{}",
+        afterSnapshot: "{}",
+      },
+    ],
+    decisions: [
+      {
+        id: 100,
+        actedAt: "hoy",
+        action: "HIDE",
+        actorId: 9,
+        reason: "Decisión reciente",
+        beforeSnapshot: "{}",
+        afterSnapshot: "{}",
+      },
+    ],
+    moreReports: true,
+    moreHistory: true,
+    moreDecisions: true,
+  };
+  const ui = await setup(async (url) => {
+    if (url.includes("/history/")) {
+      const stream = url.split("/history/")[1].split("?")[0];
+      return response({
+        stream,
+        items: [
+          {
+            id: 1,
+            reportedAt: "ayer",
+            active: false,
+            reason: "<script>entrada privada anterior</script>",
+            changedAt: "ayer",
+            actedAt: "ayer",
+            action: "KEEP",
+            actorId: 9,
+            beforeSnapshot: "{}",
+            afterSnapshot: "{}",
+          },
+        ],
+        hasMore: false,
+      });
+    }
+    return response(url.includes("/1000000") ? detail : page());
+  });
+  await ui.element("moderation-list").children[0].children.at(-1).listeners.click();
+  const buttons = [];
+  const collect = (node) => {
+    if (node.tagName === "button" && node.textContent === "Cargar 50 entradas anteriores")
+      buttons.push(node);
+    for (const child of node.children) collect(child);
+  };
+  collect(ui.element("moderation-detail"));
+  assert.equal(buttons.length, 3);
+  for (const loadButton of buttons) await loadButton.listeners.click();
+  assert.ok(ui.requests.some((request) => request.url.includes("/history/reports?beforeId=300")));
+  assert.ok(ui.requests.some((request) => request.url.includes("/history/changes?beforeId=200")));
+  assert.ok(ui.requests.some((request) => request.url.includes("/history/decisions?beforeId=100")));
+  assert.match(dump(ui.element("moderation-detail")), /<script>entrada privada anterior<\/script>/);
+  assert.ok(buttons.every((loadButton) => loadButton.disabled));
+  assert.ok(ui.requests.every((request) => request.options.cache === "no-store"));
+});
+
+test("una decisión usa motivo obligatorio, CSRF y espera confirmación del servidor", async () => {
+  const detail = {
+    context: { publication: publication(), visible: true },
+    reports: [],
+    history: [],
+    decisions: [],
+  };
+  const ui = await setup(async (url, options) => {
+    if (url === "/csrf")
+      return response({ parameterName: "_csrf", headerName: "X-CSRF-TOKEN", token: "csrf-demo" });
+    if (options.method === "POST") return response({ action: "HIDE" });
+    if (url.includes("/1000000")) return response(detail);
+    return response(page());
+  });
+  const find = (node, predicate) => {
+    if (predicate(node)) return node;
+    for (const child of node.children) {
+      const found = find(child, predicate);
+      if (found) return found;
+    }
+    return null;
+  };
+  await ui.element("moderation-list").children[0].children.at(-1).listeners.click();
+  const reason = find(ui.element("moderation-detail"), (node) => node.tagName === "textarea");
+  // The minimal DOM records the generated element type for locating the required field.
+  assert.ok(reason);
+  reason.value = "Motivo de prueba";
+  const hide = find(
+    ui.element("moderation-detail"),
+    (node) => node.textContent === "Ocultar publicación",
+  );
+  await hide.listeners.click();
+  const post = ui.requests.find((request) => request.options.method === "POST");
+  assert.equal(post.options.headers["X-CSRF-TOKEN"], "csrf-demo");
+  assert.equal(JSON.parse(post.options.body).reason, "Motivo de prueba");
+  assert.match(ui.element("moderation-message").textContent, /Decisión registrada/);
+});
+
+test("logout cancela una decisión que aún renueva CSRF o espera respuesta", async () => {
+  const detail = {
+    context: { publication: publication(), visible: true },
+    reports: [],
+    history: [],
+  };
+  const find = (node, predicate) => {
+    if (predicate(node)) return node;
+    for (const child of node.children) {
+      const found = find(child, predicate);
+      if (found) return found;
+    }
+    return null;
+  };
+  let finishCsrf;
+  const waitingForCsrf = await setup(async (url) => {
+    if (url === "/csrf") return new Promise((resolve) => (finishCsrf = resolve));
+    if (url.includes("/1000000")) return response(detail);
+    return response(page());
+  });
+  await waitingForCsrf.element("moderation-list").children[0].children.at(-1).listeners.click();
+  const reason = find(
+    waitingForCsrf.element("moderation-detail"),
+    (node) => node.tagName === "textarea",
+  );
+  reason.value = "Motivo";
+  const hide = find(
+    waitingForCsrf.element("moderation-detail"),
+    (node) => node.textContent === "Ocultar publicación",
+  );
+  const csrfAction = hide.listeners.click();
+  await flush();
+  waitingForCsrf.element("operator-logout").listeners.submit();
+  finishCsrf(response({ parameterName: "_csrf", headerName: "X-CSRF-TOKEN", token: "csrf" }));
+  await csrfAction;
+  assert.equal(
+    waitingForCsrf.requests.some((request) => request.options.method === "POST"),
+    false,
+  );
+  assert.equal(waitingForCsrf.element("moderation-detail").children.length, 0);
+
+  let finishPost;
+  const waitingForPost = await setup(async (url, options) => {
+    if (url === "/csrf")
+      return response({ parameterName: "_csrf", headerName: "X-CSRF-TOKEN", token: "csrf" });
+    if (options.method === "POST") return new Promise((resolve) => (finishPost = resolve));
+    if (url.includes("/1000000")) return response(detail);
+    return response(page());
+  });
+  await waitingForPost.element("moderation-list").children[0].children.at(-1).listeners.click();
+  const postReason = find(
+    waitingForPost.element("moderation-detail"),
+    (node) => node.tagName === "textarea",
+  );
+  postReason.value = "Motivo";
+  const postButton = find(
+    waitingForPost.element("moderation-detail"),
+    (node) => node.textContent === "Ocultar publicación",
+  );
+  const pendingAction = postButton.listeners.click();
+  await flush();
+  waitingForPost.element("operator-logout").listeners.submit();
+  finishPost(response({ action: "HIDE" }));
+  await pendingAction;
+  assert.equal(waitingForPost.element("moderation-detail").children.length, 0);
+  assert.doesNotMatch(
+    waitingForPost.element("moderation-message").textContent,
+    /Decisión registrada/,
   );
 });
 

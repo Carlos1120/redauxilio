@@ -14,9 +14,11 @@ class CsrfTokenController {
   ResponseEntity<CsrfTokenView> freshToken(@RequestAttribute("_csrf") CsrfToken csrfToken) {
     return ResponseEntity.ok()
         .cacheControl(CacheControl.noStore())
-        .body(new CsrfTokenView(csrfToken.getParameterName(), csrfToken.getToken()));
+        .body(
+            new CsrfTokenView(
+                csrfToken.getParameterName(), csrfToken.getHeaderName(), csrfToken.getToken()));
   }
 
   /** Respuesta privada de caché para actualizar el campo CSRF del formulario actual. */
-  record CsrfTokenView(String parameterName, String token) {}
+  record CsrfTokenView(String parameterName, String headerName, String token) {}
 }

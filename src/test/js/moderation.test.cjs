@@ -21,6 +21,8 @@ function response(data, status = 200, redirected = false, reference = null) {
 function publication(id = 1000000) {
   return {
     id,
+    category: "ASSISTANCE",
+    assistanceSubtype: "SHELTER",
     title: "Caso ficticio",
     description: "Contexto",
     location: "Zona ficticia",
@@ -66,7 +68,10 @@ async function setup(implementation = async () => response(page())) {
       addEventListener(event, fn) {
         this.listeners[event] = fn;
       },
-      setAttribute() {},
+      attributes: {},
+      setAttribute(name, value) {
+        this.attributes[name] = value;
+      },
       focus() {
         this.focused = true;
       },
@@ -134,7 +139,7 @@ test("cola privada muestra dimensiones y contexto como texto, sin escribir ni ca
     decisions: [],
   };
   const ui = await setup(async (url) => response(url.includes("/1000000") ? detail : page()));
-  assert.match(dump(ui.element("moderation-list")), /EN_REVISION.*CONFIRMADA/);
+  assert.match(dump(ui.element("moderation-list")), /En revisión.*Confirmada por la comunidad/);
   assert.match(dump(ui.element("moderation-list")), /Oculta.*3 denuncias activas/);
   const card = ui.element("moderation-list").children[0];
   await card.children.at(-1).listeners.click();
@@ -256,6 +261,10 @@ test("una decisión usa motivo obligatorio, CSRF y espera confirmación del serv
     (node) => node.textContent === "Ocultar publicación",
   );
   await hide.listeners.click();
+  await find(
+    ui.element("moderation-detail"),
+    (node) => node.textContent === "Confirmar decisión",
+  ).listeners.click();
   const post = ui.requests.find((request) => request.options.method === "POST");
   assert.equal(post.options.headers["X-CSRF-TOKEN"], "csrf-demo");
   assert.equal(JSON.parse(post.options.body).reason, "Motivo de prueba");
@@ -292,7 +301,11 @@ test("logout cancela una decisión que aún renueva CSRF o espera respuesta", as
     waitingForCsrf.element("moderation-detail"),
     (node) => node.textContent === "Ocultar publicación",
   );
-  const csrfAction = hide.listeners.click();
+  await hide.listeners.click();
+  const csrfAction = find(
+    waitingForCsrf.element("moderation-detail"),
+    (node) => node.textContent === "Confirmar decisión",
+  ).listeners.click();
   await flush();
   waitingForCsrf.element("operator-logout").listeners.submit();
   finishCsrf(response({ parameterName: "_csrf", headerName: "X-CSRF-TOKEN", token: "csrf" }));
@@ -321,7 +334,11 @@ test("logout cancela una decisión que aún renueva CSRF o espera respuesta", as
     waitingForPost.element("moderation-detail"),
     (node) => node.textContent === "Ocultar publicación",
   );
-  const pendingAction = postButton.listeners.click();
+  await postButton.listeners.click();
+  const pendingAction = find(
+    waitingForPost.element("moderation-detail"),
+    (node) => node.textContent === "Confirmar decisión",
+  ).listeners.click();
   await flush();
   waitingForPost.element("operator-logout").listeners.submit();
   finishPost(response({ action: "HIDE" }));
@@ -501,7 +518,7 @@ test("revisión manual espera servidor, renueva CSRF y refresca cola sin denunci
   assert.equal(ui.element("manual-review-submit").disabled, false);
   assert.ok(ui.requests.some((r) => r.url.includes("offset=0")));
   assert.match(dump(ui.element("moderation-list")), /0 denuncias activas \/ 0 totales/);
-  assert.match(dump(ui.element("moderation-detail")), /REVIEW.*Revisar contexto/);
+  assert.match(dump(ui.element("moderation-detail")), /Envío a revisión.*Revisar contexto/);
 });
 
 test("revisión manual valida campos, rechazos y desconexión sin falso éxito", async () => {
@@ -584,6 +601,134 @@ test("revisión manual cancelada durante CSRF no escribe; un fallo de red nunca 
   assert.match(network.element("moderation-message").textContent, /No se pudo/);
   assert.doesNotMatch(network.element("moderation-message").textContent, /enviada a revisión/);
   assert.equal(network.element("manual-review-submit").disabled, false);
+});
+
+/** El dashboard conserva contratos privados; la confirmación es una protección visual local. */
+test("cancelar ocultamiento o cierre no solicita CSRF ni escribe; KEEP sin denuncias es explícito", async () => {
+  const detail = {
+    context: { publication: publication(), visible: true, activeReports: 0 },
+    reports: [],
+    history: [],
+    decisions: [],
+  };
+  const ui = await setup(async (url) => response(url.endsWith("/1000000") ? detail : page()));
+  await ui.element("moderation-list").children[0].children.at(-1).listeners.click();
+  const all = [];
+  function collect(node) {
+    all.push(node);
+    node.children.forEach(collect);
+  }
+  collect(ui.element("moderation-detail"));
+  assert.ok(all.some((n) => n.textContent === "Finalizar revisión y mantener publicación"));
+  const reason = all.find((n) => n.tagName === "textarea");
+  reason.value = "Motivo ficticio";
+  for (const label of ["Ocultar publicación", "Cerrar según estado terminal"])
+    await all.find((n) => n.textContent === label).listeners.click();
+  await all.find((n) => n.textContent === "Cancelar").listeners.click();
+  assert.match(ui.element("moderation-message").textContent, /Decisión cancelada/);
+  await all.find((n) => n.textContent === "Ocultar publicación").listeners.click();
+  const confirmation = all.find((n) => n.className === "operator-confirmation");
+  assert.equal(confirmation.hidden, false);
+  confirmation.listeners.keydown({ key: "Escape", preventDefault() {} });
+  assert.equal(confirmation.hidden, true);
+  assert.equal(reason.focused, true);
+  assert.ok(ui.requests.every((r) => !r.options.method && r.url !== "/csrf"));
+  assert.doesNotMatch(ui.element("moderation-message").textContent, /Decisión registrada/);
+});
+
+test("tarjeta identifica ID y categoría; historial muestra cambios y pliega el original hostil", async () => {
+  const detail = {
+    context: { publication: publication(), visible: true, activeReports: 0 },
+    reports: [],
+    history: [],
+    decisions: [
+      {
+        action: "CORRECT",
+        actedAt: "2026-11-02T18:00:00Z",
+        actorId: 4,
+        reason: "Motivo",
+        beforeSnapshot: JSON.stringify({ title: "Antes", reviewStatus: "EN_REVISION" }),
+        afterSnapshot: JSON.stringify({
+          title: "<img onerror=alert(1)>",
+          reviewStatus: "SIN_REVISION",
+          internal: "solo-tecnico",
+        }),
+      },
+    ],
+  };
+  const ui = await setup(async (url) => response(url.endsWith("/1000000") ? detail : page()));
+  assert.match(dump(ui.element("moderation-list")), /#1000000.*Punto de asistencia/);
+  await ui.element("moderation-list").children[0].children.at(-1).listeners.click();
+  const all = [];
+  function collect(node) {
+    all.push(node);
+    node.children.forEach(collect);
+  }
+  collect(ui.element("moderation-detail"));
+  assert.ok(all.some((n) => n.textContent === "Antes: Antes"));
+  assert.ok(all.some((n) => n.textContent === "Después: <img onerror=alert(1)>"));
+  const technical = all.find(
+    (n) =>
+      n.tagName === "details" &&
+      n.children[0]?.textContent === "Detalle técnico · registro original",
+  );
+  assert.ok(technical);
+  assert.notEqual(technical.open, true);
+  assert.match(dump(technical), /solo-tecnico/);
+  assert.ok(all.filter((n) => n.tagName === "pre").every((n) => technical.children.includes(n)));
+  assert.equal(
+    ui.element("moderation-list").children[0].children.at(-1).attributes["aria-pressed"],
+    "true",
+  );
+});
+
+test("CSS de operador se carga después del compartido y no se incorpora al service worker", () => {
+  const html = fs.readFileSync(
+    path.join(__dirname, "../../main/resources/templates/moderation.html"),
+    "utf8",
+  );
+  const sw = fs.readFileSync(path.join(__dirname, "../../main/resources/static/sw.js"), "utf8");
+  assert.ok(html.indexOf('href="/app.css"') < html.indexOf('href="/moderation.css"'));
+  assert.doesNotMatch(sw, /["']\/moderation\.(css|js)["']/);
+  assert.match(html, /id="manual-review-form"/);
+});
+
+test("logout durante refresco posterior a una decisión no anuncia éxito ni repuebla contexto", async () => {
+  let finishQueue,
+    queueReads = 0;
+  const detail = {
+    context: { publication: publication(), visible: true },
+    reports: [],
+    history: [],
+    decisions: [],
+  };
+  const ui = await setup(async (url, options) => {
+    if (url === "/csrf") return response({ headerName: "X-CSRF-TOKEN", token: "t" });
+    if (options.method === "POST") return response({ action: "HIDE" });
+    if (url.endsWith("/1000000")) return response(detail);
+    if (++queueReads > 1)
+      return new Promise((resolve) => {
+        finishQueue = resolve;
+      });
+    return response(page());
+  });
+  await ui.element("moderation-list").children[0].children.at(-1).listeners.click();
+  const all = [];
+  function collect(node) {
+    all.push(node);
+    node.children.forEach(collect);
+  }
+  collect(ui.element("moderation-detail"));
+  all.find((n) => n.tagName === "textarea").value = "Motivo";
+  await all.find((n) => n.textContent === "Ocultar publicación").listeners.click();
+  const pending = all.find((n) => n.textContent === "Confirmar decisión").listeners.click();
+  await flush();
+  ui.element("operator-logout").listeners.submit();
+  finishQueue(response(page()));
+  await pending;
+  assert.equal(ui.element("moderation-detail").children.length, 0);
+  assert.equal(ui.element("moderation-list").children.length, 0);
+  assert.doesNotMatch(ui.element("moderation-message").textContent, /Decisión registrada/);
 });
 
 test("script sin página operativa no consulta ni altera la pantalla pública", () => {

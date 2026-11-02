@@ -31,6 +31,51 @@
     return node;
   }
 
+  const stateLabels = {
+    EN_REVISION: "En revisión",
+    SIN_REVISION: "Sin alerta de revisión",
+    CONFIRMADA: "Confirmada por la comunidad",
+    REPORTADA: "Reportada",
+    VERIFICADA: "Verificada oficialmente",
+  };
+  const display = (value) =>
+    value === null || value === undefined
+      ? "Sin dato"
+      : typeof value === "boolean"
+        ? value
+          ? "Sí"
+          : "No"
+        : (stateLabels[value] ?? String(value));
+  const categoryName = (value) =>
+    ({
+      ASSISTANCE: "Punto de asistencia",
+      ROAD: "Vía afectada",
+      MISSING_PERSON: "Persona desaparecida",
+      HELP_REQUEST: "Solicitud de ayuda",
+    })[value] ??
+    value ??
+    "Publicación ciudadana";
+  function formatDate(value) {
+    const date = new Date(value);
+    return Number.isNaN(date.getTime())
+      ? String(value ?? "Sin fecha")
+      : date.toLocaleString("es-CO");
+  }
+  function badges(p) {
+    const group = text("div", "");
+    group.className = "operator-badges";
+    for (const [label, value, kind] of [
+      ["Revisión", p.reviewStatus, "review"],
+      ["Confianza", p.confidenceLevel, "trust"],
+      ["Estado operativo", p.operationalStatus, "state"],
+    ]) {
+      const badge = text("span", `${label}: ${display(value)}`);
+      badge.className = `operator-badge operator-badge--${kind === "trust" && !["CONFIRMADA", "VERIFICADA"].includes(value) ? "state" : kind}`;
+      group.append(badge);
+    }
+    return group;
+  }
+
   async function read(url) {
     const response = await fetch(url, {
       credentials: "same-origin",
@@ -100,22 +145,35 @@
         const p = item.publication;
         const card = text("article", "");
         card.className = "report-card";
+        const meta = text("div", "");
+        meta.className = "operator-card-meta";
+        meta.append(text("span", `#${p.id}`), text("span", categoryName(p.category)));
         card.append(
+          meta,
           text("h3", p.title),
-          text("p", `${p.reviewStatus} · ${p.confidenceLevel} · ${p.operationalStatus}`),
+          badges(p),
           text(
             "p",
             `${item.visible ? "Visible" : "Oculta"} · ${p.closed ? "Cerrada" : "Abierta"} · ${item.activeReports} denuncias activas / ${item.totalReports} totales`,
           ),
         );
-        const button = text("button", `Consultar contexto de ${p.title}`);
+        const button = text("button", "Abrir caso →");
         button.type = "button";
+        button.className = "secondary-button";
+        button.value = String(p.id);
+        button.setAttribute("aria-label", `Consultar contexto de ${p.title}`);
+        button.setAttribute("aria-pressed", "false");
         button.addEventListener("click", () => loadDetail(p.id));
         card.append(button);
         list.append(card);
       }
       get("moderation-previous").disabled = offset === 0;
       get("moderation-next").disabled = !page.hasMore;
+      if (!page.items.length) {
+        const empty = text("p", "Bandeja al día. No hay casos en revisión en esta página.");
+        empty.className = "operator-empty";
+        list.append(empty);
+      }
       list.setAttribute("aria-busy", "false");
       message.textContent = page.items.length
         ? `${page.items.length} casos en esta página.`
@@ -131,16 +189,43 @@
     const version = generation;
     const selected = ++selection;
     detail.replaceChildren();
+    message.textContent = "Cargando contexto privado…";
     try {
       const data = await read(`/api/operator/publications/${id}`);
       if (version !== generation || selected !== selection) return false;
       const p = data.context.publication;
-      detail.append(
+      const summary = text("section", "");
+      summary.className = "operator-summary";
+      summary.append(
+        text("p", `#${p.id} · ${categoryName(p.category)}`),
         text("h3", p.title),
-        text("p", p.description),
-        text("p", `${p.location} · ${p.latitude}, ${p.longitude}`),
-        text("p", `Creada: ${p.createdAt}. Actualizada: ${p.updatedAt}.`),
+        badges(p),
       );
+      const description = text("p", p.description);
+      description.className = "operator-description";
+      const facts = text("dl", "");
+      facts.className = "operator-facts";
+      for (const [label, value] of [
+        ["Sector o lugar público", p.location],
+        ["Coordenadas", `${p.latitude}, ${p.longitude}`],
+        ["Visibilidad", data.context.visible ? "Visible" : "Oculta"],
+        ["Estado del caso", p.closed ? "Cerrado" : "Abierto"],
+        ["Fecha de creación", formatDate(p.createdAt)],
+        ["Última actualización", formatDate(p.updatedAt)],
+      ]) {
+        const fact = text("div", "");
+        fact.append(text("dt", label), text("dd", value));
+        facts.append(fact);
+      }
+      summary.append(description, facts);
+      detail.append(summary);
+      appendActions(detail, data.context);
+      // La selección se representa con atributo accesible y borde, nunca únicamente con color.
+      for (const card of list.children) {
+        const control = card.children[card.children.length - 1];
+        if (control?.tagName?.toLowerCase() === "button")
+          control.setAttribute("aria-pressed", String(control.value === String(p.id)));
+      }
       const isCurrent = () => version === generation && selected === selection;
       appendHistorySection(
         detail,
@@ -169,7 +254,6 @@
         id,
         isCurrent,
       );
-      appendActions(detail, data.context);
       detail.focus();
       message.textContent = "Contexto privado cargado.";
       return true;
@@ -180,29 +264,105 @@
   }
 
   /** Añade un registro privado con texto plano para el flujo seleccionado. */
+  /** Línea de tiempo textual: diferencias conocidas legibles y snapshots originales plegados. */
   function appendHistoryItem(stream, item, container) {
+    const entry = text("article", "");
+    entry.className = "operator-event";
+    container.append(entry);
     if (stream === "reports") {
-      container.append(
-        text("p", `${item.reportedAt} · ${item.active ? "Activa" : "Histórica"} · ${item.reason}`),
+      entry.append(
+        text("p", `${formatDate(item.reportedAt)} · ${item.active ? "Activa" : "Histórica"}`),
+        text("p", item.reason),
       );
       return;
     }
-    const date = stream === "changes" ? item.changedAt : item.actedAt;
-    const actor = stream === "changes" ? "actor interno" : "operador";
-    container.append(
+    const actionNames = {
+      REVIEW: "Envío a revisión",
+      KEEP: "Revisión finalizada",
+      CORRECT: "Corrección",
+      HIDE: "Ocultamiento",
+      RESTORE: "Restitución",
+      CLOSE: "Cierre",
+      REOPEN: "Reapertura",
+      EDIT: "Edición",
+      STATUS: "Cambio de estado",
+    };
+    entry.append(
       text(
         "p",
-        `${date} · ${item.action} · ${actor} ${item.actorId} · ${item.reason ?? "Sin motivo adicional"}`,
+        `${formatDate(stream === "changes" ? item.changedAt : item.actedAt)} · ${actionNames[item.action] ?? item.action} · ${stream === "changes" ? "actor interno" : "operador"} ${item.actorId}`,
       ),
+      text("p", item.reason ?? "Sin motivo adicional"),
+    );
+    try {
+      const before = JSON.parse(item.beforeSnapshot),
+        after = JSON.parse(item.afterSnapshot);
+      const labels = {
+        title: "Nombre o tramo",
+        description: "Descripción",
+        location: "Sector",
+        latitude: "Latitud",
+        longitude: "Longitud",
+        status: "Estado operativo",
+        operationalStatus: "Estado operativo",
+        visible: "Visibilidad",
+        closed: "Caso cerrado",
+        reviewStatus: "Revisión de contenido",
+        confidenceLevel: "Confianza",
+        activeReports: "Denuncias activas",
+        assistanceSubtype: "Subtipo",
+        impactType: "Afectación",
+        confirmationVersion: "Versión de confirmación",
+      };
+      let changes = 0;
+      for (const [key, label] of Object.entries(labels)) {
+        if (
+          !before ||
+          !after ||
+          (!Object.hasOwn(before, key) && !Object.hasOwn(after, key)) ||
+          JSON.stringify(before[key]) === JSON.stringify(after[key])
+        )
+          continue;
+        const change = text("div", "");
+        change.className = "operator-change";
+        const previous = text("span", `Antes: ${display(before[key])}`);
+        previous.className = "operator-before";
+        change.append(
+          text("strong", label),
+          previous,
+          text("span", `Después: ${display(after[key])}`),
+        );
+        entry.append(change);
+        changes++;
+      }
+      if (!changes)
+        entry.append(
+          text("p", "Sin cambios en los campos resumidos. Consulta el detalle técnico."),
+        );
+    } catch {
+      entry.append(
+        text(
+          "p",
+          "Resumen no disponible para este registro histórico. Consulta el detalle técnico.",
+        ),
+      );
+    }
+    const technical = text("details", "");
+    technical.append(
+      text("summary", "Detalle técnico · registro original"),
       text("pre", `Antes: ${item.beforeSnapshot}\nDespués: ${item.afterSnapshot}`),
     );
+    entry.append(technical);
   }
 
   /** Carga páginas anteriores sin almacenar datos y descarta respuestas de otro contexto. */
   function appendHistorySection(container, title, stream, items, hasMore, id, isCurrent) {
     const section = document.createElement("section");
     const entries = document.createElement("div");
+    section.className = "operator-history";
+    entries.className = "operator-timeline";
     section.append(text("h3", title), entries);
+    if (!items.length) entries.append(text("p", "Sin registros en esta sección."));
     for (const item of items) appendHistoryItem(stream, item, entries);
     if (hasMore && items.length) {
       const loadButton = document.createElement("button");
@@ -256,7 +416,44 @@
     reason.required = true;
     reasonLabel.append(reason);
     section.append(reasonLabel);
-    const act = (action, operationalStatus, correction) => async () => {
+    // Confirmación accesible en la propia página: se limpia con el contexto y no bloquea el navegador.
+    const confirmation = text("div", "");
+    confirmation.className = "operator-confirmation";
+    confirmation.hidden = true;
+    confirmation.setAttribute("role", "group");
+    confirmation.setAttribute("aria-label", "Confirmar decisión");
+    const confirmationText = text("p", "");
+    const confirmButton = text("button", "Confirmar decisión");
+    const cancelButton = text("button", "Cancelar");
+    confirmButton.type = cancelButton.type = "button";
+    confirmButton.className = "operator-action--danger";
+    cancelButton.className = "secondary-button";
+    let confirmDecision = null,
+      returnFocus = reason;
+    confirmButton.addEventListener("click", async () => {
+      const apply = confirmDecision;
+      confirmDecision = null;
+      confirmation.hidden = true;
+      if (apply) await apply();
+    });
+    const cancelConfirmation = () => {
+      confirmDecision = null;
+      confirmation.hidden = true;
+      message.textContent = "Decisión cancelada. No se enviaron cambios.";
+      returnFocus.focus();
+    };
+    cancelButton.addEventListener("click", cancelConfirmation);
+    confirmation.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        cancelConfirmation();
+      }
+    });
+    confirmation.append(confirmationText, confirmButton, cancelButton);
+    section.append(confirmation);
+    let pending = false;
+    const act = (action, operationalStatus, correction) => async (confirmed) => {
+      if (pending) return;
       const version = generation;
       const selected = selection;
       const isCurrent = () => version === generation && selected === selection;
@@ -265,6 +462,19 @@
         reason.focus();
         return;
       }
+      if ((action === "HIDE" || action === "CLOSE") && confirmed !== true) {
+        confirmationText.textContent = `${action === "HIDE" ? "Ocultar" : "Cerrar"} publicación #${p.id}. Se conservarán el historial y el motivo. Confirma para aplicar la decisión.`;
+        returnFocus = confirmed?.currentTarget ?? reason;
+        confirmDecision = () =>
+          isCurrent() ? act(action, operationalStatus, correction)(true) : undefined;
+        confirmation.hidden = false;
+        confirmButton.focus();
+        return;
+      }
+      confirmDecision = null;
+      confirmation.hidden = true;
+      if (!isCurrent()) return;
+      pending = true;
       message.textContent = "Guardando decisión…";
       try {
         const applied = await decide(
@@ -278,24 +488,41 @@
           isCurrent,
         );
         if (!applied || !isCurrent()) return;
-        await loadQueue();
-        await loadDetail(p.id);
-        message.textContent = "Decisión registrada con auditoría.";
+        const refreshed = generation + 1;
+        if (!(await loadQueue()) || generation !== refreshed) return;
+        const nextSelection = selection + 1;
+        if ((await loadDetail(p.id)) && generation === refreshed && selection === nextSelection)
+          message.textContent = "Decisión registrada con auditoría.";
       } catch (error) {
+        if (!isCurrent()) return;
         if (error.status === 400 || error.status === 409) {
-          await loadDetail(p.id);
-          message.textContent = "La decisión no se aplicó. Actualiza el caso y revisa sus reglas.";
+          const nextSelection = selection + 1;
+          if ((await loadDetail(p.id)) && isCurrent() && selection === nextSelection)
+            message.textContent =
+              "La decisión no se aplicó. Actualiza el caso y revisa sus reglas.";
         } else failed(error);
+      } finally {
+        pending = false;
       }
     };
     const button = (label, action, status, correction) => {
       const control = text("button", label);
       control.type = "button";
+      control.className = ["HIDE", "CLOSE"].includes(action)
+        ? "operator-action--danger"
+        : ["KEEP", "RESTORE"].includes(action)
+          ? "operator-action--positive"
+          : "secondary-button";
       control.addEventListener("click", act(action, status, correction));
       section.append(control);
     };
     if (p.reviewStatus === "EN_REVISION")
-      button("Mantener publicación y resolver denuncias activas", "KEEP");
+      button(
+        context.activeReports === 0
+          ? "Finalizar revisión y mantener publicación"
+          : "Mantener publicación y resolver denuncias activas",
+        "KEEP",
+      );
     if (!p.closed) {
       const correction = document.createElement("details");
       correction.append(text("summary", "Preparar corrección sustancial"));

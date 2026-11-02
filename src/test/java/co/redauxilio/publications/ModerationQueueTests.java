@@ -776,6 +776,214 @@ class ModerationQueueTests {
     return new Round(id, reporter);
   }
 
+  /** RF-16 entra sin denuncias, conserva respaldos y permite auditar incluso tras KEEP. */
+  @Test
+  void manualReviewWithoutReportsPreservesDataAndPrivateHistory() throws Exception {
+    long id = publication();
+    for (int i = 0; i < 3; i++)
+      jdbc.update(
+          "INSERT INTO publication_confirmation (publication_id, publication_version, confirmer_id, confirmed_at) VALUES (?, 1, ?, ?)",
+          id,
+          accountId(account()),
+          Timestamp.from(Instant.now()));
+    var before = jdbc.queryForMap("SELECT * FROM citizen_publication WHERE id = ?", id);
+    var confirmations =
+        jdbc.queryForList("SELECT * FROM publication_confirmation WHERE publication_id = ?", id);
+    decide(id, "REVIEW", "  Revisar contexto sin denuncias  ", null, null)
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.reviewStatus").value("EN_REVISION"));
+    var after = jdbc.queryForMap("SELECT * FROM citizen_publication WHERE id = ?", id);
+    before.put("review_status", "EN_REVISION");
+    assertEquals(before, after);
+    assertEquals(
+        confirmations,
+        jdbc.queryForList("SELECT * FROM publication_confirmation WHERE publication_id = ?", id));
+    assertEquals(0, activeReports(id));
+    mvc.perform(get("/api/operator/publications").with(user(operator).roles("OPERATOR")))
+        .andExpect(jsonPath("$.items[0].publication.confidenceLevel").value("CONFIRMADA"))
+        .andExpect(jsonPath("$.items[0].activeReports").value(0))
+        .andExpect(jsonPath("$.items[0].totalReports").value(0));
+    var audit =
+        jdbc.queryForMap(
+            "SELECT * FROM publication_moderation_action WHERE publication_id = ?", id);
+    assertEquals("REVIEW", audit.get("action"));
+    assertEquals(accountId(operator), ((Number) audit.get("actor_id")).longValue());
+    assertEquals("Revisar contexto sin denuncias", audit.get("reason"));
+    assertNotNull(audit.get("acted_at"));
+    assertEquals(
+        "SIN_REVISION",
+        json.readTree((String) audit.get("before_snapshot")).path("reviewStatus").asText());
+    assertEquals(
+        "EN_REVISION",
+        json.readTree((String) audit.get("after_snapshot")).path("reviewStatus").asText());
+    decide(id, "REVIEW", "Repetida", null, null).andExpect(status().isConflict());
+    assertEquals(
+        1,
+        jdbc.queryForObject(
+            "SELECT COUNT(*) FROM publication_moderation_action WHERE publication_id = ?",
+            Integer.class,
+            id));
+    decide(id, "KEEP", "Mantener caso revisado", null, null).andExpect(status().isOk());
+    mvc.perform(get("/api/operator/publications/{id}", id).with(user(operator).roles("OPERATOR")))
+        .andExpect(status().isOk())
+        .andExpect(header().string("Cache-Control", "no-store"))
+        .andExpect(jsonPath("$.decisions.length()").value(2))
+        .andExpect(jsonPath("$.decisions[1].action").value("REVIEW"));
+    mvc.perform(get("/api/publications/{id}", id))
+        .andExpect(
+            content()
+                .string(
+                    org.hamcrest.Matchers.not(
+                        org.hamcrest.Matchers.containsString("Revisar contexto sin denuncias"))));
+  }
+
+  /** Rechazos no dejan cambios ni eventos; el permiso persistente se comprueba por petición. */
+  @Test
+  void manualReviewRejectsInvalidInputAndUnauthorizedRequests() throws Exception {
+    long id = publication();
+    String path = "/api/operator/publications/" + id + "/actions";
+    String body = "{\"action\":\"REVIEW\",\"reason\":\"Motivo\"}";
+    mvc.perform(post(path).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(body))
+        .andExpect(status().isUnauthorized());
+    mvc.perform(
+            post(path)
+                .with(user(operator))
+                .with(csrf())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(body))
+        .andExpect(status().isForbidden());
+    mvc.perform(
+            post(path)
+                .with(user(account()).roles("OPERATOR"))
+                .with(csrf())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(body))
+        .andExpect(status().isForbidden());
+    mvc.perform(
+            post(path)
+                .with(user(operator).roles("OPERATOR"))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(body))
+        .andExpect(status().isForbidden());
+    for (String reason : List.of("", "   ", "x".repeat(501)))
+      decide(id, "REVIEW", reason, null, null).andExpect(status().isBadRequest());
+    for (long absent : new long[] {0, -1, 1, Long.MAX_VALUE})
+      decide(absent, "REVIEW", "Motivo", null, null).andExpect(status().is4xxClientError());
+    assertEquals(
+        "SIN_REVISION",
+        jdbc.queryForObject(
+            "SELECT review_status FROM citizen_publication WHERE id = ?", String.class, id));
+    assertEquals(
+        0,
+        jdbc.queryForObject(
+            "SELECT COUNT(*) FROM publication_moderation_action WHERE publication_id = ?",
+            Integer.class,
+            id));
+    operators.provision(
+        accountId(operator),
+        operator,
+        "REVOKE",
+        "Equipo de prueba",
+        "Retiro de fixture",
+        UUID.randomUUID().toString());
+    decide(id, "REVIEW", "Motivo", null, null).andExpect(status().isForbidden());
+  }
+
+  /** El fallo SQL de auditoría revierte la revisión; ambos límites de motivo son válidos. */
+  @Test
+  void manualReviewRollsBackWhenAuditFailsAndAcceptsReasonBounds() throws Exception {
+    long id = publication();
+    jdbc.execute(
+        "ALTER TABLE publication_moderation_action ADD CONSTRAINT reject_manual_review CHECK (action <> 'REVIEW')");
+    try {
+      decide(id, "REVIEW", "Motivo", null, null).andExpect(status().isInternalServerError());
+    } finally {
+      jdbc.execute(
+          "ALTER TABLE publication_moderation_action DROP CONSTRAINT reject_manual_review");
+    }
+    assertEquals(
+        "SIN_REVISION",
+        jdbc.queryForObject(
+            "SELECT review_status FROM citizen_publication WHERE id = ?", String.class, id));
+    assertEquals(
+        0,
+        jdbc.queryForObject(
+            "SELECT COUNT(*) FROM publication_moderation_action WHERE publication_id = ?",
+            Integer.class,
+            id));
+    decide(id, "REVIEW", "x", null, null).andExpect(status().isOk());
+    decide(id, "KEEP", "Resuelto", null, null).andExpect(status().isOk());
+    decide(id, "REVIEW", "x".repeat(500), null, null).andExpect(status().isOk());
+  }
+
+  /** Una revisión manual no resuelve denuncias previas ni restituye o reabre contenido. */
+  @Test
+  void manualReviewPreservesReportsOnHiddenClosedCase() throws Exception {
+    long id = publication();
+    report(id);
+    report(id);
+    jdbc.update(
+        "UPDATE citizen_publication SET visible = FALSE, closed = TRUE, operational_status = 'CERRADO' WHERE id = ?",
+        id);
+    var before = jdbc.queryForMap("SELECT * FROM citizen_publication WHERE id = ?", id);
+    var reports =
+        jdbc.queryForList(
+            "SELECT * FROM publication_content_report WHERE publication_id = ? ORDER BY id", id);
+    decide(id, "REVIEW", "Revisar caso histórico", null, null).andExpect(status().isOk());
+    before.put("review_status", "EN_REVISION");
+    assertEquals(before, jdbc.queryForMap("SELECT * FROM citizen_publication WHERE id = ?", id));
+    assertEquals(
+        reports,
+        jdbc.queryForList(
+            "SELECT * FROM publication_content_report WHERE publication_id = ? ORDER BY id", id));
+    assertEquals(2, activeReports(id));
+    assertEquals(
+        0,
+        jdbc.queryForObject(
+            "SELECT COUNT(*) FROM publication_confirmation_invalidation WHERE publication_id = ?",
+            Integer.class,
+            id));
+  }
+
+  /** El bloqueo existente serializa dos operadores; solo el primero genera auditoría. */
+  @Test
+  void manualReviewConcurrentDuplicateCreatesOneAudit() throws Exception {
+    long id = publication();
+    var start = new java.util.concurrent.CountDownLatch(1);
+    var pool = java.util.concurrent.Executors.newFixedThreadPool(2);
+    java.util.concurrent.Callable<Boolean> attempt =
+        () -> {
+          assertTrue(start.await(5, java.util.concurrent.TimeUnit.SECONDS));
+          try {
+            actions.act(
+                id,
+                operator,
+                new ModerationActionService.ActionRequest(
+                    "REVIEW", "Revisión concurrente", null, null));
+            return true;
+          } catch (org.springframework.web.server.ResponseStatusException rejected) {
+            assertEquals(409, rejected.getStatusCode().value());
+            return false;
+          }
+        };
+    try {
+      var first = pool.submit(attempt);
+      var second = pool.submit(attempt);
+      start.countDown();
+      assertNotEquals(
+          first.get(10, java.util.concurrent.TimeUnit.SECONDS),
+          second.get(10, java.util.concurrent.TimeUnit.SECONDS));
+      assertEquals(
+          1,
+          jdbc.queryForObject(
+              "SELECT COUNT(*) FROM publication_moderation_action WHERE publication_id = ?",
+              Integer.class,
+              id));
+    } finally {
+      pool.shutdownNow();
+    }
+  }
+
   private int activeReports(long id) {
     return jdbc.queryForObject(
         "SELECT COUNT(*) FROM publication_content_report WHERE publication_id = ? AND active_slot = 1",

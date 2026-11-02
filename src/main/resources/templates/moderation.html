@@ -30,6 +30,19 @@
         información sea falsa. Cada decisión requiere motivo y queda en auditoría privada.
       </p>
       <p id="moderation-message" role="status" aria-live="polite">Preparando consulta privada…</p>
+      <form
+        id="manual-review-form"
+        class="moderation-decision"
+        aria-labelledby="manual-review-title"
+      >
+        <h2 id="manual-review-title">Enviar publicación a revisión</h2>
+        <p>Introduce el ID de una publicación ciudadana. No necesita denuncias previas.</p>
+        <label for="manual-review-id">ID de publicación</label>
+        <input id="manual-review-id" type="number" min="1000000" step="1" required />
+        <label for="manual-review-reason">Motivo obligatorio (máximo 500 caracteres)</label>
+        <textarea id="manual-review-reason" maxlength="500" required></textarea>
+        <button id="manual-review-submit" type="submit">Enviar a revisión</button>
+      </form>
       <div class="moderation-controls">
         <button id="moderation-refresh" type="button">Actualizar cola</button>
         <button id="moderation-previous" type="button" class="secondary-button" disabled>

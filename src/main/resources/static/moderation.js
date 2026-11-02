@@ -1,4 +1,4 @@
-/* Cola RA-08 de solo lectura: no persiste datos privados ni ejecuta decisiones administrativas. */
+/* Cola y decisiones RA-08: datos privados efímeros y confirmación explícita del servidor. */
 (() => {
   const get = (id) => document.getElementById(id);
   if (!get("moderation-workspace")) return;
@@ -17,6 +17,8 @@
     list.replaceChildren();
     detail.replaceChildren();
     events.replaceChildren();
+    get("manual-review-id").value = "";
+    get("manual-review-reason").value = "";
     list.setAttribute("aria-busy", "false");
     get("moderation-next").disabled = true;
     get("moderation-previous").disabled = true;
@@ -85,14 +87,14 @@
     clearPrivate();
     if (!navigator.onLine) {
       message.textContent = "Sin conexión. La cola privada no está disponible.";
-      return;
+      return false;
     }
     const version = generation;
     message.textContent = "Consultando cola privada…";
     list.setAttribute("aria-busy", "true");
     try {
       const page = await read(`/api/operator/publications?limit=20&offset=${nextOffset}`);
-      if (version !== generation) return;
+      if (version !== generation) return false;
       offset = page.offset;
       for (const item of page.items) {
         const p = item.publication;
@@ -116,10 +118,12 @@
       get("moderation-next").disabled = !page.hasMore;
       list.setAttribute("aria-busy", "false");
       message.textContent = page.items.length
-        ? `${page.items.length} casos en esta página. Solo lectura.`
+        ? `${page.items.length} casos en esta página.`
         : "No hay casos en revisión en esta página.";
+      return true;
     } catch (error) {
       if (version === generation) failed(error);
+      return false;
     }
   }
 
@@ -129,7 +133,7 @@
     detail.replaceChildren();
     try {
       const data = await read(`/api/operator/publications/${id}`);
-      if (version !== generation || selected !== selection) return;
+      if (version !== generation || selected !== selection) return false;
       const p = data.context.publication;
       detail.append(
         text("h3", p.title),
@@ -168,8 +172,10 @@
       appendActions(detail, data.context);
       detail.focus();
       message.textContent = "Contexto privado cargado.";
+      return true;
     } catch (error) {
       if (version === generation && selected === selection) failed(error);
+      return false;
     }
   }
 
@@ -402,6 +408,53 @@
       if (version === generation) failed(error);
     }
   }
+
+  /** RF-16: valida ID/motivo, renueva CSRF y solo anuncia éxito tras persistir; no guarda borrador. */
+  get("manual-review-form").addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const submit = get("manual-review-submit");
+    if (submit.disabled) return;
+    const id = get("manual-review-id").value.trim();
+    const reason = get("manual-review-reason").value.trim();
+    if (
+      !/^\d+$/.test(id) ||
+      !Number.isSafeInteger(Number(id)) ||
+      Number(id) < 1000000 ||
+      !reason ||
+      reason.length > 500
+    ) {
+      message.textContent =
+        "Indica un ID ciudadano válido y un motivo de entre 1 y 500 caracteres.";
+      return;
+    }
+    if (!navigator.onLine) {
+      clearPrivate();
+      message.textContent = "Sin conexión. No se envió la publicación a revisión.";
+      return;
+    }
+    const version = generation;
+    const isCurrent = () => version === generation;
+    submit.disabled = true;
+    message.textContent = "Enviando publicación a revisión…";
+    try {
+      if (!(await decide(id, { action: "REVIEW", reason }, isCurrent)) || !isCurrent()) return;
+      const refreshed = generation + 1;
+      if (!(await loadQueue(0)) || generation !== refreshed) return;
+      // Abre el ID confirmado aunque la cola tenga más de una página, sin cambiar su orden.
+      const selected = selection + 1;
+      if ((await loadDetail(id)) && generation === refreshed && selection === selected)
+        message.textContent =
+          "Publicación enviada a revisión con auditoría. Contexto privado cargado.";
+    } catch (error) {
+      if (!isCurrent()) return;
+      if (error.status === 400 || error.status === 404 || error.status === 409)
+        message.textContent =
+          "No se aplicó la revisión. Comprueba el ID y el motivo; el caso puede estar ya en revisión.";
+      else failed(error);
+    } finally {
+      submit.disabled = false;
+    }
+  });
 
   get("moderation-refresh").addEventListener("click", () => loadQueue());
   get("moderation-next").addEventListener("click", () => loadQueue(offset + 20));

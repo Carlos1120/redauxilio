@@ -119,3 +119,7 @@ los recursos de esta presentación; no modifica almacenamiento de borradores ni 
 - [ ] El PR enlaza resultados, versión y responsable real; el compañero revisa antes de integrar.
 
 Cambiar la dirección visual global requiere actualizar esta guía, el CSS compartido y las pantallas afectadas en el mismo PR, con revisión del compañero. No se declara aceptación del equipo únicamente por editar este documento.
+
+## Panel de operador RA-08
+
+`/operator` carga `moderation.css` después de `app.css`, manteniendo Onest, rojo y tokens compartidos. Desde 1100 px usa cola lateral con desplazamiento propio y contexto principal; por debajo usa una columna y controles apilados en móvil. Sin métricas inventadas ni recursos privados en el service worker. Categoría/ID, revisión, confianza y estado se identifican por texto; selección con borde y aria-pressed. Historial en línea de tiempo: diferencias conocidas como texto y registro original solo en detalle técnico plegado. Ocultar/cerrar requieren confirmación integrada con cancelar/Escape y retorno de foco. Esta variante visual requiere aceptación humana; no cambia las reglas ni la dirección del mapa público.

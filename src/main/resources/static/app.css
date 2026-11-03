@@ -1886,3 +1886,9 @@ footer {
   color: var(--color-report-secondary);
   font-size: 14px;
 }
+
+/* RA-11/P2: ayuda ocupa una fila propia; no hereda las filas reservadas a ubicación.
+   La especificidad conserva esta regla también al alternar categorías o tamaño. */
+.draft-section form > #help-fields {
+  grid-row: auto;
+}

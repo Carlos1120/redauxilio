@@ -32,3 +32,21 @@ Carga pendiente: 1.000 publicaciones/20 usuarios con duración, calentamiento, e
 
 Registro: `Caso | versión/entorno | pasos | esperado | observado | estado | responsable | evidencia`.
 Conservar logs completos fuera del chat; mostrar resumen/errores pertinentes. Las capturas siguen la norma vigente, sin asumir integrado el PR #5. Actualizar traspaso; DoD y revisión humana siguen requisitos independientes.
+
+## Regresión de geometría del formulario RA-11
+
+`src/test/browser/publication-layout.mjs` se ejecuta contra un navegador real conectado a la instancia local cuyo SHA se haya identificado. No instala otro navegador ni dependencias. Usar una pestaña de prueba; el módulo no envía formularios, pero alterna categorías/tamaños temporalmente. Restaurar el viewport y la categoría al terminar. Las capturas complementan la comprobación automática.
+
+Desde el runtime autorizado del navegador integrado, con `tab` y `browser` ya seleccionados según su documentación:
+
+```js
+const { default: checkLayout } =
+  await import("file:///C:/ruta/redauxilio/src/test/browser/publication-layout.mjs");
+const results = await checkLayout({
+  page: tab.playwright,
+  setViewport: async (size) => (await browser.capabilities.get("viewport")).set(size),
+});
+await (await browser.capabilities.get("viewport")).reset();
+```
+
+Con Playwright local ya disponible se puede usar `page` y `setViewport: size => page.setViewportSize(size)`; no instalarlo por rutina ni eludir controles de acceso. La prueba verifica doce combinaciones dinámicas (tres tamaños × ASSISTANCE→ROAD→HELP_REQUEST→ASSISTANCE), intersección de bloques/controles visibles, recorte horizontal de textos, overflow y desactivación de grupos ocultos. Un error incluye `error.results` para conservar geometría incluso cuando falla. No forma parte de `npm test` ni del CI actual: exige navegador/instancia y su ejecución se registra separadamente. PWA/offline y accesibilidad completa no se deducen de esta prueba.

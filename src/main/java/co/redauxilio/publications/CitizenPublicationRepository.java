@@ -3,7 +3,6 @@ package co.redauxilio.publications;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.List;
@@ -92,7 +91,8 @@ class CitizenPublicationRepository {
                       + " (author_id, category, assistance_subtype, title, description, location,"
                       + " operational_status, impact_type, latitude, longitude, created_at, updated_at, closed, need_type, approximate_quantity, declared_urgency, requester_reference, reference_name, age_range, physical_description, last_seen_place, last_seen_at)"
                       + " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                  Statement.RETURN_GENERATED_KEYS);
+                  // PostgreSQL devuelve la fila completa si no se limita la clave generada.
+                  new String[] {"id"});
           statement.setLong(1, authorId);
           statement.setString(2, request.category());
           statement.setString(3, request.assistanceSubtype());

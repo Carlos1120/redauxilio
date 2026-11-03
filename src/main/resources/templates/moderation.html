@@ -89,6 +89,35 @@
           </div>
         </section>
       </div>
+      <details id="verification-permission-admin" class="operator-permissions">
+        <summary>Autorización de entidades verificadoras</summary>
+        <section aria-labelledby="verifier-access-title">
+          <h2 id="verifier-access-title">Permisos de verificación oficial</h2>
+          <p>
+            Concede o retira el permiso a una cuenta existente. Cada cambio exige motivo y queda
+            auditado.
+          </p>
+          <form id="verifier-permission-form" class="verifier-permission-form">
+            <label for="verifier-email">Correo de la cuenta</label>
+            <input id="verifier-email" type="email" maxlength="254" required autocomplete="off" />
+            <label for="verifier-action">Acción</label>
+            <select id="verifier-action">
+              <option value="GRANT">Conceder autorización</option>
+              <option value="REVOKE">Retirar autorización</option>
+            </select>
+            <label for="verifier-reason">Motivo del cambio</label>
+            <textarea id="verifier-reason" maxlength="500" rows="2" required></textarea>
+            <button id="verifier-permission-submit" type="submit">Guardar autorización</button>
+          </form>
+          <h3>Cuentas autorizadas</h3>
+          <button id="verifier-refresh" type="button" class="secondary-button">
+            Actualizar lista y auditoría
+          </button>
+          <div id="verifier-list" aria-live="polite"></div>
+          <h3>Historial de permisos oficiales</h3>
+          <div id="verifier-events"></div>
+        </section>
+      </details>
       <details class="operator-permissions">
         <summary>Auditoría interna de permisos</summary>
         <section aria-labelledby="permission-history-title">

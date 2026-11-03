@@ -426,3 +426,27 @@
 .operator-confirmation button {
   margin: 4px 8px 0 0;
 }
+.verifier-permission-form {
+  display: grid;
+  gap: 8px;
+  max-width: 640px;
+  margin-block: 12px;
+}
+.verifier-permission-form label {
+  font-weight: 700;
+}
+.verifier-permission-form input,
+.verifier-permission-form select,
+.verifier-permission-form textarea {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px;
+  border: 1px solid var(--color-report-border);
+  border-radius: var(--radius-control);
+  color: var(--color-report-ink);
+  background: var(--color-report-inset);
+  font: inherit;
+}
+.verifier-permission-form textarea {
+  resize: vertical;
+}

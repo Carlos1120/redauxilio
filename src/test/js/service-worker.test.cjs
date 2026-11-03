@@ -245,11 +245,20 @@ test("reporte de contenido precargado y POST con motivo fuera de caché", async 
   worker.listeners.get("install")({ waitUntil: (promise) => (installation = promise) });
   await installation;
   assert.ok(worker.precached.includes("/content-report.js"));
+  assert.ok(worker.precached.includes("/official-verification.js"));
   assert.equal(
     fetchEvent(worker, "http://localhost:8081/api/publications/1000001/content-reports", "POST"),
     undefined,
   );
   assert.equal(worker.entries.size, 1);
+  assert.equal(
+    fetchEvent(worker, "http://localhost:8081/api/publications/1000001/official-verifications"),
+    undefined,
+  );
+  assert.equal(
+    fetchEvent(worker, "http://localhost:8081/api/my/verification-permission"),
+    undefined,
+  );
 });
 
 /** RA-08 no permite que SW intercepte ni precargue páginas o respuestas privadas del operador. */

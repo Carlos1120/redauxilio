@@ -4,8 +4,8 @@
  * Intenta primero la red; solo ante un fallo de red utiliza una copia previamente guardada.
  * No almacena borradores, operaciones de escritura, bibliotecas CDN ni cartografía externa.
  */
-// RA-06 renueva el shell público para recalcular vigencia de respuestas guardadas.
-const CACHE = "redauxilio-demo-v22";
+// RA-13 incorpora la consulta pública de verificación oficial sin cachear sus datos privados.
+const CACHE = "redauxilio-demo-v23";
 const SHELL = [
   "/",
   "/app.css",
@@ -17,6 +17,7 @@ const SHELL = [
   "/my-publications.js",
   "/confirmation.js",
   "/content-report.js",
+  "/official-verification.js",
   "/map.js",
   "/manifest.webmanifest",
   "/icon.svg",

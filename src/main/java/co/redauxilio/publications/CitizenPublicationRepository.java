@@ -24,10 +24,30 @@ class CitizenPublicationRepository {
           + " WHERE c.publication_id = citizen_publication.id"
           + " AND c.publication_version = citizen_publication.confirmation_version"
           + " AND c.confirmer_id <> citizen_publication.author_id) AS confirmation_count"
-          + ", (SELECT MAX(c.confirmed_at) FROM publication_confirmation c"
+          + ", (SELECT COUNT(*) FROM official_verification v"
+          + " WHERE v.publication_id = citizen_publication.id"
+          + " AND v.publication_version = citizen_publication.confirmation_version"
+          + " AND NOT EXISTS (SELECT 1 FROM official_verification_action x"
+          + " WHERE x.verification_id = v.id AND x.action = 'REVOKE')) AS official_verification_count"
+          + ", CASE WHEN (SELECT MAX(v.verified_at) FROM official_verification v"
+          + " WHERE v.publication_id = citizen_publication.id"
+          + " AND v.publication_version = citizen_publication.confirmation_version"
+          + " AND NOT EXISTS (SELECT 1 FROM official_verification_action x"
+          + " WHERE x.verification_id = v.id AND x.action = 'REVOKE'))"
+          + " > COALESCE((SELECT MAX(c.confirmed_at) FROM publication_confirmation c"
           + " WHERE c.publication_id = citizen_publication.id"
           + " AND c.publication_version = citizen_publication.confirmation_version"
-          + " AND c.confirmer_id <> citizen_publication.author_id) AS last_confirmation_at";
+          + " AND c.confirmer_id <> citizen_publication.author_id), updated_at)"
+          + " THEN (SELECT MAX(v.verified_at) FROM official_verification v"
+          + " WHERE v.publication_id = citizen_publication.id"
+          + " AND v.publication_version = citizen_publication.confirmation_version"
+          + " AND NOT EXISTS (SELECT 1 FROM official_verification_action x"
+          + " WHERE x.verification_id = v.id AND x.action = 'REVOKE'))"
+          + " ELSE COALESCE((SELECT MAX(c.confirmed_at) FROM publication_confirmation c"
+          + " WHERE c.publication_id = citizen_publication.id"
+          + " AND c.publication_version = citizen_publication.confirmation_version"
+          + " AND c.confirmer_id <> citizen_publication.author_id), updated_at)"
+          + " END AS last_confirmation_at";
   private final JdbcTemplate jdbc;
   private java.time.Clock clock = java.time.Clock.systemUTC();
 
@@ -133,7 +153,9 @@ class CitizenPublicationRepository {
             row.getString("title"),
             row.getString("location"),
             row.getString("operational_status"),
-            row.getInt("confirmation_count") >= 3 ? "CONFIRMADA" : "REPORTADA",
+            row.getInt("official_verification_count") > 0
+                ? "VERIFICADA"
+                : row.getInt("confirmation_count") >= 3 ? "CONFIRMADA" : "REPORTADA",
             row.getTimestamp("updated_at").toInstant().toString(),
             row.getDouble("latitude"),
             row.getDouble("longitude"),

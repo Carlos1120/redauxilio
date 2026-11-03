@@ -464,6 +464,52 @@ test("auditoría de permisos privada y errores con referencia segura", async () 
   assert.equal(error.element("moderation-list").children.length, 0);
 });
 
+test("operador consulta, concede y audita permiso de verificación con CSRF", async () => {
+  const ui = await setup(async (url, options) => {
+    if (url === "/csrf") return response({ token: "fresh-token" });
+    if (url === "/api/operator/verifier-permissions" && options.method === "POST")
+      return response({ granted: true });
+    if (url === "/api/operator/verifier-permissions")
+      return response([
+        {
+          accountId: 7,
+          email: "entidad@example.test",
+          displayName: "Entidad pública",
+          grantedAt: "2026-11-02T12:00:00Z",
+        },
+      ]);
+    if (url.startsWith("/api/operator/verifier-permissions/history"))
+      return response([
+        {
+          email: "entidad@example.test",
+          actorEmail: "operador@example.test",
+          action: "GRANT",
+          beforeGranted: false,
+          afterGranted: true,
+          reason: "Acreditación comprobada",
+          changedAt: "2026-11-02T12:00:00Z",
+        },
+      ]);
+    return response(page());
+  });
+  ui.element("verification-permission-admin").listeners.toggle({ currentTarget: { open: true } });
+  await flush();
+  assert.match(dump(ui.element("verifier-list")), /Entidad pública.*entidad@example\.test/);
+  assert.match(dump(ui.element("verifier-events")), /Acreditación comprobada/);
+  ui.element("verifier-email").value = "entidad@example.test";
+  ui.element("verifier-action").value = "GRANT";
+  ui.element("verifier-reason").value = "Acreditación comprobada";
+  await ui.element("verifier-permission-form").listeners.submit({ preventDefault() {} });
+  const request = ui.requests.find((item) => item.options.method === "POST");
+  assert.equal(request.options.headers["X-CSRF-TOKEN"], "fresh-token");
+  assert.deepEqual(JSON.parse(request.options.body), {
+    email: "entidad@example.test",
+    action: "GRANT",
+    reason: "Acreditación comprobada",
+  });
+  assert.equal(ui.element("verifier-reason").value, "");
+});
+
 /** RF-16 comparte el endpoint seguro y nunca anuncia éxito antes de la respuesta. */
 test("revisión manual espera servidor, renueva CSRF y refresca cola sin denuncias", async () => {
   let finish;

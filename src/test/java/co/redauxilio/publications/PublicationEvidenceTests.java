@@ -26,14 +26,36 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
-/** Comprueba lectura pública, autoría, validación y atomicidad de archivos con HTTP/SQL H2. */
-@SpringBootTest(
-    properties = "spring.datasource.url=jdbc:h2:mem:ra12evidence;MODE=PostgreSQL;DB_CLOSE_DELAY=-1")
+/**
+ * Comprueba evidencias por HTTP/SQL; usa H2 por defecto o PostgreSQL temporal con RA12_TEST_DB_*.
+ */
+@SpringBootTest
 @AutoConfigureMockMvc
 class PublicationEvidenceTests {
+  /** Selecciona la base explícita de pruebas, manteniendo H2 como opción predeterminada de CI. */
+  @DynamicPropertySource
+  static void testDatabase(DynamicPropertyRegistry properties) {
+    properties.add(
+        "spring.datasource.url",
+        () ->
+            System.getenv()
+                .getOrDefault(
+                    "RA12_TEST_DB_URL",
+                    "jdbc:h2:mem:ra12evidence;MODE=PostgreSQL;DB_CLOSE_DELAY=-1"));
+    properties.add(
+        "spring.datasource.username",
+        () -> System.getenv().getOrDefault("RA12_TEST_DB_USERNAME", "sa"));
+    properties.add(
+        "spring.datasource.password",
+        () -> System.getenv().getOrDefault("RA12_TEST_DB_PASSWORD", ""));
+    properties.add("spring.sql.init.mode", () -> "always");
+  }
+
   @Autowired MockMvc mvc;
   @Autowired JdbcTemplate jdbc;
   @Autowired ObjectMapper json;

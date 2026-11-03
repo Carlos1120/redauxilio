@@ -4,7 +4,7 @@ Actualización: 3 de noviembre de 2026 (Colombia). El repositorio principal `C:\
 
 ## Estado remoto comprobado
 
-`origin/develop` es `366a55045150e9252c081fd3d7627dccf2310353`; avanzó tras integrar el arreglo PostgreSQL del PR #29. PR #26 (RA-12) sigue abierto en `a3c232597c5e83d811f1730a79ec87455d660bc2` y PR #27 (RA-13) en `7655f0f4a9b165d22f1582b286c71c4287977f1b`. Ambos se basaban en `3fa21ac2abdcbc38306f92fa5608b3f67f385458` y GitHub actualmente informa conflictos. La aprobación formal de Santiago y la integración de #29 están verificadas; #26 y #27 no tienen aprobación formal de Carlos. No se integrarán sin su revisión y nueva CI verde.
+`origin/develop` es `366a55045150e9252c081fd3d7627dccf2310353`; avanzó tras integrar el arreglo PostgreSQL del PR #29. PR #26 (RA-12) y PR #27 (RA-13) siguen abiertos y sin aprobación formal de Carlos. Ambos ya incorporaron esta base; GitHub informa `mergeable=true`. Sus commits de sincronización fueron `809fa9d47523f97877fb3159d068993b522687ea` y `e0101781b7e2defa32b090bd4391ab4be549487a`. La aprobación formal de Santiago y la integración de #29 están verificadas. La CI iniciada al publicar la sincronización debe comprobarse sobre el HEAD final.
 
 ## Alcance
 
@@ -14,6 +14,6 @@ RA-13 agrega permisos auditados para verificadores, eventos oficiales por versi�
 
 ## Sincronización y siguiente paso
 
-Los worktrees originales RA-12 y RA-13 conservan sus notas locales; la actualización se probó en worktrees auxiliares separados. El merge incorpora el arreglo PostgreSQL y su prueba; el código se combinó sin conflictos y se resolvió el documento de traspaso. Con Corretto 21, H2 y Node 24/npm 11: RA-12 `mvn verify` pasó 167 pruebas Java y `npm test` 122/122; RA-13 pasó 166 pruebas Java y 123/123 JS. Spotless, PMD, Prettier y `git diff --check` pasaron en ambas ramas. El primer intento Maven con Java 25 no pasó Spotless por incompatibilidad conocida; se repitió íntegramente con Java 21 y pasó. No se certificó PostgreSQL.
+Los worktrees originales RA-12 y RA-13 conservan sus notas locales; la actualización se verificó en worktrees auxiliares separados y se publicó por fast-forward. El merge incorpora el arreglo PostgreSQL y su prueba; el código se combinó sin conflictos y se resolvió el documento de traspaso. Con Corretto 21, H2 y Node 24/npm 11: RA-12 `mvn verify` pasó 167 pruebas Java y `npm test` 122/122; RA-13 pasó 166 pruebas Java y 123/123 JS. Spotless, PMD, Prettier y `git diff --check` pasaron en ambas ramas. El primer intento Maven con Java 25 no pasó Spotless por incompatibilidad conocida; se repitió íntegramente con Java 21 y pasó. No se certificó PostgreSQL.
 
-Siguiente: crear commits de sincronización con la identidad Git configurada, publicar cada rama mediante push fast-forward y comprobar CI en los nuevos HEAD exactos. Mantener #26/#27 abiertos hasta la aprobación formal de Carlos; no fusionarlos ni actualizar Trello. La inspección visual humana y QA PWA siguen pendientes y no se atribuyen a estas pruebas automatizadas.
+Siguiente: comprobar CI verde en los HEAD finales de #26/#27 y esperar la revisión formal de Carlos. No fusionar los PR ni actualizar Trello. La inspección visual humana y QA PWA siguen pendientes y no se atribuyen a estas pruebas automatizadas.

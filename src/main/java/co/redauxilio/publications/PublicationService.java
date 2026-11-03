@@ -26,6 +26,8 @@ public class PublicationService {
           "PARCIALMENTE HABILITADA",
           "HABILITADA",
           "SIN LOCALIZAR",
+          "DESAPARECIDA",
+          "CASO CERRADO",
           "ENCONTRADA",
           "ABIERTA",
           "EN ATENCIÓN",
@@ -306,7 +308,64 @@ public class PublicationService {
           String declaredUrgency,
       @com.fasterxml.jackson.annotation.JsonInclude(
               com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
-          String requesterReference) {
+          String requesterReference,
+      @com.fasterxml.jackson.annotation.JsonInclude(
+              com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
+          MissingPersonDetails missingPerson) {
+    /** Compatibilidad RA-11; los ejemplos conservan su estructura previa. */
+    public Publication(
+        long id,
+        String category,
+        String title,
+        String location,
+        String operationalStatus,
+        String confidenceLevel,
+        String updatedAt,
+        double latitude,
+        double longitude,
+        String description,
+        String createdAt,
+        boolean closed,
+        String assistanceSubtype,
+        String impactType,
+        int confirmationCount,
+        long confirmationVersion,
+        String reviewStatus,
+        String freshnessStatus,
+        String lastValidActivityAt,
+        String freshnessExpiresAt,
+        String needType,
+        String approximateQuantity,
+        String declaredUrgency,
+        String requesterReference) {
+      this(
+          id,
+          category,
+          title,
+          location,
+          operationalStatus,
+          confidenceLevel,
+          updatedAt,
+          latitude,
+          longitude,
+          description,
+          createdAt,
+          closed,
+          assistanceSubtype,
+          impactType,
+          confirmationCount,
+          confirmationVersion,
+          reviewStatus,
+          freshnessStatus,
+          lastValidActivityAt,
+          freshnessExpiresAt,
+          needType,
+          approximateQuantity,
+          declaredUrgency,
+          requesterReference,
+          null);
+    }
+
     /** Mantiene la firma pública RA-06 y la estructura de los seis ejemplos existentes. */
     public Publication(
         long id,
@@ -429,7 +488,8 @@ public class PublicationService {
           needType,
           approximateQuantity,
           declaredUrgency,
-          requesterReference);
+          requesterReference,
+          missingPerson);
     }
 
     /** Compatibilidad de constructores anteriores; ejemplos y pruebas sin confirmaciones. */

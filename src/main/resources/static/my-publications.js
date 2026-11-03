@@ -30,6 +30,11 @@
       "EN ATENCIÓN": ["ABIERTA", "SATISFECHA"],
       SATISFECHA: ["ABIERTA"],
     },
+    MISSING_PERSON: {
+      DESAPARECIDA: ["ENCONTRADA", "CASO CERRADO"],
+      ENCONTRADA: ["CASO CERRADO", "DESAPARECIDA"],
+      "CASO CERRADO": ["DESAPARECIDA"],
+    },
     ROAD: {
       BLOQUEADA: ["PARCIALMENTE HABILITADA", "HABILITADA"],
       "PARCIALMENTE HABILITADA": ["BLOQUEADA", "HABILITADA"],
@@ -46,6 +51,7 @@
   const authenticated = () => find("identity-open").dataset.authenticated === "true";
   const stillCurrent = (version) => version === sessionVersion && authenticated();
   function clearFields() {
+    window.dispatchEvent?.(new CustomEvent("redauxilio:publication-selected", { detail: null }));
     workspace.hidden = true;
     select.replaceChildren();
     history.replaceChildren();
@@ -60,6 +66,8 @@
       "own-help-quantity",
       "own-help-urgency",
       "own-help-requester",
+      "own-missing-age",
+      "own-missing-seen",
     ])
       find(id).value = "";
     states.replaceChildren();
@@ -135,8 +143,16 @@
       declaredUrgency: "Urgencia declarada",
       requesterReference: "Alias o comunidad",
       reviewStatus: "Revisión de contenido",
+      referenceName: "Nombre o referencia",
+      ageRange: "Rango de edad",
+      physicalDescription: "Descripción física",
+      lastSeenPlace: "Último sector conocido",
+      lastSeenAt: "Última vez vista",
+      contactAuthorized: "Contacto autorizado",
     };
     const actions = {
+      CONTACT: "Autorización de contacto adulto",
+      CONTACT_WITHDRAW: "Retiro de contacto",
       EDIT: "Corrección",
       STATUS: "Cambio de estado",
       CLOSE: "Cierre",
@@ -147,6 +163,8 @@
     try {
       const before = JSON.parse(change.beforeSnapshot),
         after = JSON.parse(change.afterSnapshot);
+      Object.assign(before, before.missingPerson);
+      Object.assign(after, after.missingPerson);
       for (const [key, label] of Object.entries(labels)) {
         if (before[key] !== after[key])
           details.push(
@@ -217,6 +235,22 @@
       control.value = isHelp ? (value ?? "") : "";
       control.disabled = !isHelp || item.closed || saving;
     }
+    const isMissing = item.category === "MISSING_PERSON";
+    find("own-missing-fields").hidden = !isMissing;
+    find("own-missing-age").value = item.missingPerson?.ageRange || "";
+    if (isMissing)
+      window.RedAuxilioMissingPerson?.setSeenTime(
+        find("own-missing-seen"),
+        item.missingPerson?.lastSeenAt,
+      );
+    for (const id of ["age", "seen"])
+      find(`own-missing-${id}`).disabled = !isMissing || item.closed || saving;
+    find("own-description").maxLength = isMissing ? 500 : 1000;
+    window.dispatchEvent?.(
+      new CustomEvent("redauxilio:publication-selected", {
+        detail: { id: item.id, category: item.category, closed: item.closed },
+      }),
+    );
     states.replaceChildren();
     const nextStates = transitions[item.category]?.[item.operationalStatus] || [];
     for (const state of nextStates) {
@@ -229,7 +263,11 @@
       control.disabled = saving;
     find("own-change-status").disabled = saving || !nextStates.length;
     find("own-reason").value = "";
-    find("own-reason").required = item.closed;
+    find("own-reason").required =
+      item.closed ||
+      (item.category === "MISSING_PERSON" &&
+        item.operationalStatus === "ENCONTRADA" &&
+        states.value === "DESAPARECIDA");
     if (withHistory) void loadHistory();
   }
 
@@ -291,7 +329,7 @@
       // El guardado idéntico de ayuda no debe anunciar una entrada de historial inexistente.
       const unchangedHelp =
         method === "PATCH" &&
-        previous?.category === "HELP_REQUEST" &&
+        ["HELP_REQUEST", "MISSING_PERSON"].includes(previous?.category) &&
         Number.isInteger(previous.confirmationVersion) &&
         result?.confirmationVersion === previous.confirmationVersion &&
         result.updatedAt === previous.updatedAt;
@@ -323,6 +361,9 @@
         for (const id of ["need-type", "quantity", "urgency", "requester"])
           find(`own-help-${id}`).disabled =
             !item || item.closed || item.category !== "HELP_REQUEST";
+        for (const id of ["age", "seen"])
+          find(`own-missing-${id}`).disabled =
+            !item || item.closed || item.category !== "MISSING_PERSON";
         for (const control of stateForm.querySelectorAll("input, textarea, select, button"))
           control.disabled = !item;
       }
@@ -345,6 +386,17 @@
       impactType: item.impactType,
       latitude: Number(find("own-latitude").value),
       longitude: Number(find("own-longitude").value),
+      ...(item.category === "MISSING_PERSON"
+        ? {
+            missingPerson: {
+              referenceName: find("own-title-input").value.trim(),
+              physicalDescription: find("own-description").value.trim(),
+              lastSeenPlace: find("own-location").value.trim(),
+              ageRange: find("own-missing-age").value || null,
+              lastSeenAt: window.RedAuxilioMissingPerson.readSeenTime(find("own-missing-seen")),
+            },
+          }
+        : {}),
       ...(item.category === "HELP_REQUEST"
         ? {
             needType: find("own-help-need-type").value,
@@ -370,6 +422,18 @@
       "Corrección guardada e incorporada al historial.",
       item.id,
     );
+  });
+  window.addEventListener("redauxilio:contact-changed", () => {
+    if (current()) void loadHistory();
+  });
+  states.addEventListener("change", () => {
+    const item = current();
+    find("own-reason").required =
+      !!item &&
+      (item.closed ||
+        (item.category === "MISSING_PERSON" &&
+          item.operationalStatus === "ENCONTRADA" &&
+          states.value === "DESAPARECIDA"));
   });
   stateForm.addEventListener("submit", (event) => {
     event.preventDefault();

@@ -39,6 +39,12 @@ class PublicationMaintenanceService {
           "EN ATENCIÓN", Set.of("ABIERTA", "SATISFECHA"),
           "SATISFECHA", Set.of("ABIERTA"));
 
+  private static final Map<String, Set<String>> MISSING =
+      Map.of(
+          "DESAPARECIDA", Set.of("ENCONTRADA", "CASO CERRADO"),
+          "ENCONTRADA", Set.of("DESAPARECIDA", "CASO CERRADO"),
+          "CASO CERRADO", Set.of("DESAPARECIDA"));
+
   private final JdbcTemplate jdbc;
   private final PublicationService publications;
   private final CitizenPublicationRepository repository;
@@ -74,7 +80,7 @@ class PublicationMaintenanceService {
     if (before.closed()) {
       throw new ResponseStatusException(HttpStatus.CONFLICT, "Reabre el caso antes de editar");
     }
-    CreatePublicationRequest valid = PublicationCreationService.validate(request);
+    CreatePublicationRequest valid = PublicationCreationService.validate(request, clock);
     if (!valid.category().equals(before.category())
         || !valid.operationalStatus().equals(before.operationalStatus())) {
       throw invalid("La categoría y el estado se cambian en flujos distintos");
@@ -96,13 +102,14 @@ class PublicationMaintenanceService {
             valid.needType(),
             valid.approximateQuantity(),
             valid.declaredUrgency(),
-            valid.requesterReference());
+            valid.requesterReference(),
+            valid.missingPerson());
     // Un guardado idéntico no crea actividad, auditoría ni invalida respaldos.
     if (before.equals(after)) return publications.findPublication(id);
     Instant now = clock.instant();
     jdbc.update(
         "UPDATE citizen_publication SET assistance_subtype = ?, title = ?, description = ?,"
-            + " location = ?, impact_type = ?, latitude = ?, longitude = ?, need_type = ?, approximate_quantity = ?, declared_urgency = ?, requester_reference = ?, updated_at = ?"
+            + " location = ?, impact_type = ?, latitude = ?, longitude = ?, need_type = ?, approximate_quantity = ?, declared_urgency = ?, requester_reference = ?, reference_name = ?, age_range = ?, physical_description = ?, last_seen_place = ?, last_seen_at = ?, updated_at = ?"
             + " WHERE id = ?",
         valid.assistanceSubtype(),
         valid.title(),
@@ -115,6 +122,13 @@ class PublicationMaintenanceService {
         valid.approximateQuantity(),
         valid.declaredUrgency(),
         valid.requesterReference(),
+        valid.missingPerson() == null ? null : valid.missingPerson().referenceName(),
+        valid.missingPerson() == null ? null : valid.missingPerson().ageRange(),
+        valid.missingPerson() == null ? null : valid.missingPerson().physicalDescription(),
+        valid.missingPerson() == null ? null : valid.missingPerson().lastSeenPlace(),
+        valid.missingPerson() == null
+            ? null
+            : Timestamp.from(Instant.parse(valid.missingPerson().lastSeenAt())),
         Timestamp.from(now),
         id);
     audit(before, after, "EDIT", null, now);
@@ -135,6 +149,7 @@ class PublicationMaintenanceService {
           case "ASSISTANCE" -> ASSISTANCE;
           case "ROAD" -> ROAD;
           case "HELP_REQUEST" -> HELP;
+          case "MISSING_PERSON" -> MISSING;
           default -> throw invalid("Categoría no soportada para mantenimiento");
         };
     if (!transitions.getOrDefault(before.operationalStatus(), Set.of()).contains(target)) {
@@ -143,11 +158,20 @@ class PublicationMaintenanceService {
     boolean closing =
         "ASSISTANCE".equals(before.category())
             ? "CERRADO".equals(target)
-            : "HELP_REQUEST".equals(before.category())
-                ? "SATISFECHA".equals(target)
-                : "HABILITADA".equals(target);
+            : "MISSING_PERSON".equals(before.category())
+                ? "CASO CERRADO".equals(target)
+                : "HELP_REQUEST".equals(before.category())
+                    ? "SATISFECHA".equals(target)
+                    : "HABILITADA".equals(target);
     String explanation = reason == null ? "" : reason.trim();
-    if (before.closed() && !closing && explanation.isBlank()) {
+    if ("MISSING_PERSON".equals(before.category()))
+      MissingPersonDetails.validateReason(explanation);
+    if ((before.closed()
+            || ("MISSING_PERSON".equals(before.category())
+                && "ENCONTRADA".equals(before.operationalStatus())
+                && "DESAPARECIDA".equals(target)))
+        && !closing
+        && explanation.isBlank()) {
       throw invalid("La reapertura requiere un motivo");
     }
     if (explanation.length() > 500) throw invalid("El motivo supera 500 caracteres");
@@ -176,7 +200,8 @@ class PublicationMaintenanceService {
             before.needType(),
             before.approximateQuantity(),
             before.declaredUrgency(),
-            before.requesterReference());
+            before.requesterReference(),
+            before.missingPerson());
     String action = before.closed() ? "REOPEN" : closing ? "CLOSE" : "STATUS";
     audit(before, after, action, explanation.isBlank() ? null : explanation, now);
     confirmations.invalidateForSubstantialChange(id, email, "Cambio de estado operativo");
@@ -205,7 +230,7 @@ class PublicationMaintenanceService {
     String sql =
         "SELECT p.id, p.author_id, p.category, p.assistance_subtype, p.title,"
             + " p.description, p.location, p.operational_status, p.impact_type,"
-            + " p.latitude, p.longitude, p.closed, p.need_type, p.approximate_quantity, p.declared_urgency, p.requester_reference FROM citizen_publication p"
+            + " p.latitude, p.longitude, p.closed, p.need_type, p.approximate_quantity, p.declared_urgency, p.requester_reference, p.reference_name, p.age_range, p.physical_description, p.last_seen_place, p.last_seen_at FROM citizen_publication p"
             + " WHERE p.id = ? AND p.visible = TRUE"
             + " AND p.author_id = (SELECT id FROM citizen_account WHERE email = ?)"
             + (lock ? " FOR UPDATE" : "");
@@ -231,7 +256,8 @@ class PublicationMaintenanceService {
                     row.getString("need_type"),
                     row.getString("approximate_quantity"),
                     row.getString("declared_urgency"),
-                    row.getString("requester_reference")),
+                    row.getString("requester_reference"),
+                    CitizenPublicationRepository.mapMissingPerson(row)),
             id,
             email)
         .stream()
@@ -286,5 +312,6 @@ class PublicationMaintenanceService {
       String needType,
       String approximateQuantity,
       String declaredUrgency,
-      String requesterReference) {}
+      String requesterReference,
+      MissingPersonDetails missingPerson) {}
 }

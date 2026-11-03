@@ -16,7 +16,7 @@ export default async function publicationLayout({ page, setViewport, onResult = 
   ]) {
     await setViewport(size);
     // Repite HELP→ASSISTANCE para detectar también controles ocultos que mantengan geometría.
-    for (const category of ["ASSISTANCE", "ROAD", "HELP_REQUEST", "ASSISTANCE"]) {
+    for (const category of ["ASSISTANCE", "ROAD", "HELP_REQUEST", "MISSING_PERSON", "ASSISTANCE"]) {
       await page
         .getByRole("combobox", { name: "Tipo de publicación", exact: true })
         .selectOption(category);
@@ -66,6 +66,7 @@ export default async function publicationLayout({ page, setViewport, onResult = 
           ["assistance-fields", "ASSISTANCE"],
           ["road-fields", "ROAD"],
           ["help-fields", "HELP_REQUEST"],
+          ["missing-fields", "MISSING_PERSON"],
         ]
           .filter(([id, type]) => {
             const group = document.getElementById(id);

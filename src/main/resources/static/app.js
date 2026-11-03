@@ -35,6 +35,7 @@ let currentSourceMessage = "";
 let suppressFocusReturn = false;
 /** El panel usa el objeto ya consultado; en ancho estrecho conserva el diálogo modal. */
 function showReportDetail(item, trigger, initial = false) {
+  window.RedAuxilioAuthorizedContact?.clear();
   // Usa el objeto de la carga compartido con mapa/lista: la red conserva autoridad del servidor.
   if (trigger) detailTrigger = trigger;
   selectedReportId = item.id;
@@ -67,6 +68,17 @@ function showReportDetail(item, trigger, initial = false) {
           ? [["Afectación", item.impactType]]
           : [];
   for (const [label, value] of [
+    ...(item.missingPerson
+      ? [
+          ["Nombre o referencia", item.missingPerson.referenceName],
+          ["Rango de edad", item.missingPerson.ageRange || "No indicado"],
+          [
+            "Última vez vista (aproximada)",
+            new Date(item.missingPerson.lastSeenAt).toLocaleString("es-CO"),
+          ],
+          ["Último sector conocido", item.missingPerson.lastSeenPlace],
+        ]
+      : []),
     ...specificFacts,
     ["Estado operativo", item.operationalStatus],
     [
@@ -125,6 +137,8 @@ function showReportDetail(item, trigger, initial = false) {
       `Creado: ${new Date(item.createdAt).toLocaleString("es-CO")} · Actualizado: ${new Date(item.updatedAt).toLocaleString("es-CO")}`,
     ),
   );
+  if (item.category === "MISSING_PERSON" && item.id >= 1000000)
+    window.RedAuxilioAuthorizedContact?.mount(detail, item.id);
   const confirmation = createReportElement("div", "confirmation-actions", "");
   detail.append(confirmation);
   window.RedAuxilioConfirmation?.render(item, confirmation);
@@ -143,6 +157,7 @@ function showReportDetail(item, trigger, initial = false) {
 }
 getElement("close-detail").addEventListener("click", () => getElement("report-detail").close());
 getElement("report-detail").addEventListener("close", () => {
+  window.RedAuxilioAuthorizedContact?.clear();
   if (suppressFocusReturn) {
     suppressFocusReturn = false;
     return;
@@ -450,6 +465,8 @@ function saveDraft() {
         approximateQuantity: getElement("help-quantity").value,
         declaredUrgency: getElement("help-urgency").value,
         requesterReference: getElement("help-requester").value,
+        missingAge: getElement("missing-age").value,
+        missingSeen: getElement("missing-seen").value,
       },
       "current",
     ),
@@ -493,6 +510,8 @@ executeDraftOperation("readonly", (store) => store.get("current"))
       getElement("help-quantity").value = draft.approximateQuantity || "";
       getElement("help-urgency").value = draft.declaredUrgency || "";
       getElement("help-requester").value = draft.requesterReference || "";
+      getElement("missing-age").value = draft.missingAge || "";
+      getElement("missing-seen").value = draft.missingSeen || "";
       getElement("publication-category").dispatchEvent(new Event("change"));
       getElement("draft-message").textContent = "Borrador local recuperado; no está publicado.";
     }

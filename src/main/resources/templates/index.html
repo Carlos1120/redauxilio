@@ -14,6 +14,8 @@
     <script src="/identity-forms.js" defer></script>
     <script src="/identity-status.js" defer></script>
     <script src="/freshness.js" defer></script>
+    <script src="/missing-person.js" defer></script>
+    <script src="/authorized-contact.js" defer></script>
     <script src="/app.js" defer></script>
     <script src="/publication-form.js" defer></script>
     <script src="/my-publications.js" defer></script>
@@ -236,6 +238,8 @@
                   <option>Parcialmente habilitada</option>
                   <option>Habilitada</option>
                   <option>Sin localizar</option>
+                  <option>Desaparecida</option>
+                  <option>Caso cerrado</option>
                   <option>Encontrada</option>
                   <option>Abierta</option>
                   <option>En atención</option>
@@ -342,6 +346,7 @@
                   <option value="ASSISTANCE">Punto de asistencia</option>
                   <option value="ROAD">Vía afectada</option>
                   <option value="HELP_REQUEST">Solicitud de ayuda</option>
+                  <option value="MISSING_PERSON">Persona desaparecida</option>
                 </select>
               </div>
               <div class="field">
@@ -420,6 +425,31 @@
               <div class="field">
                 <label for="help-requester">Alias o comunidad solicitante</label
                 ><input id="help-requester" required maxlength="120" autocomplete="off" />
+              </div>
+            </fieldset>
+            <fieldset id="missing-fields" class="publication-specific" hidden>
+              <legend>Datos de la persona desaparecida</legend>
+              <p>
+                Usa nombre o alias, descripción física y último sector aproximado. No incluyas
+                documentos, información médica, domicilio ni contacto. No sustituye búsqueda oficial
+                ni atención de emergencias. El contacto adulto se autoriza por separado en Mis
+                publicaciones y nunca se guarda en el borrador.
+              </p>
+              <div class="field">
+                <label for="missing-age">Rango de edad (opcional)</label
+                ><select id="missing-age">
+                  <option value="">No indicado</option>
+                  <option>0–5</option>
+                  <option>6–12</option>
+                  <option>13–17</option>
+                  <option>18–29</option>
+                  <option>30–59</option>
+                  <option>60+</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="missing-seen">Fecha y hora aproximadas de última vez vista</label
+                ><input id="missing-seen" type="datetime-local" step="0.001" required />
               </div>
             </fieldset>
             <fieldset class="description-fields">
@@ -591,6 +621,31 @@
                   ><input id="own-help-requester" required maxlength="120" autocomplete="off" />
                 </div>
               </fieldset>
+              <fieldset id="own-missing-fields" class="publication-specific" hidden>
+                <legend>Datos de la persona desaparecida</legend>
+                <p>
+                  Usa nombre o alias, descripción física y último sector aproximado. No incluyas
+                  documentos, información médica, domicilio ni contacto. No sustituye búsqueda
+                  oficial ni atención de emergencias. El contacto adulto se autoriza por separado en
+                  Mis publicaciones y nunca se guarda en el borrador.
+                </p>
+                <div class="field">
+                  <label for="own-missing-age">Rango de edad (opcional)</label
+                  ><select id="own-missing-age">
+                    <option value="">No indicado</option>
+                    <option>0–5</option>
+                    <option>6–12</option>
+                    <option>13–17</option>
+                    <option>18–29</option>
+                    <option>30–59</option>
+                    <option>60+</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="own-missing-seen">Fecha y hora aproximadas de última vez vista</label
+                  ><input id="own-missing-seen" type="datetime-local" step="0.001" required />
+                </div>
+              </fieldset>
               <button type="submit" id="own-save">Guardar corrección</button>
             </form>
             <form id="own-status-form" class="own-manage-form">
@@ -605,6 +660,43 @@
               </div>
               <button type="submit" id="own-change-status">Guardar cambio de estado</button>
             </form>
+            <section
+              id="own-contact-panel"
+              class="own-manage-form"
+              hidden
+              aria-labelledby="contact-heading"
+            >
+              <h3 id="contact-heading">Contacto adulto autorizado (opcional)</h3>
+              <p>
+                No se guarda en borradores, caché pública ni historial. Es visible bajo consulta
+                mientras lo autorices; no podemos retirar capturas que hayan realizado terceros.
+                Nunca uses el contacto propio de un menor.
+              </p>
+              <form id="authorized-contact-form">
+                <div class="field">
+                  <label for="authorized-contact-value">Correo o teléfono del contacto adulto</label
+                  ><input
+                    id="authorized-contact-value"
+                    maxlength="160"
+                    autocomplete="off"
+                    required
+                  />
+                </div>
+                <label
+                  ><input id="authorized-contact-consent" type="checkbox" required /> Tengo
+                  autorización expresa para mostrar este contacto</label
+                >
+                <label
+                  ><input id="authorized-contact-adult" type="checkbox" required /> El contacto
+                  pertenece a una persona adulta</label
+                >
+                <button type="submit" id="authorized-contact-save">Autorizar contacto</button>
+                <button type="button" id="authorized-contact-withdraw" class="secondary-button">
+                  Retirar contacto autorizado
+                </button>
+              </form>
+              <p id="authorized-contact-message" role="status" aria-live="polite"></p>
+            </section>
             <div class="own-manage-form">
               <h3>Historial de cambios</h3>
               <ol id="own-history"></ol>

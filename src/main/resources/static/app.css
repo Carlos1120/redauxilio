@@ -1873,3 +1873,16 @@ footer {
   font-size: 13px;
   line-height: 1.5;
 }
+
+/* RA-11: los campos estructurados comparten la cuadrícula sin forzar anchura en móvil. */
+#help-fields,
+#own-help-fields {
+  min-width: 0;
+  grid-column: 1 / -1;
+}
+#help-fields > p,
+#own-help-fields > p {
+  grid-column: 1 / -1;
+  color: var(--color-report-secondary);
+  font-size: 14px;
+}

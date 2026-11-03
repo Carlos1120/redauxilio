@@ -294,7 +294,68 @@ public class PublicationService {
       String reviewStatus,
       String freshnessStatus,
       String lastValidActivityAt,
-      String freshnessExpiresAt) {
+      String freshnessExpiresAt,
+      @com.fasterxml.jackson.annotation.JsonInclude(
+              com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
+          String needType,
+      @com.fasterxml.jackson.annotation.JsonInclude(
+              com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
+          String approximateQuantity,
+      @com.fasterxml.jackson.annotation.JsonInclude(
+              com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
+          String declaredUrgency,
+      @com.fasterxml.jackson.annotation.JsonInclude(
+              com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
+          String requesterReference) {
+    /** Mantiene la firma pública RA-06 y la estructura de los seis ejemplos existentes. */
+    public Publication(
+        long id,
+        String category,
+        String title,
+        String location,
+        String operationalStatus,
+        String confidenceLevel,
+        String updatedAt,
+        double latitude,
+        double longitude,
+        String description,
+        String createdAt,
+        boolean closed,
+        String assistanceSubtype,
+        String impactType,
+        int confirmationCount,
+        long confirmationVersion,
+        String reviewStatus,
+        String freshnessStatus,
+        String lastValidActivityAt,
+        String freshnessExpiresAt) {
+      this(
+          id,
+          category,
+          title,
+          location,
+          operationalStatus,
+          confidenceLevel,
+          updatedAt,
+          latitude,
+          longitude,
+          description,
+          createdAt,
+          closed,
+          assistanceSubtype,
+          impactType,
+          confirmationCount,
+          confirmationVersion,
+          reviewStatus,
+          freshnessStatus,
+          lastValidActivityAt,
+          freshnessExpiresAt,
+          null,
+          null,
+          null,
+          null);
+    }
+
     /** Conserva la firma previa; la vigencia se deriva al consultar, nunca en persistencia. */
     public Publication(
         long id,
@@ -364,7 +425,11 @@ public class PublicationService {
           reviewStatus,
           freshness.status(),
           freshness.activityAt(),
-          freshness.expiresAt());
+          freshness.expiresAt(),
+          needType,
+          approximateQuantity,
+          declaredUrgency,
+          requesterReference);
     }
 
     /** Compatibilidad de constructores anteriores; ejemplos y pruebas sin confirmaciones. */

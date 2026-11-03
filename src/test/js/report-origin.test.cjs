@@ -23,6 +23,9 @@ async function loadReportView(items, savedAt = null, options = {}) {
       addEventListener(name, fn) {
         this.listeners[name] = fn;
       },
+      dispatchEvent(event) {
+        this.listeners[event.type]?.(event);
+      },
       reset() {
         for (const id of [
           "category",
@@ -88,7 +91,46 @@ async function loadReportView(items, savedAt = null, options = {}) {
       },
     },
     navigator: {},
-    indexedDB: { open: () => ({}) },
+    Event: class {
+      constructor(type) {
+        this.type = type;
+      }
+    },
+    indexedDB: {
+      open: () => {
+        const request = {};
+        if (options.draftStorage)
+          setImmediate(() => {
+            request.result = {
+              transaction: () => {
+                const transaction = {};
+                const done = (result) => {
+                  const operation = { result };
+                  setImmediate(() => {
+                    operation.onsuccess?.();
+                    transaction.oncomplete?.();
+                  });
+                  return operation;
+                };
+                transaction.objectStore = () => ({
+                  get: () => done(options.draftStorage.value),
+                  put: (value) => {
+                    options.draftStorage.value = value;
+                    return done();
+                  },
+                  delete: () => {
+                    delete options.draftStorage.value;
+                    return done();
+                  },
+                });
+                return transaction;
+              },
+            };
+            request.onsuccess?.();
+          });
+        return request;
+      },
+    },
     fetch: async () => ({
       ok: true,
       json: async () => items,
@@ -306,3 +348,47 @@ for (const cached of [false, true])
       cached ? /puede estar desactualizada/ : /Datos obtenidos del servidor/,
     );
   });
+
+/** A7 ejecuta saveDraft/restauración reales de app.js con transacciones locales controladas. */
+test("borrador HELP_REQUEST conserva los cuatro campos al recargar sin enviar", async () => {
+  const storage = {};
+  const first = await loadReportView([], null, { draftStorage: storage });
+  first.element("publication-category").value = "HELP_REQUEST";
+  for (const [id, value] of [
+    ["help-need-type", "ALIMENTOS"],
+    ["help-quantity", "20 familias"],
+    ["help-urgency", "MEDIA"],
+    ["help-requester", "Comunidad ficticia"],
+  ])
+    first.element(id).value = value;
+  await vm.runInContext("saveDraft()", first.context);
+  assert.equal(storage.value.needType, "ALIMENTOS");
+  assert.equal(storage.value.approximateQuantity, "20 familias");
+  const second = await loadReportView([], null, { draftStorage: storage });
+  await new Promise((resolve) => setImmediate(resolve));
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.equal(second.element("publication-category").value, "HELP_REQUEST");
+  assert.equal(second.element("help-need-type").value, "ALIMENTOS");
+  assert.equal(second.element("help-quantity").value, "20 familias");
+  assert.equal(second.element("help-urgency").value, "MEDIA");
+  assert.equal(second.element("help-requester").value, "Comunidad ficticia");
+  assert.match(second.element("draft-message").textContent, /recuperado/);
+});
+test("detalle público de ayuda muestra datos propios y urgencia no oficial como texto", async () => {
+  const item = {
+    ...report(1000000),
+    category: "HELP_REQUEST",
+    operationalStatus: "ABIERTA",
+    needType: "SALUD",
+    approximateQuantity: "20 familias",
+    declaredUrgency: "ALTA",
+    requesterReference: "<img onerror=prueba>",
+  };
+  const view = await loadReportView([item]);
+  const text = (n) => [n.textContent || "", ...(n.children || []).map(text)].join(" ");
+  const detail = text(view.element("detail-content"));
+  assert.match(detail, /Tipo de necesidad/);
+  assert.match(detail, /20 familias/);
+  assert.match(detail, /Urgencia declarada \(no oficial\)/);
+  assert.match(detail, /<img onerror=prueba>/);
+});

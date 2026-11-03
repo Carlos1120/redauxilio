@@ -44,18 +44,28 @@ function showReportDetail(item, trigger, initial = false) {
   const detail = getElement("detail-content");
   detail.replaceChildren();
   const facts = createReportElement("div", "detail-facts", "");
-  const specificFacts = item.assistanceSubtype
-    ? [
-        [
-          "Tipo de punto",
-          { SHELTER: "Refugio", COLLECTION: "Centro de acopio", MEDICAL_CENTER: "Centro médico" }[
-            item.assistanceSubtype
-          ] || item.assistanceSubtype,
-        ],
-      ]
-    : item.impactType
-      ? [["Afectación", item.impactType]]
-      : [];
+  const specificFacts =
+    item.category === "HELP_REQUEST" && item.needType
+      ? [
+          ["Tipo de necesidad", item.needType],
+          ["Cantidad aproximada", item.approximateQuantity || "No indicada"],
+          ["Urgencia declarada (no oficial)", item.declaredUrgency],
+          ["Alias o comunidad solicitante", item.requesterReference],
+        ]
+      : item.assistanceSubtype
+        ? [
+            [
+              "Tipo de punto",
+              {
+                SHELTER: "Refugio",
+                COLLECTION: "Centro de acopio",
+                MEDICAL_CENTER: "Centro médico",
+              }[item.assistanceSubtype] || item.assistanceSubtype,
+            ],
+          ]
+        : item.impactType
+          ? [["Afectación", item.impactType]]
+          : [];
   for (const [label, value] of [
     ...specificFacts,
     ["Estado operativo", item.operationalStatus],
@@ -196,6 +206,12 @@ function renderPublications(items) {
     );
     const facts = createReportElement("dl", "report-facts", "");
     for (const [label, value] of [
+      ...(item.category === "HELP_REQUEST" && item.needType
+        ? [
+            ["Necesidad", item.needType],
+            ["Urgencia declarada (no oficial)", item.declaredUrgency],
+          ]
+        : []),
       ["Estado operativo", item.operationalStatus],
       [
         "Confianza",
@@ -430,6 +446,10 @@ function saveDraft() {
         roadImpact: getElement("road-impact").value,
         roadStatus: getElement("road-status").value,
         location: getElement("publication-location").value,
+        needType: getElement("help-need-type").value,
+        approximateQuantity: getElement("help-quantity").value,
+        declaredUrgency: getElement("help-urgency").value,
+        requesterReference: getElement("help-requester").value,
       },
       "current",
     ),
@@ -469,6 +489,10 @@ executeDraftOperation("readonly", (store) => store.get("current"))
       getElement("road-impact").value = draft.roadImpact || "DERRUMBE";
       getElement("road-status").value = draft.roadStatus || "BLOQUEADA";
       getElement("publication-location").value = draft.location || "";
+      getElement("help-need-type").value = draft.needType || "";
+      getElement("help-quantity").value = draft.approximateQuantity || "";
+      getElement("help-urgency").value = draft.declaredUrgency || "";
+      getElement("help-requester").value = draft.requesterReference || "";
       getElement("publication-category").dispatchEvent(new Event("change"));
       getElement("draft-message").textContent = "Borrador local recuperado; no está publicado.";
     }

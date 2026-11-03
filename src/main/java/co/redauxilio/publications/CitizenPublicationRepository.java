@@ -19,7 +19,7 @@ class CitizenPublicationRepository {
   // auditoría.
   static final String PUBLIC_COLUMNS =
       "id, category, assistance_subtype, title, description, location, operational_status,"
-          + " impact_type, latitude, longitude, created_at, updated_at, closed, confirmation_version, review_status"
+          + " need_type, approximate_quantity, declared_urgency, requester_reference, impact_type, latitude, longitude, created_at, updated_at, closed, confirmation_version, review_status"
           + ", (SELECT COUNT(*) FROM publication_confirmation c"
           + " WHERE c.publication_id = citizen_publication.id"
           + " AND c.publication_version = citizen_publication.confirmation_version"
@@ -70,8 +70,8 @@ class CitizenPublicationRepository {
               connection.prepareStatement(
                   "INSERT INTO citizen_publication"
                       + " (author_id, category, assistance_subtype, title, description, location,"
-                      + " operational_status, impact_type, latitude, longitude, created_at, updated_at, closed)"
-                      + " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                      + " operational_status, impact_type, latitude, longitude, created_at, updated_at, closed, need_type, approximate_quantity, declared_urgency, requester_reference)"
+                      + " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                   Statement.RETURN_GENERATED_KEYS);
           statement.setLong(1, authorId);
           statement.setString(2, request.category());
@@ -90,6 +90,10 @@ class CitizenPublicationRepository {
               13,
               "ROAD".equals(request.category())
                   && "HABILITADA".equals(request.operationalStatus()));
+          statement.setString(14, request.needType());
+          statement.setString(15, request.approximateQuantity());
+          statement.setString(16, request.declaredUrgency());
+          statement.setString(17, request.requesterReference());
           return statement;
         },
         keys);
@@ -147,7 +151,17 @@ class CitizenPublicationRepository {
             row.getTimestamp("last_confirmation_at") == null
                 ? row.getTimestamp("updated_at").toInstant().toString()
                 : row.getTimestamp("last_confirmation_at").toInstant().toString(),
-            null)
+            null,
+            "HELP_REQUEST".equals(row.getString("category")) ? row.getString("need_type") : null,
+            "HELP_REQUEST".equals(row.getString("category"))
+                ? row.getString("approximate_quantity")
+                : null,
+            "HELP_REQUEST".equals(row.getString("category"))
+                ? row.getString("declared_urgency")
+                : null,
+            "HELP_REQUEST".equals(row.getString("category"))
+                ? row.getString("requester_reference")
+                : null)
         .withFreshness(java.time.Clock.systemUTC());
   }
 }

@@ -112,3 +112,9 @@ CREATE TABLE IF NOT EXISTS operator_permission_audit (
   reason VARCHAR(500) NOT NULL,
   changed_at TIMESTAMP WITH TIME ZONE NOT NULL
 );
+
+-- RA-11: campos estructurados opcionales fuera de HELP_REQUEST; evolución idempotente.
+ALTER TABLE citizen_publication ADD COLUMN IF NOT EXISTS need_type VARCHAR(20);
+ALTER TABLE citizen_publication ADD COLUMN IF NOT EXISTS approximate_quantity VARCHAR(120);
+ALTER TABLE citizen_publication ADD COLUMN IF NOT EXISTS declared_urgency VARCHAR(10);
+ALTER TABLE citizen_publication ADD COLUMN IF NOT EXISTS requester_reference VARCHAR(120);

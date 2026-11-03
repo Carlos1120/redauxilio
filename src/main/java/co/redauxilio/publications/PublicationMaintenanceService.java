@@ -33,6 +33,12 @@ class PublicationMaintenanceService {
           "PARCIALMENTE HABILITADA", Set.of("BLOQUEADA", "HABILITADA"),
           "HABILITADA", Set.of("BLOQUEADA", "PARCIALMENTE HABILITADA"));
 
+  private static final Map<String, Set<String>> HELP =
+      Map.of(
+          "ABIERTA", Set.of("EN ATENCIÓN", "SATISFECHA"),
+          "EN ATENCIÓN", Set.of("ABIERTA", "SATISFECHA"),
+          "SATISFECHA", Set.of("ABIERTA"));
+
   private final JdbcTemplate jdbc;
   private final PublicationService publications;
   private final CitizenPublicationRepository repository;
@@ -86,13 +92,17 @@ class PublicationMaintenanceService {
             valid.impactType(),
             valid.latitude(),
             valid.longitude(),
-            before.closed());
+            before.closed(),
+            valid.needType(),
+            valid.approximateQuantity(),
+            valid.declaredUrgency(),
+            valid.requesterReference());
     // Un guardado idéntico no crea actividad, auditoría ni invalida respaldos.
     if (before.equals(after)) return publications.findPublication(id);
     Instant now = clock.instant();
     jdbc.update(
         "UPDATE citizen_publication SET assistance_subtype = ?, title = ?, description = ?,"
-            + " location = ?, impact_type = ?, latitude = ?, longitude = ?, updated_at = ?"
+            + " location = ?, impact_type = ?, latitude = ?, longitude = ?, need_type = ?, approximate_quantity = ?, declared_urgency = ?, requester_reference = ?, updated_at = ?"
             + " WHERE id = ?",
         valid.assistanceSubtype(),
         valid.title(),
@@ -101,6 +111,10 @@ class PublicationMaintenanceService {
         valid.impactType(),
         valid.latitude(),
         valid.longitude(),
+        valid.needType(),
+        valid.approximateQuantity(),
+        valid.declaredUrgency(),
+        valid.requesterReference(),
         Timestamp.from(now),
         id);
     audit(before, after, "EDIT", null, now);
@@ -117,14 +131,21 @@ class PublicationMaintenanceService {
     if (desiredState == null || desiredState.isBlank()) throw invalid("Indica el estado nuevo");
     String target = desiredState.trim().toUpperCase(Locale.ROOT);
     Map<String, Set<String>> transitions =
-        "ASSISTANCE".equals(before.category()) ? ASSISTANCE : ROAD;
+        switch (before.category()) {
+          case "ASSISTANCE" -> ASSISTANCE;
+          case "ROAD" -> ROAD;
+          case "HELP_REQUEST" -> HELP;
+          default -> throw invalid("Categoría no soportada para mantenimiento");
+        };
     if (!transitions.getOrDefault(before.operationalStatus(), Set.of()).contains(target)) {
       throw invalid("Transición de estado no permitida");
     }
     boolean closing =
         "ASSISTANCE".equals(before.category())
             ? "CERRADO".equals(target)
-            : "HABILITADA".equals(target);
+            : "HELP_REQUEST".equals(before.category())
+                ? "SATISFECHA".equals(target)
+                : "HABILITADA".equals(target);
     String explanation = reason == null ? "" : reason.trim();
     if (before.closed() && !closing && explanation.isBlank()) {
       throw invalid("La reapertura requiere un motivo");
@@ -151,7 +172,11 @@ class PublicationMaintenanceService {
             before.impactType(),
             before.latitude(),
             before.longitude(),
-            closing);
+            closing,
+            before.needType(),
+            before.approximateQuantity(),
+            before.declaredUrgency(),
+            before.requesterReference());
     String action = before.closed() ? "REOPEN" : closing ? "CLOSE" : "STATUS";
     audit(before, after, action, explanation.isBlank() ? null : explanation, now);
     confirmations.invalidateForSubstantialChange(id, email, "Cambio de estado operativo");
@@ -180,7 +205,7 @@ class PublicationMaintenanceService {
     String sql =
         "SELECT p.id, p.author_id, p.category, p.assistance_subtype, p.title,"
             + " p.description, p.location, p.operational_status, p.impact_type,"
-            + " p.latitude, p.longitude, p.closed FROM citizen_publication p"
+            + " p.latitude, p.longitude, p.closed, p.need_type, p.approximate_quantity, p.declared_urgency, p.requester_reference FROM citizen_publication p"
             + " WHERE p.id = ? AND p.visible = TRUE"
             + " AND p.author_id = (SELECT id FROM citizen_account WHERE email = ?)"
             + (lock ? " FOR UPDATE" : "");
@@ -202,7 +227,11 @@ class PublicationMaintenanceService {
                     row.getDouble("longitude"),
                     row.getBoolean("closed")
                         || ("ROAD".equals(row.getString("category"))
-                            && "HABILITADA".equals(row.getString("operational_status")))),
+                            && "HABILITADA".equals(row.getString("operational_status"))),
+                    row.getString("need_type"),
+                    row.getString("approximate_quantity"),
+                    row.getString("declared_urgency"),
+                    row.getString("requester_reference")),
             id,
             email)
         .stream()
@@ -253,5 +282,9 @@ class PublicationMaintenanceService {
       String impactType,
       double latitude,
       double longitude,
-      boolean closed) {}
+      boolean closed,
+      String needType,
+      String approximateQuantity,
+      String declaredUrgency,
+      String requesterReference) {}
 }

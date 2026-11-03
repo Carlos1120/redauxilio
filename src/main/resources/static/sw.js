@@ -4,12 +4,14 @@
  * Intenta primero la red; solo ante un fallo de red utiliza una copia previamente guardada.
  * No almacena borradores, operaciones de escritura, bibliotecas CDN ni cartografía externa.
  */
-// RA-13 incorpora la consulta pública de verificación oficial sin cachear sus datos privados.
-const CACHE = "redauxilio-demo-v23";
+// RA-09/13 renuevan recursos públicos; contacto y rutas privadas siguen fuera de caché.
+const CACHE = "redauxilio-demo-v24";
 const SHELL = [
   "/",
   "/app.css",
   "/app.js",
+  "/missing-person.js",
+  "/authorized-contact.js",
   "/freshness.js",
   "/identity-forms.js",
   "/identity-status.js",
@@ -63,6 +65,8 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(event.request.url);
   // La lista permitida evita capturar futuras rutas privadas o enviar mapas externos a esta caché.
   if (event.request.method !== "GET" || url.origin !== self.location.origin) return;
+  // RA-09: contacto bajo demanda nunca entra en caché, ni aunque cambie la lista pública.
+  if (/^\/api\/publications\/[^/]+\/authorized-contact$/.test(url.pathname)) return;
   const publicQuery = url.pathname === "/api/publications";
   const publicShell = SHELL.includes(url.pathname) && !(url.pathname === "/" && url.search);
   const rootNavigation = url.pathname === "/" && event.request.mode === "navigate";

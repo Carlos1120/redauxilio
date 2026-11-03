@@ -1,16 +1,19 @@
-# RedAuxilio — traspaso RA-13
+# RedAuxilio — traspaso RA-12/RA-13
 
-Actualización: 2 de noviembre de 2026 (Colombia). `origin/develop` verificado en `59745c9b25a148aee5ade138ffaa5b4271eac497`, con RA-11 integrada. PR, CI posterior y revisión humana pendientes para los incrementos locales.
+Actualización: 3 de noviembre de 2026 (Colombia). El checkout principal `C:\Users\Santiago\redauxilio` sigue en `feat/RA-08-acciones-moderacion`, HEAD `d6a2348659eb3c3133ae58eb3ee2ac1dfe72387b`, con cambios locales en `TRASPASO_CODEX.md` y `src/main/resources/static/app.css`; permanecen intactos. El remoto es `origin`.
 
-## Incrementos activos
+## Estado remoto
 
-- **RA-12 · Evidencias fotográficas:** rama `feat/RA-12-evidencias-fotograficas`, worktree `C:\Users\Santiago\.codex\worktrees\ra12-evidencias-fotograficas`. Implementa hasta 3 JPEG/PNG/WebP de 5 MiB cada uno, validación del servidor, eliminación de metadatos JPEG/PNG, limpieza de chunks WebP, vista previa/borrador local, guardado atómico con publicación, retiro por autor, y galería pública solo para publicaciones visibles. No se hizo commit, push, PR ni cambio en Trello. `mvn verify`: 146 Java aprobadas; Node: 110/110; Prettier, Spotless y diff check aprobados. Sin aceptación manual ni CI remoto.
-- **RA-13 · Verificación oficial:** rama `feat/RA-13-verificacion-oficial`, worktree `C:\Users\Santiago\.codex\worktrees\ra13-verificacion-oficial`. Dependencias RA-01/05/08 confirmadas integradas en develop. Implementa permisos de verificador concedidos/retirados por operador con motivo y auditoría; verificaciones con actor, fecha, nota/referencia y versión; historial append-only de registros y retiros; visualización pública sin correo; corrección operativa por operador; confianza oficial independiente de confirmaciones, con actividad RA-06 actualizada. PWA precarga el script, no datos ni rutas privadas.
+`origin/develop` avanzó a `3fa21ac2abdcbc38306f92fa5608b3f67f385458` al integrar RA-09 por el PR #28. PR #26 RA-12 y #27 RA-13 siguen abiertos como Draft, inicialmente basados en `59745c9b25a148aee5ade138ffaa5b4271eac497`, con sus HEAD originales `69b77a33fd6c491e466f250f2c7c6985cddd7156` y `cdbb6247a411af8e378dc50dc1136b053450deb0`. El CI SUCCESS conocido pertenece a esos HEAD antiguos. No hay revisión formal APPROVED registrada para ambos. No se fusionaron los PR ni se actualizó Trello.
 
-## Validación y límites
+## Actualización de ramas
 
-RA-13: `mvn verify` aprobó 145 Java, Spotless y PMD; tras añadir la última aserción sobre independencia de confianza, las 3 pruebas RA-13 se repitieron y pasaron. Node: 111/111; Prettier y `git diff --check` limpios. JDK 21 usado; JDK 25 local causa incompatibilidad del Google Java Format. Sin CI remoto ni QA visual manual; H2 probado, PostgreSQL no certificado.
+RA-12 está en `C:\Users\Santiago\.codex\worktrees\ra12-evidencias-fotograficas`; RA-13 en `C:\Users\Santiago\.codex\worktrees\ra13-verificacion-oficial`. Se integró localmente el nuevo `origin/develop` para resolver sus conflictos. En RA-12 se combinaron borrador/evidencias con los campos RA-09 en `app.js`, `index.html` y `publication-form.test.cjs`. En RA-13 se conservaron tanto permisos/verificaciones como el esquema de personas/contacto; el service worker subió a `v24` y precarga ambos scripts sin cachear contacto privado. No quedan marcadores de conflicto. Los cambios están preparados localmente, sin commit ni push.
 
-El checkout original `C:\Users\Santiago\redauxilio` conserva intactos sus cambios locales de RA-08/interfaz; no se cambió de rama ni se escribieron cambios RA-12/13 allí. Mantener ambos worktrees y no mezclar ramas. No se actualizaron tarjetas Trello. No hay aprobación humana, integración, ni estado Done atribuibles a estos incrementos.
+## Validación ejecutada
 
-Siguiente paso: revisar visualmente ambos flujos en navegador y comprobar casos de permiso/revocación/versionado con datos ficticios; luego, si Santiago solicita publicación, preparar cada PR a develop por separado para revisión real de Carlos y CI sobre el HEAD exacto. No cerrar historias antes de integración y aceptación humanas.
+Con Microsoft JDK 21.0.10 (no hay JDK 17 instalado), Node 24.16.0/npm 11.13.0 y H2: RA-12 `mvn verify` pasó con 161 pruebas Java; `npm test` pasó 122/122. RA-13 pasó con 160 pruebas Java y 123/123 JS. Spotless, PMD, Prettier y `git diff --check` aprobaron en ambos worktrees. La base probada fue H2; PostgreSQL no está certificado. Las ejecuciones corresponden al árbol combinado local, todavía sin commit ni CI remoto.
+
+## Siguiente paso y límites
+
+Crear commits de actualización con la identidad Git configurada, comprobar que `develop` no avanzó, y enviar ambos commits mediante push fast-forward. Después, dejar PR #26/#27 listos para revisión formal de Carlos y comprobar CI en sus nuevos HEAD. No aprobar ni integrar hasta recibir APPROVED formal y CI verde en esos HEAD; el usuario indicó no hacer merge todavía. No afirmar QA visual humana ni cambios de Trello.

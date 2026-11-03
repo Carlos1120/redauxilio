@@ -56,6 +56,7 @@ async function setup(implementation = async () => response(page())) {
     if (nodes.has(id)) return nodes.get(id);
     const node = {
       textContent: "",
+      dataset: {},
       children: [],
       disabled: false,
       listeners: {},
@@ -114,6 +115,10 @@ async function setup(implementation = async () => response(page())) {
       },
     },
   };
+  vm.runInNewContext(
+    fs.readFileSync(path.join(__dirname, "../../main/resources/static/missing-person.js"), "utf8"),
+    context,
+  );
   vm.runInNewContext(source, context);
   await flush();
   return { element, listeners, requests, navigator, document };
@@ -864,4 +869,59 @@ test("moderación HELP_REQUEST conserva campos propios al corregir y usa cierre 
     ui.requests.filter((r) => r.options.method === "POST").at(-1).options.body,
   );
   assert.equal(close.operationalStatus, "SATISFECHA");
+});
+
+test("moderación de persona usa estado encontrado sin cierre y conserva campos al corregir", async () => {
+  const p = {
+    ...publication(),
+    category: "MISSING_PERSON",
+    operationalStatus: "DESAPARECIDA",
+    assistanceSubtype: null,
+    missingPerson: {
+      referenceName: "Caso ficticio",
+      physicalDescription: "Chaqueta gris",
+      lastSeenPlace: "Parque",
+      ageRange: "18–29",
+      lastSeenAt: "2026-11-03T08:30:00Z",
+    },
+  };
+  const data = {
+    context: { publication: p, visible: true, activeReports: 0, totalReports: 0 },
+    reports: [],
+    history: [],
+    decisions: [],
+  };
+  const ui = await setup(async (url, options) =>
+    url === "/csrf"
+      ? response({ token: "t", headerName: "X-CSRF-TOKEN" })
+      : options.method === "POST"
+        ? response({ action: "STATUS" })
+        : url.endsWith("/1000000")
+          ? response(data)
+          : response(page()),
+  );
+  await ui.element("moderation-list").children[0].children.at(-1).listeners.click();
+  const all = [];
+  function collect(n) {
+    all.push(n);
+    n.children.forEach(collect);
+  }
+  collect(ui.element("moderation-detail"));
+  all.find((n) => n.tagName === "textarea").value = "Motivo ficticio";
+  await all.find((n) => n.textContent === "Marcar como encontrada").listeners.click();
+  const state = JSON.parse(ui.requests.find((r) => r.options.method === "POST").options.body);
+  assert.equal(state.action, "STATUS");
+  assert.equal(state.operationalStatus, "ENCONTRADA");
+  all.length = 0;
+  collect(ui.element("moderation-detail"));
+  all.find((n) => n.tagName === "textarea").value = "Rectificación ficticia";
+  await all
+    .find((n) => n.textContent === "Aplicar corrección y anular respaldos vigentes")
+    .listeners.click();
+  const correction = JSON.parse(
+    ui.requests.filter((r) => r.options.method === "POST").at(-1).options.body,
+  ).correction;
+  assert.equal(correction.missingPerson.ageRange, "18–29");
+  assert.equal(correction.missingPerson.lastSeenAt, "2026-11-03T08:30:00Z");
+  assert.equal(correction.contact, undefined);
 });

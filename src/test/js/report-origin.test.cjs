@@ -392,3 +392,43 @@ test("detalle público de ayuda muestra datos propios y urgencia no oficial como
   assert.match(detail, /Urgencia declarada \(no oficial\)/);
   assert.match(detail, /<img onerror=prueba>/);
 });
+
+test("borrador MISSING_PERSON restaura solo datos seguros y jamás guarda contacto", async () => {
+  const storage = {},
+    first = await loadReportView([], null, { draftStorage: storage });
+  first.element("publication-category").value = "MISSING_PERSON";
+  first.element("missing-age").value = "13–17";
+  first.element("missing-seen").value = "2026-11-03T08:30";
+  first.element("authorized-contact-value").value = "secreto@example.invalid";
+  first.element("authorized-contact-consent").checked = true;
+  await vm.runInContext("saveDraft()", first.context);
+  assert.equal(storage.value.missingAge, "13–17");
+  assert.equal(storage.value.missingSeen, "2026-11-03T08:30");
+  assert.doesNotMatch(JSON.stringify(storage.value), /secreto|contact|consent/i);
+  const second = await loadReportView([], null, { draftStorage: storage });
+  await new Promise((r) => setImmediate(r));
+  await new Promise((r) => setImmediate(r));
+  assert.equal(second.element("missing-age").value, "13–17");
+  assert.equal(second.element("missing-seen").value, "2026-11-03T08:30");
+});
+test("detalle desaparecido muestra datos estructurados y omite contacto incluido indebidamente en objeto", async () => {
+  const item = {
+    ...report(1000000),
+    category: "MISSING_PERSON",
+    operationalStatus: "DESAPARECIDA",
+    missingPerson: {
+      referenceName: "Referencia ficticia",
+      ageRange: "18–29",
+      physicalDescription: "Chaqueta gris",
+      lastSeenPlace: "Parque",
+      lastSeenAt: "2026-11-03T08:30:00Z",
+    },
+    contactValue: "secreto@example.invalid",
+  };
+  const ui = await loadReportView([item]);
+  const text = (n) => [n.textContent || "", ...(n.children || []).map(text)].join(" ");
+  const visible = text(ui.nodes.get("detail-content"));
+  assert.match(visible, /Referencia ficticia/);
+  assert.match(visible, /18–29/);
+  assert.doesNotMatch(visible, /secreto@example.invalid/);
+});

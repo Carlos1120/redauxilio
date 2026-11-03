@@ -210,6 +210,14 @@
       const facts = text("dl", "");
       facts.className = "operator-facts";
       for (const [label, value] of [
+        ...(p.missingPerson
+          ? [
+              ["Nombre o referencia", p.missingPerson.referenceName],
+              ["Rango de edad", p.missingPerson.ageRange || "No indicado"],
+              ["Última vez vista", formatDate(p.missingPerson.lastSeenAt)],
+              ["Último sector conocido", p.missingPerson.lastSeenPlace],
+            ]
+          : []),
         ...(p.category === "HELP_REQUEST" && p.needType
           ? [
               ["Tipo de necesidad", p.needType],
@@ -429,6 +437,8 @@
       CLOSE: "Cierre",
       REOPEN: "Reapertura",
       EDIT: "Edición",
+      CONTACT: "Autorización de contacto adulto",
+      CONTACT_WITHDRAW: "Retiro de contacto",
       STATUS: "Cambio de estado",
     };
     entry.append(
@@ -461,7 +471,17 @@
         approximateQuantity: "Cantidad aproximada",
         declaredUrgency: "Urgencia declarada",
         requesterReference: "Alias o comunidad",
+        contactAuthorized: "Contacto autorizado",
+        referenceName: "Nombre o referencia",
+        ageRange: "Rango de edad",
+        physicalDescription: "Descripción física",
+        lastSeenPlace: "Último sector conocido",
+        lastSeenAt: "Última vez vista",
       };
+      if (before && after) {
+        Object.assign(before, before.missingPerson);
+        Object.assign(after, after.missingPerson);
+      }
       let changes = 0;
       for (const [key, label] of Object.entries(labels)) {
         if (
@@ -739,6 +759,27 @@
           correction.append(wrapper);
           fields[key] = input;
         }
+      } else if (p.category === "MISSING_PERSON") {
+        const ageLabel = text("label", "Rango de edad (opcional)"),
+          age = document.createElement("select");
+        for (const value of ["", "0–5", "6–12", "13–17", "18–29", "30–59", "60+"]) {
+          const option = text("option", value || "No indicado");
+          option.value = value;
+          age.append(option);
+        }
+        age.value = p.missingPerson?.ageRange || "";
+        ageLabel.append(age);
+        correction.append(ageLabel);
+        fields.missingAge = age;
+        const seenLabel = text("label", "Fecha y hora aproximadas de última vez vista"),
+          seen = document.createElement("input");
+        seen.type = "datetime-local";
+        seen.step = "0.001";
+        window.RedAuxilioMissingPerson?.setSeenTime(seen, p.missingPerson?.lastSeenAt);
+        seenLabel.append(seen);
+        correction.append(seenLabel);
+        fields.missingSeen = seen;
+        fields.description.maxLength = 500;
       } else {
         const wrapper = text("label", "Tipo de afectación");
         const input = document.createElement("select");
@@ -766,6 +807,17 @@
           impactType: fields.impactType?.value ?? null,
           latitude: Number(fields.latitude.value),
           longitude: Number(fields.longitude.value),
+          ...(p.category === "MISSING_PERSON"
+            ? {
+                missingPerson: {
+                  referenceName: fields.title.value,
+                  physicalDescription: fields.description.value,
+                  lastSeenPlace: fields.location.value,
+                  ageRange: fields.missingAge.value || null,
+                  lastSeenAt: window.RedAuxilioMissingPerson.readSeenTime(fields.missingSeen),
+                },
+              }
+            : {}),
           ...(p.category === "HELP_REQUEST"
             ? {
                 needType: fields.needType.value,
@@ -779,6 +831,68 @@
       correction.append(submitCorrection);
       section.append(correction);
     }
+    if (p.category === "MISSING_PERSON") {
+      if (!p.closed)
+        button(
+          p.operationalStatus === "DESAPARECIDA"
+            ? "Marcar como encontrada"
+            : "Rectificar como desaparecida",
+          "STATUS",
+          p.operationalStatus === "DESAPARECIDA" ? "ENCONTRADA" : "DESAPARECIDA",
+        );
+      // Retira la autorización vigente: motivo enumerado para no archivar el valor del contacto.
+      const label = text("label", "Motivo para retirar contacto adulto"),
+        choice = document.createElement("select");
+      for (const [value, name] of [
+        ["", "Selecciona motivo"],
+        ["PROTECCION_DATOS", "Protección de datos"],
+        ["SOLICITUD_AUTOR", "Solicitud del autor"],
+        ["CONTACTO_INCORRECTO", "Contacto incorrecto"],
+      ]) {
+        const option = text("option", name);
+        option.value = value;
+        choice.append(option);
+      }
+      label.append(choice);
+      const retire = text("button", "Retirar contacto autorizado");
+      retire.type = "button";
+      retire.addEventListener("click", async () => {
+        if (pending) return;
+        if (!choice.value) {
+          message.textContent = "Selecciona el motivo de retiro del contacto.";
+          return;
+        }
+        const version = generation,
+          selected = selection;
+        const isCurrent = () => version === generation && selected === selection;
+        pending = true;
+        try {
+          const token = await read("/csrf");
+          if (!isCurrent()) return;
+          const response = await fetch(
+            `/api/my/publications/${p.id}/authorized-contact?reason=${choice.value}`,
+            {
+              method: "DELETE",
+              credentials: "same-origin",
+              cache: "no-store",
+              headers: { [token.headerName]: token.token },
+            },
+          );
+          if (!isCurrent()) return;
+          if (!response.ok) {
+            const error = new Error("Retiro no disponible");
+            error.status = response.status;
+            throw error;
+          }
+          message.textContent = "Retiro del contacto confirmado por el servidor.";
+        } catch (error) {
+          if (isCurrent()) failed(error);
+        } finally {
+          pending = false;
+        }
+      });
+      section.append(label, retire);
+    }
     if (context.visible) button("Ocultar publicación", "HIDE");
     else button("Restituir visibilidad", "RESTORE");
     if (!p.closed)
@@ -787,16 +901,20 @@
         "CLOSE",
         p.category === "ASSISTANCE"
           ? "CERRADO"
-          : p.category === "HELP_REQUEST"
-            ? "SATISFECHA"
-            : "HABILITADA",
+          : p.category === "MISSING_PERSON"
+            ? "CASO CERRADO"
+            : p.category === "HELP_REQUEST"
+              ? "SATISFECHA"
+              : "HABILITADA",
       );
     if (p.closed) {
       for (const status of p.category === "ASSISTANCE"
         ? ["DISPONIBLE", "CAPACIDAD LIMITADA"]
-        : p.category === "HELP_REQUEST"
-          ? ["ABIERTA"]
-          : ["BLOQUEADA", "PARCIALMENTE HABILITADA"])
+        : p.category === "MISSING_PERSON"
+          ? ["DESAPARECIDA"]
+          : p.category === "HELP_REQUEST"
+            ? ["ABIERTA"]
+            : ["BLOQUEADA", "PARCIALMENTE HABILITADA"])
         button(`Reabrir como ${status}`, "REOPEN", status);
     }
     container.append(section);

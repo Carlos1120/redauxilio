@@ -16,17 +16,29 @@ function syncPublicationCategory() {
     ["assistance-fields", category === "ASSISTANCE"],
     ["road-fields", category === "ROAD"],
     ["help-fields", category === "HELP_REQUEST"],
+    ["missing-fields", category === "MISSING_PERSON"],
   ]) {
     const group = publicationField(id);
     group.hidden = !active;
     for (const field of group.querySelectorAll("input, select, textarea")) field.disabled = !active;
   }
+  publicationField("draft-text").maxLength = category === "MISSING_PERSON" ? 500 : 1000;
+  publicationField("draft-text").labels[0].textContent =
+    category === "MISSING_PERSON"
+      ? "Descripción física (sin datos sensibles)"
+      : "¿Qué quieres reportar?";
+  publicationField("publication-location").labels[0].textContent =
+    category === "MISSING_PERSON"
+      ? "Último sector o lugar público conocido"
+      : "Sector o lugar público";
   publicationField("publication-title").labels[0].textContent =
-    category === "ROAD"
-      ? "Tramo de la vía"
-      : category === "HELP_REQUEST"
-        ? "Resumen de la necesidad"
-        : "Nombre del punto de asistencia";
+    category === "MISSING_PERSON"
+      ? "Nombre o referencia de la persona"
+      : category === "ROAD"
+        ? "Tramo de la vía"
+        : category === "HELP_REQUEST"
+          ? "Resumen de la necesidad"
+          : "Nombre del punto de asistencia";
 }
 publicationCategory.addEventListener("change", syncPublicationCategory);
 syncPublicationCategory();
@@ -145,6 +157,7 @@ publicationField("publish-report").addEventListener("click", async () => {
   }
   const road = publicationCategory.value === "ROAD";
   const help = publicationCategory.value === "HELP_REQUEST";
+  const missing = publicationCategory.value === "MISSING_PERSON";
   const reference = publicationField("help-requester").value.trim();
   if (help && (reference.includes("@") || /(?:[0-9][\s().+-]*){7,}/.test(reference))) {
     publicationMessage.textContent = "Usa un alias o comunidad sin correo, teléfono ni documento.";
@@ -152,18 +165,34 @@ publicationField("publish-report").addEventListener("click", async () => {
   }
   const request = {
     category: publicationCategory.value,
-    assistanceSubtype: road || help ? null : publicationField("assistance-subtype").value,
+    assistanceSubtype:
+      road || help || missing ? null : publicationField("assistance-subtype").value,
     title,
     description,
     location,
-    operationalStatus: help
-      ? "ABIERTA"
-      : road
-        ? publicationField("road-status").value
-        : publicationField("assistance-status").value,
+    operationalStatus: missing
+      ? "DESAPARECIDA"
+      : help
+        ? "ABIERTA"
+        : road
+          ? publicationField("road-status").value
+          : publicationField("assistance-status").value,
     impactType: road ? publicationField("road-impact").value : null,
     latitude: Number(latitudeText),
     longitude: Number(longitudeText),
+    ...(missing
+      ? {
+          missingPerson: {
+            referenceName: title,
+            physicalDescription: description,
+            lastSeenPlace: location,
+            ageRange: publicationField("missing-age").value || null,
+            lastSeenAt: window.RedAuxilioMissingPerson.readSeenTime(
+              publicationField("missing-seen"),
+            ),
+          },
+        }
+      : {}),
     ...(help
       ? {
           needType: publicationField("help-need-type").value,

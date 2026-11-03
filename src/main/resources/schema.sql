@@ -160,3 +160,14 @@ CREATE TABLE IF NOT EXISTS official_verification_action (
 );
 CREATE INDEX IF NOT EXISTS official_verification_action_item
   ON official_verification_action (verification_id, id);
+-- RA-09: atributos públicos estructurados y contacto separado de toda proyección/snapshot.
+ALTER TABLE citizen_publication ADD COLUMN IF NOT EXISTS reference_name VARCHAR(120);
+ALTER TABLE citizen_publication ADD COLUMN IF NOT EXISTS age_range VARCHAR(20);
+ALTER TABLE citizen_publication ADD COLUMN IF NOT EXISTS physical_description VARCHAR(500);
+ALTER TABLE citizen_publication ADD COLUMN IF NOT EXISTS last_seen_place VARCHAR(160);
+ALTER TABLE citizen_publication ADD COLUMN IF NOT EXISTS last_seen_at TIMESTAMP WITH TIME ZONE;
+CREATE TABLE IF NOT EXISTS publication_authorized_contact (
+  publication_id BIGINT PRIMARY KEY REFERENCES citizen_publication(id),
+  contact_value VARCHAR(160) NOT NULL,
+  authorized_at TIMESTAMP WITH TIME ZONE NOT NULL
+);

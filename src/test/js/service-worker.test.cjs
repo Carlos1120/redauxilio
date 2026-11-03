@@ -284,3 +284,32 @@ test("moderación y auditoría privada no entran en Cache Storage ni en shell", 
   }
   assert.deepEqual([...worker.entries.keys()], existingKeys);
 });
+
+test("RA-09 nunca intercepta ni almacena contacto autorizado o sus escrituras", async () => {
+  const worker = loadWorker();
+  let installation;
+  worker.listeners.get("install")({ waitUntil: (p) => (installation = p) });
+  await installation;
+  const keys = [...worker.entries.keys()];
+  for (const method of ["GET", "PUT", "DELETE"]) {
+    assert.equal(
+      fetchEvent(
+        worker,
+        "http://localhost:8081/api/publications/1000000/authorized-contact",
+        method,
+      ),
+      undefined,
+    );
+    assert.equal(
+      fetchEvent(
+        worker,
+        "http://localhost:8081/api/my/publications/1000000/authorized-contact",
+        method,
+      ),
+      undefined,
+    );
+  }
+  assert.deepEqual([...worker.entries.keys()], keys);
+  assert.ok(worker.precached.includes("/missing-person.js"));
+  assert.ok(worker.precached.includes("/authorized-contact.js"));
+});

@@ -19,7 +19,7 @@ class CitizenPublicationRepository {
   // auditoría.
   static final String PUBLIC_COLUMNS =
       "id, category, assistance_subtype, title, description, location, operational_status,"
-          + " need_type, approximate_quantity, declared_urgency, requester_reference, impact_type, latitude, longitude, created_at, updated_at, closed, confirmation_version, review_status"
+          + " reference_name, age_range, physical_description, last_seen_place, last_seen_at, need_type, approximate_quantity, declared_urgency, requester_reference, impact_type, latitude, longitude, created_at, updated_at, closed, confirmation_version, review_status"
           + ", (SELECT COUNT(*) FROM publication_confirmation c"
           + " WHERE c.publication_id = citizen_publication.id"
           + " AND c.publication_version = citizen_publication.confirmation_version"
@@ -90,8 +90,8 @@ class CitizenPublicationRepository {
               connection.prepareStatement(
                   "INSERT INTO citizen_publication"
                       + " (author_id, category, assistance_subtype, title, description, location,"
-                      + " operational_status, impact_type, latitude, longitude, created_at, updated_at, closed, need_type, approximate_quantity, declared_urgency, requester_reference)"
-                      + " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                      + " operational_status, impact_type, latitude, longitude, created_at, updated_at, closed, need_type, approximate_quantity, declared_urgency, requester_reference, reference_name, age_range, physical_description, last_seen_place, last_seen_at)"
+                      + " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                   Statement.RETURN_GENERATED_KEYS);
           statement.setLong(1, authorId);
           statement.setString(2, request.category());
@@ -114,6 +114,13 @@ class CitizenPublicationRepository {
           statement.setString(15, request.approximateQuantity());
           statement.setString(16, request.declaredUrgency());
           statement.setString(17, request.requesterReference());
+          MissingPersonDetails person = request.missingPerson();
+          statement.setString(18, person == null ? null : person.referenceName());
+          statement.setString(19, person == null ? null : person.ageRange());
+          statement.setString(20, person == null ? null : person.physicalDescription());
+          statement.setString(21, person == null ? null : person.lastSeenPlace());
+          statement.setTimestamp(
+              22, person == null ? null : Timestamp.from(Instant.parse(person.lastSeenAt())));
           return statement;
         },
         keys);
@@ -183,7 +190,20 @@ class CitizenPublicationRepository {
                 : null,
             "HELP_REQUEST".equals(row.getString("category"))
                 ? row.getString("requester_reference")
-                : null)
+                : null,
+            mapMissingPerson(row))
         .withFreshness(java.time.Clock.systemUTC());
+  }
+
+  /** Proyección pública sin contacto: permite filas antiguas/ejemplos sin campos RA-09. */
+  static MissingPersonDetails mapMissingPerson(ResultSet row) throws SQLException {
+    if (!"MISSING_PERSON".equals(row.getString("category"))
+        || row.getString("reference_name") == null) return null;
+    return new MissingPersonDetails(
+        row.getString("reference_name"),
+        row.getString("age_range"),
+        row.getString("physical_description"),
+        row.getString("last_seen_place"),
+        row.getTimestamp("last_seen_at").toInstant().toString());
   }
 }

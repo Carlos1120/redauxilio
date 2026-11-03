@@ -400,3 +400,40 @@ test("ayuda sin cambios distingue no-op de edición real", async () => {
       assert.doesNotMatch(h.find("own-message").textContent, /incorporado al historial/);
   }
 });
+
+test("persona propia encontrada sigue editable, reapertura motivada y no-op se anuncian correctamente", async () => {
+  const item = {
+    ...sample(1000000),
+    category: "MISSING_PERSON",
+    assistanceSubtype: null,
+    operationalStatus: "ENCONTRADA",
+    confirmationVersion: 1,
+    updatedAt: "2026-11-03T12:00:00Z",
+    missingPerson: {
+      referenceName: "Caso ficticio",
+      ageRange: "18–29",
+      lastSeenAt: "2026-11-03T08:30:00Z",
+      lastSeenPlace: "Parque",
+      physicalDescription: "Chaqueta gris",
+    },
+  };
+  const h = harness(true, async (url, options) =>
+    url === "/csrf"
+      ? response({ token: "t" })
+      : options?.method === "PATCH"
+        ? response(item)
+        : response(url.endsWith("/history") ? [] : [item]),
+  );
+  await h.click("own-refresh");
+  assert.equal(h.find("own-save").disabled, false);
+  assert.deepEqual(
+    h.find("own-next-state").children.map((n) => n.value),
+    ["CASO CERRADO", "DESAPARECIDA"],
+  );
+  h.find("own-next-state").value = "DESAPARECIDA";
+  await h.click("own-next-state", "change");
+  assert.equal(h.find("own-reason").required, true);
+  await h.session(false);
+  assert.equal(h.find("own-missing-age").value, "");
+  assert.equal(h.find("own-missing-seen").value, "");
+});

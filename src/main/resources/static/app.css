@@ -1945,3 +1945,29 @@ footer {
 .draft-section form > #help-fields {
   grid-row: auto;
 }
+
+/* RA-09: la ficha específica ocupa su fila; no reutiliza filas fijas de ubicación. */
+.draft-section form > #missing-fields {
+  grid-column: 1 / -1;
+  grid-row: auto;
+  min-width: 0;
+}
+#own-missing-fields {
+  grid-column: 1 / -1;
+  min-width: 0;
+}
+#missing-fields > p {
+  grid-column: 1 / -1;
+  color: var(--color-report-secondary);
+}
+#authorized-contact-form {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+#authorized-contact-form input[type="checkbox"] {
+  width: auto;
+}
+.authorized-contact {
+  overflow-wrap: anywhere;
+}

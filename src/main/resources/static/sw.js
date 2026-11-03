@@ -5,7 +5,7 @@
  * No almacena borradores, operaciones de escritura, bibliotecas CDN ni cartografía externa.
  */
 // RA-06 renueva el shell público para recalcular vigencia de respuestas guardadas.
-const CACHE = "redauxilio-demo-v21";
+const CACHE = "redauxilio-demo-v22";
 const SHELL = [
   "/",
   "/app.css",

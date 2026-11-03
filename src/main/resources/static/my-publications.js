@@ -25,6 +25,11 @@
       LLENO: ["DISPONIBLE", "CAPACIDAD LIMITADA", "CERRADO"],
       CERRADO: ["DISPONIBLE", "CAPACIDAD LIMITADA"],
     },
+    HELP_REQUEST: {
+      ABIERTA: ["EN ATENCIÓN", "SATISFECHA"],
+      "EN ATENCIÓN": ["ABIERTA", "SATISFECHA"],
+      SATISFECHA: ["ABIERTA"],
+    },
     ROAD: {
       BLOQUEADA: ["PARCIALMENTE HABILITADA", "HABILITADA"],
       "PARCIALMENTE HABILITADA": ["BLOQUEADA", "HABILITADA"],
@@ -51,6 +56,10 @@
       "own-latitude",
       "own-longitude",
       "own-reason",
+      "own-help-need-type",
+      "own-help-quantity",
+      "own-help-urgency",
+      "own-help-requester",
     ])
       find(id).value = "";
     states.replaceChildren();
@@ -121,6 +130,10 @@
       assistanceSubtype: "Tipo de punto",
       impactType: "Afectación",
       closed: "Cerrado",
+      needType: "Tipo de necesidad",
+      approximateQuantity: "Cantidad aproximada",
+      declaredUrgency: "Urgencia declarada",
+      requesterReference: "Alias o comunidad",
       reviewStatus: "Revisión de contenido",
     };
     const actions = {
@@ -189,8 +202,20 @@
     find("own-location").value = item.location;
     find("own-latitude").value = item.latitude;
     find("own-longitude").value = item.longitude;
-    for (const control of editForm.querySelectorAll("input, textarea, button")) {
+    for (const control of editForm.querySelectorAll("input, textarea, select, button")) {
       control.disabled = item.closed || saving;
+    }
+    const isHelp = item.category === "HELP_REQUEST";
+    find("own-help-fields").hidden = !isHelp;
+    for (const [id, value] of [
+      ["need-type", item.needType],
+      ["quantity", item.approximateQuantity],
+      ["urgency", item.declaredUrgency],
+      ["requester", item.requesterReference],
+    ]) {
+      const control = find(`own-help-${id}`);
+      control.value = isHelp ? (value ?? "") : "";
+      control.disabled = !isHelp || item.closed || saving;
     }
     states.replaceChildren();
     const nextStates = transitions[item.category]?.[item.operationalStatus] || [];
@@ -261,12 +286,24 @@
     button.disabled = true;
     notify("Guardando cambio…");
     try {
-      await receive(url, method, payload, version);
+      const previous = current();
+      const result = await receive(url, method, payload, version);
+      // El guardado idéntico de ayuda no debe anunciar una entrada de historial inexistente.
+      const unchangedHelp =
+        method === "PATCH" &&
+        previous?.category === "HELP_REQUEST" &&
+        Number.isInteger(previous.confirmationVersion) &&
+        result?.confirmationVersion === previous.confirmationVersion &&
+        result.updatedAt === previous.updatedAt;
       if (!stillCurrent(version)) return;
       saving = false;
       await loadMine(id);
       if (!stillCurrent(version)) return;
-      notify(successMessage);
+      notify(
+        unchangedHelp
+          ? "Sin cambios: se conservan fecha, historial y confirmaciones."
+          : successMessage,
+      );
       try {
         await window.RedAuxilioPublicationUI?.loadPublications();
       } catch {
@@ -281,8 +318,11 @@
         refresh.disabled = false;
         // Restaurar permisos sin sobrescribir una corrección que falló y puede reintentarse.
         const item = current();
-        for (const control of editForm.querySelectorAll("input, textarea, button"))
+        for (const control of editForm.querySelectorAll("input, textarea, select, button"))
           control.disabled = !item || item.closed;
+        for (const id of ["need-type", "quantity", "urgency", "requester"])
+          find(`own-help-${id}`).disabled =
+            !item || item.closed || item.category !== "HELP_REQUEST";
         for (const control of stateForm.querySelectorAll("input, textarea, select, button"))
           control.disabled = !item;
       }
@@ -305,7 +345,23 @@
       impactType: item.impactType,
       latitude: Number(find("own-latitude").value),
       longitude: Number(find("own-longitude").value),
+      ...(item.category === "HELP_REQUEST"
+        ? {
+            needType: find("own-help-need-type").value,
+            approximateQuantity: find("own-help-quantity").value.trim() || null,
+            declaredUrgency: find("own-help-urgency").value,
+            requesterReference: find("own-help-requester").value,
+          }
+        : {}),
     };
+    if (
+      item.category === "HELP_REQUEST" &&
+      (payload.requesterReference.includes("@") ||
+        /(?:[0-9][\s().+-]*){7,}/.test(payload.requesterReference))
+    ) {
+      notify("Usa un alias o comunidad sin correo, teléfono ni documento.");
+      return;
+    }
     void submitChange(
       find("own-save"),
       `/api/my/publications/${item.id}`,

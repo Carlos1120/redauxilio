@@ -31,7 +31,10 @@ class ModerationActionService {
           "ASSISTANCE:CERRADO", Set.of("DISPONIBLE", "CAPACIDAD LIMITADA"),
           "ROAD:BLOQUEADA", Set.of("PARCIALMENTE HABILITADA", "HABILITADA"),
           "ROAD:PARCIALMENTE HABILITADA", Set.of("BLOQUEADA", "HABILITADA"),
-          "ROAD:HABILITADA", Set.of("BLOQUEADA", "PARCIALMENTE HABILITADA"));
+          "ROAD:HABILITADA", Set.of("BLOQUEADA", "PARCIALMENTE HABILITADA"),
+          "HELP_REQUEST:ABIERTA", Set.of("EN ATENCIÓN", "SATISFECHA"),
+          "HELP_REQUEST:EN ATENCIÓN", Set.of("ABIERTA", "SATISFECHA"),
+          "HELP_REQUEST:SATISFECHA", Set.of("ABIERTA"));
 
   private final JdbcTemplate jdbc;
   private final OperatorPermissions operators;
@@ -93,7 +96,7 @@ class ModerationActionService {
         after = before.corrected(valid);
         if (before.sameContent(after)) throw conflict("La corrección no cambia el contenido");
         jdbc.update(
-            "UPDATE citizen_publication SET assistance_subtype = ?, title = ?, description = ?, location = ?, impact_type = ?, latitude = ?, longitude = ?, updated_at = ? WHERE id = ?",
+            "UPDATE citizen_publication SET assistance_subtype = ?, title = ?, description = ?, location = ?, impact_type = ?, latitude = ?, longitude = ?, need_type = ?, approximate_quantity = ?, declared_urgency = ?, requester_reference = ?, updated_at = ? WHERE id = ?",
             valid.assistanceSubtype(),
             valid.title(),
             valid.description(),
@@ -101,6 +104,10 @@ class ModerationActionService {
             valid.impactType(),
             valid.latitude(),
             valid.longitude(),
+            valid.needType(),
+            valid.approximateQuantity(),
+            valid.declaredUrgency(),
+            valid.requesterReference(),
             Timestamp.from(now),
             id);
         invalidateConfirmations(id, actor, "Corrección sustancial de moderación");
@@ -123,7 +130,13 @@ class ModerationActionService {
         Set<String> allowed =
             TRANSITIONS.getOrDefault(before.category() + ":" + before.status(), Set.of());
         boolean closing = "CLOSE".equals(action);
-        String terminal = "ASSISTANCE".equals(before.category()) ? "CERRADO" : "HABILITADA";
+        String terminal =
+            switch (before.category()) {
+              case "ASSISTANCE" -> "CERRADO";
+              case "ROAD" -> "HABILITADA";
+              case "HELP_REQUEST" -> "SATISFECHA";
+              default -> throw invalid("Categoría no soportada para cierre");
+            };
         if (closing && !terminal.equals(target))
           throw invalid("El cierre debe usar el estado terminal de la categoría");
         if (closing == before.closed() || !allowed.contains(target))
@@ -159,7 +172,7 @@ class ModerationActionService {
   private Case lockCase(long id) {
     return jdbc
         .query(
-            "SELECT p.id, p.author_id, p.category, p.assistance_subtype, p.title, p.description, p.location, p.operational_status, p.impact_type, p.latitude, p.longitude, p.closed, p.visible, p.review_status, (SELECT COUNT(*) FROM publication_content_report r WHERE r.publication_id = p.id AND r.active_slot = 1) AS active_reports FROM citizen_publication p WHERE p.id = ? AND p.id >= "
+            "SELECT p.id, p.author_id, p.category, p.assistance_subtype, p.title, p.description, p.location, p.operational_status, p.impact_type, p.latitude, p.longitude, p.closed, p.visible, p.review_status, p.need_type, p.approximate_quantity, p.declared_urgency, p.requester_reference, (SELECT COUNT(*) FROM publication_content_report r WHERE r.publication_id = p.id AND r.active_slot = 1) AS active_reports FROM citizen_publication p WHERE p.id = ? AND p.id >= "
                 + FIRST_CITIZEN_PUBLICATION_ID
                 + " FOR UPDATE",
             (row, index) ->
@@ -180,7 +193,11 @@ class ModerationActionService {
                             && "HABILITADA".equals(row.getString("operational_status"))),
                     row.getBoolean("visible"),
                     row.getString("review_status"),
-                    row.getInt("active_reports")),
+                    row.getInt("active_reports"),
+                    row.getString("need_type"),
+                    row.getString("approximate_quantity"),
+                    row.getString("declared_urgency"),
+                    row.getString("requester_reference")),
             id)
         .stream()
         .findFirst()
@@ -260,7 +277,11 @@ class ModerationActionService {
       boolean closed,
       boolean visible,
       String reviewStatus,
-      int activeReports) {
+      int activeReports,
+      String needType,
+      String approximateQuantity,
+      String declaredUrgency,
+      String requesterReference) {
     Case withReviewStatus(String value) {
       return new Case(
           id,
@@ -277,7 +298,11 @@ class ModerationActionService {
           closed,
           visible,
           value,
-          activeReports);
+          activeReports,
+          needType,
+          approximateQuantity,
+          declaredUrgency,
+          requesterReference);
     }
 
     Case withActiveReports(int value) {
@@ -296,7 +321,11 @@ class ModerationActionService {
           closed,
           visible,
           reviewStatus,
-          value);
+          value,
+          needType,
+          approximateQuantity,
+          declaredUrgency,
+          requesterReference);
     }
 
     Case withVisibility(boolean value) {
@@ -315,7 +344,11 @@ class ModerationActionService {
           closed,
           value,
           reviewStatus,
-          activeReports);
+          activeReports,
+          needType,
+          approximateQuantity,
+          declaredUrgency,
+          requesterReference);
     }
 
     Case withStatus(String value, boolean isClosed) {
@@ -334,7 +367,11 @@ class ModerationActionService {
           isClosed,
           visible,
           reviewStatus,
-          activeReports);
+          activeReports,
+          needType,
+          approximateQuantity,
+          declaredUrgency,
+          requesterReference);
     }
 
     Case corrected(CreatePublicationRequest value) {
@@ -353,11 +390,19 @@ class ModerationActionService {
           closed,
           visible,
           reviewStatus,
-          activeReports);
+          activeReports,
+          value.needType(),
+          value.approximateQuantity(),
+          value.declaredUrgency(),
+          value.requesterReference());
     }
 
     boolean sameContent(Case other) {
-      return java.util.Objects.equals(assistanceSubtype, other.assistanceSubtype)
+      return java.util.Objects.equals(needType, other.needType)
+          && java.util.Objects.equals(approximateQuantity, other.approximateQuantity)
+          && java.util.Objects.equals(declaredUrgency, other.declaredUrgency)
+          && java.util.Objects.equals(requesterReference, other.requesterReference)
+          && java.util.Objects.equals(assistanceSubtype, other.assistanceSubtype)
           && title.equals(other.title)
           && description.equals(other.description)
           && location.equals(other.location)

@@ -763,3 +763,59 @@ for (const status of [400, 409])
     ui.listeners.get("redauxilio:identity-change")();
     assert.equal(ui.element("moderation-detail").children.length, 0);
   });
+
+/** A5: el operador corrige los datos de ayuda sin convertirla en una vía. */
+test("moderación HELP_REQUEST conserva campos propios al corregir y usa cierre SATISFECHA", async () => {
+  const p = {
+    ...publication(),
+    category: "HELP_REQUEST",
+    operationalStatus: "ABIERTA",
+    needType: "AGUA",
+    approximateQuantity: "20 familias",
+    declaredUrgency: "MEDIA",
+    requesterReference: "Comunidad ficticia",
+  };
+  const data = {
+    context: { publication: p, visible: true, activeReports: 0 },
+    reports: [],
+    history: [],
+    decisions: [],
+  };
+  const ui = await setup(async (url, options) =>
+    url === "/csrf"
+      ? response({ headerName: "X-CSRF-TOKEN", token: "t" })
+      : options.method === "POST"
+        ? response({ action: "CORRECT" })
+        : url.endsWith("/1000000")
+          ? response(data)
+          : response(page()),
+  );
+  await ui.element("moderation-list").children[0].children.at(-1).listeners.click();
+  const all = [];
+  function collect(n) {
+    all.push(n);
+    n.children.forEach(collect);
+  }
+  collect(ui.element("moderation-detail"));
+  all.find((n) => n.tagName === "textarea").value = "Motivo ficticio";
+  const quantity = all.find((n) => n.textContent === "Cantidad aproximada (opcional)").children[0];
+  quantity.value = "30 familias";
+  await all
+    .find((n) => n.textContent === "Aplicar corrección y anular respaldos vigentes")
+    .listeners.click();
+  const payload = JSON.parse(ui.requests.find((r) => r.options.method === "POST").options.body);
+  assert.equal(payload.correction.needType, "AGUA");
+  assert.equal(payload.correction.approximateQuantity, "30 familias");
+  assert.equal(payload.correction.declaredUrgency, "MEDIA");
+  assert.equal(payload.correction.requesterReference, "Comunidad ficticia");
+  assert.equal(payload.correction.impactType, null);
+  all.length = 0;
+  collect(ui.element("moderation-detail"));
+  all.find((n) => n.tagName === "textarea").value = "Cerrar ayuda ficticia";
+  await all.find((n) => n.textContent === "Cerrar según estado terminal").listeners.click();
+  await all.find((n) => n.textContent === "Confirmar decisión").listeners.click();
+  const close = JSON.parse(
+    ui.requests.filter((r) => r.options.method === "POST").at(-1).options.body,
+  );
+  assert.equal(close.operationalStatus, "SATISFECHA");
+});

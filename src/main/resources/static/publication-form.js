@@ -11,12 +11,22 @@ const publicationMessage = publicationField("draft-message");
 const locationMessage = publicationField("location-message");
 
 function syncPublicationCategory() {
-  const road = publicationCategory.value === "ROAD";
-  publicationField("assistance-fields").hidden = road;
-  publicationField("road-fields").hidden = !road;
-  publicationField("publication-title").labels[0].textContent = road
-    ? "Tramo de la vía"
-    : "Nombre del punto de asistencia";
+  const category = publicationCategory.value;
+  for (const [id, active] of [
+    ["assistance-fields", category === "ASSISTANCE"],
+    ["road-fields", category === "ROAD"],
+    ["help-fields", category === "HELP_REQUEST"],
+  ]) {
+    const group = publicationField(id);
+    group.hidden = !active;
+    for (const field of group.querySelectorAll("input, select, textarea")) field.disabled = !active;
+  }
+  publicationField("publication-title").labels[0].textContent =
+    category === "ROAD"
+      ? "Tramo de la vía"
+      : category === "HELP_REQUEST"
+        ? "Resumen de la necesidad"
+        : "Nombre del punto de asistencia";
 }
 publicationCategory.addEventListener("change", syncPublicationCategory);
 syncPublicationCategory();
@@ -134,18 +144,34 @@ publicationField("publish-report").addEventListener("click", async () => {
     return;
   }
   const road = publicationCategory.value === "ROAD";
+  const help = publicationCategory.value === "HELP_REQUEST";
+  const reference = publicationField("help-requester").value.trim();
+  if (help && (reference.includes("@") || /(?:[0-9][\s().+-]*){7,}/.test(reference))) {
+    publicationMessage.textContent = "Usa un alias o comunidad sin correo, teléfono ni documento.";
+    return;
+  }
   const request = {
     category: publicationCategory.value,
-    assistanceSubtype: road ? null : publicationField("assistance-subtype").value,
+    assistanceSubtype: road || help ? null : publicationField("assistance-subtype").value,
     title,
     description,
     location,
-    operationalStatus: road
-      ? publicationField("road-status").value
-      : publicationField("assistance-status").value,
+    operationalStatus: help
+      ? "ABIERTA"
+      : road
+        ? publicationField("road-status").value
+        : publicationField("assistance-status").value,
     impactType: road ? publicationField("road-impact").value : null,
     latitude: Number(latitudeText),
     longitude: Number(longitudeText),
+    ...(help
+      ? {
+          needType: publicationField("help-need-type").value,
+          approximateQuantity: publicationField("help-quantity").value.trim() || null,
+          declaredUrgency: publicationField("help-urgency").value,
+          requesterReference: reference,
+        }
+      : {}),
   };
   button.disabled = true;
   publicationMessage.textContent = "Enviando publicación…";

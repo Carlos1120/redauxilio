@@ -206,6 +206,14 @@
       const facts = text("dl", "");
       facts.className = "operator-facts";
       for (const [label, value] of [
+        ...(p.category === "HELP_REQUEST" && p.needType
+          ? [
+              ["Tipo de necesidad", p.needType],
+              ["Cantidad aproximada", p.approximateQuantity || "No indicada"],
+              ["Urgencia declarada (no oficial)", p.declaredUrgency],
+              ["Alias o comunidad", p.requesterReference],
+            ]
+          : []),
         ["Sector o lugar público", p.location],
         ["Coordenadas", `${p.latitude}, ${p.longitude}`],
         ["Visibilidad", data.context.visible ? "Visible" : "Oculta"],
@@ -313,6 +321,10 @@
         assistanceSubtype: "Subtipo",
         impactType: "Afectación",
         confirmationVersion: "Versión de confirmación",
+        needType: "Tipo de necesidad",
+        approximateQuantity: "Cantidad aproximada",
+        declaredUrgency: "Urgencia declarada",
+        requesterReference: "Alias o comunidad",
       };
       let changes = 0;
       for (const [key, label] of Object.entries(labels)) {
@@ -566,6 +578,31 @@
         wrapper.append(input);
         correction.append(wrapper);
         fields.assistanceSubtype = input;
+      } else if (p.category === "HELP_REQUEST") {
+        for (const [key, label, values] of [
+          [
+            "needType",
+            "Tipo de necesidad",
+            ["AGUA", "ALIMENTOS", "REFUGIO", "SALUD", "TRANSPORTE", "OTRO"],
+          ],
+          ["approximateQuantity", "Cantidad aproximada (opcional)", null],
+          ["declaredUrgency", "Urgencia declarada (no oficial)", ["BAJA", "MEDIA", "ALTA"]],
+          ["requesterReference", "Alias o comunidad solicitante", null],
+        ]) {
+          const wrapper = text("label", label),
+            input = document.createElement(values ? "select" : "input");
+          if (values)
+            for (const value of values) {
+              const option = text("option", value);
+              option.value = value;
+              input.append(option);
+            }
+          input.value = p[key] ?? "";
+          if (!values) input.maxLength = 120;
+          wrapper.append(input);
+          correction.append(wrapper);
+          fields[key] = input;
+        }
       } else {
         const wrapper = text("label", "Tipo de afectación");
         const input = document.createElement("select");
@@ -593,6 +630,14 @@
           impactType: fields.impactType?.value ?? null,
           latitude: Number(fields.latitude.value),
           longitude: Number(fields.longitude.value),
+          ...(p.category === "HELP_REQUEST"
+            ? {
+                needType: fields.needType.value,
+                approximateQuantity: fields.approximateQuantity.value.trim() || null,
+                declaredUrgency: fields.declaredUrgency.value,
+                requesterReference: fields.requesterReference.value,
+              }
+            : {}),
         })),
       );
       correction.append(submitCorrection);
@@ -604,12 +649,18 @@
       button(
         "Cerrar según estado terminal",
         "CLOSE",
-        p.category === "ASSISTANCE" ? "CERRADO" : "HABILITADA",
+        p.category === "ASSISTANCE"
+          ? "CERRADO"
+          : p.category === "HELP_REQUEST"
+            ? "SATISFECHA"
+            : "HABILITADA",
       );
     if (p.closed) {
       for (const status of p.category === "ASSISTANCE"
         ? ["DISPONIBLE", "CAPACIDAD LIMITADA"]
-        : ["BLOQUEADA", "PARCIALMENTE HABILITADA"])
+        : p.category === "HELP_REQUEST"
+          ? ["ABIERTA"]
+          : ["BLOQUEADA", "PARCIALMENTE HABILITADA"])
         button(`Reabrir como ${status}`, "REOPEN", status);
     }
     container.append(section);

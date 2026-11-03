@@ -320,3 +320,83 @@ test("respuesta de escritura tardía después de logout no anuncia éxito ni reh
   assert.equal(h.find("own-save").disabled, true);
   assert.doesNotMatch(h.find("own-message").textContent, /Corrección guardada/);
 });
+
+/** RA-11 conserva datos estructurados al editar y retira todos los campos al salir. */
+test("solicitud propia edita sus campos y ofrece transiciones de ayuda", async () => {
+  const item = {
+    ...sample(1000000),
+    category: "HELP_REQUEST",
+    assistanceSubtype: null,
+    operationalStatus: "ABIERTA",
+    needType: "AGUA",
+    approximateQuantity: "20 familias",
+    declaredUrgency: "MEDIA",
+    requesterReference: "Comunidad ficticia",
+  };
+  const ui = harness(true, async (url, options) =>
+    url === "/csrf"
+      ? response({ token: "t" })
+      : url === "/api/my/publications"
+        ? response([item])
+        : url.endsWith("/history")
+          ? response([])
+          : response(item),
+  );
+  await tick();
+  const find = ui.find;
+  await ui.click("own-refresh");
+  assert.equal(find("own-help-need-type").value, "AGUA");
+  assert.deepEqual(
+    find("own-next-state").children.map((n) => n.value),
+    ["EN ATENCIÓN", "SATISFECHA"],
+  );
+  find("own-help-quantity").value = "30 familias";
+  find("own-edit-form").listeners.submit({ preventDefault() {} });
+  await tick();
+  await tick();
+  const patch = ui.requests.find((r) => typeof r === "object" && r.options?.method === "PATCH");
+  assert.ok(patch);
+  assert.equal(JSON.parse(patch.options.body).approximateQuantity, "30 familias");
+  await ui.session(false);
+  for (const id of ["need-type", "quantity", "urgency", "requester"])
+    assert.equal(find(`own-help-${id}`).value, "");
+});
+
+/** A2: no anunciar historial ni actividad nuevos si el servidor conserva la versión. */
+test("ayuda sin cambios distingue no-op de edición real", async () => {
+  for (const changed of [false, true]) {
+    const item = {
+      ...sample(),
+      category: "HELP_REQUEST",
+      operationalStatus: "ABIERTA",
+      needType: "AGUA",
+      declaredUrgency: "BAJA",
+      requesterReference: "Comunidad ficticia",
+      confirmationVersion: 1,
+      updatedAt: "2026-11-02T12:00:00Z",
+    };
+    const h = harness(true, async (url, options) => {
+      if (url === "/csrf") return response({ token: "t" });
+      if (options?.method === "PATCH")
+        return response(
+          changed
+            ? {
+                ...item,
+                confirmationVersion: 2,
+                updatedAt: "2026-11-02T13:00:00Z",
+              }
+            : item,
+        );
+      return response(url.endsWith("/history") ? [] : [item]);
+    });
+    await h.click("own-refresh");
+    await h.click("own-edit-form", "submit");
+    await tick();
+    assert.match(
+      h.find("own-message").textContent,
+      changed ? /Corrección guardada/ : /Sin cambios/,
+    );
+    if (!changed)
+      assert.doesNotMatch(h.find("own-message").textContent, /incorporado al historial/);
+  }
+});

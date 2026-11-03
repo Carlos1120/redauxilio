@@ -329,7 +329,7 @@
         </section>
         <section id="draft-section" class="draft-section" aria-labelledby="draft-title">
           <p class="eyebrow">PUBLICACIÓN CIUDADANA</p>
-          <h2 id="draft-title">Prepara un punto o una vía</h2>
+          <h2 id="draft-title">Prepara una publicación</h2>
           <p id="draft-help">
             Guarda un borrador solo en este navegador o inicia sesión para publicarlo. No incluyas
             documentos personales, historias médicas, domicilios privados ni datos de contacto.
@@ -341,6 +341,7 @@
                 <select id="publication-category">
                   <option value="ASSISTANCE">Punto de asistencia</option>
                   <option value="ROAD">Vía afectada</option>
+                  <option value="HELP_REQUEST">Solicitud de ayuda</option>
                 </select>
               </div>
               <div class="field">
@@ -385,6 +386,42 @@
                 </div>
               </div>
             </div>
+            <fieldset id="help-fields" class="publication-specific" hidden>
+              <legend>Datos de la solicitud de ayuda</legend>
+              <p>
+                Urgencia declarada, no clasificación oficial ni garantía de atención. Usa un alias o
+                comunidad; no incluyas documentos, datos médicos, domicilios, correos o teléfonos.
+              </p>
+              <div class="field">
+                <label for="help-need-type">Tipo de necesidad</label
+                ><select id="help-need-type" required>
+                  <option value="">Selecciona la necesidad</option>
+                  <option>AGUA</option>
+                  <option>ALIMENTOS</option>
+                  <option>REFUGIO</option>
+                  <option>SALUD</option>
+                  <option>TRANSPORTE</option>
+                  <option>OTRO</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="help-quantity">Cantidad aproximada (opcional)</label
+                ><input id="help-quantity" maxlength="120" />
+              </div>
+              <div class="field">
+                <label for="help-urgency">Urgencia declarada (no oficial)</label
+                ><select id="help-urgency" required>
+                  <option value="">Selecciona la urgencia</option>
+                  <option>BAJA</option>
+                  <option>MEDIA</option>
+                  <option>ALTA</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="help-requester">Alias o comunidad solicitante</label
+                ><input id="help-requester" required maxlength="120" autocomplete="off" />
+              </div>
+            </fieldset>
             <fieldset class="description-fields">
               <legend>Descripción de la publicación</legend>
               <div class="field">
@@ -517,6 +554,43 @@
                   />
                 </div>
               </div>
+              <fieldset id="own-help-fields" class="publication-specific" hidden>
+                <legend>Datos de la solicitud de ayuda</legend>
+                <p>
+                  Urgencia declarada, no clasificación oficial ni garantía de atención. Usa un alias
+                  o comunidad; no incluyas documentos, datos médicos, domicilios, correos o
+                  teléfonos.
+                </p>
+                <div class="field">
+                  <label for="own-help-need-type">Tipo de necesidad</label
+                  ><select id="own-help-need-type" required>
+                    <option value="">Selecciona la necesidad</option>
+                    <option>AGUA</option>
+                    <option>ALIMENTOS</option>
+                    <option>REFUGIO</option>
+                    <option>SALUD</option>
+                    <option>TRANSPORTE</option>
+                    <option>OTRO</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="own-help-quantity">Cantidad aproximada (opcional)</label
+                  ><input id="own-help-quantity" maxlength="120" />
+                </div>
+                <div class="field">
+                  <label for="own-help-urgency">Urgencia declarada (no oficial)</label
+                  ><select id="own-help-urgency" required>
+                    <option value="">Selecciona la urgencia</option>
+                    <option>BAJA</option>
+                    <option>MEDIA</option>
+                    <option>ALTA</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="own-help-requester">Alias o comunidad solicitante</label
+                  ><input id="own-help-requester" required maxlength="120" autocomplete="off" />
+                </div>
+              </fieldset>
               <button type="submit" id="own-save">Guardar corrección</button>
             </form>
             <form id="own-status-form" class="own-manage-form">

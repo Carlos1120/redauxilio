@@ -24,17 +24,20 @@ class ModerationActionService {
   private static final Set<String> RESOLVING_ACTIONS =
       Set.of("KEEP", "CORRECT", "HIDE", "RESTORE", "CLOSE");
   private static final Map<String, Set<String>> TRANSITIONS =
-      Map.of(
-          "ASSISTANCE:DISPONIBLE", Set.of("CAPACIDAD LIMITADA", "LLENO", "CERRADO"),
-          "ASSISTANCE:CAPACIDAD LIMITADA", Set.of("DISPONIBLE", "LLENO", "CERRADO"),
-          "ASSISTANCE:LLENO", Set.of("DISPONIBLE", "CAPACIDAD LIMITADA", "CERRADO"),
-          "ASSISTANCE:CERRADO", Set.of("DISPONIBLE", "CAPACIDAD LIMITADA"),
-          "ROAD:BLOQUEADA", Set.of("PARCIALMENTE HABILITADA", "HABILITADA"),
-          "ROAD:PARCIALMENTE HABILITADA", Set.of("BLOQUEADA", "HABILITADA"),
-          "ROAD:HABILITADA", Set.of("BLOQUEADA", "PARCIALMENTE HABILITADA"),
-          "HELP_REQUEST:ABIERTA", Set.of("EN ATENCIÓN", "SATISFECHA"),
-          "HELP_REQUEST:EN ATENCIÓN", Set.of("ABIERTA", "SATISFECHA"),
-          "HELP_REQUEST:SATISFECHA", Set.of("ABIERTA"));
+      Map.ofEntries(
+          Map.entry("ASSISTANCE:DISPONIBLE", Set.of("CAPACIDAD LIMITADA", "LLENO", "CERRADO")),
+          Map.entry("ASSISTANCE:CAPACIDAD LIMITADA", Set.of("DISPONIBLE", "LLENO", "CERRADO")),
+          Map.entry("ASSISTANCE:LLENO", Set.of("DISPONIBLE", "CAPACIDAD LIMITADA", "CERRADO")),
+          Map.entry("ASSISTANCE:CERRADO", Set.of("DISPONIBLE", "CAPACIDAD LIMITADA")),
+          Map.entry("ROAD:BLOQUEADA", Set.of("PARCIALMENTE HABILITADA", "HABILITADA")),
+          Map.entry("ROAD:PARCIALMENTE HABILITADA", Set.of("BLOQUEADA", "HABILITADA")),
+          Map.entry("ROAD:HABILITADA", Set.of("BLOQUEADA", "PARCIALMENTE HABILITADA")),
+          Map.entry("HELP_REQUEST:ABIERTA", Set.of("EN ATENCIÓN", "SATISFECHA")),
+          Map.entry("HELP_REQUEST:EN ATENCIÓN", Set.of("ABIERTA", "SATISFECHA")),
+          Map.entry("HELP_REQUEST:SATISFECHA", Set.of("ABIERTA")),
+          Map.entry("MISSING_PERSON:DESAPARECIDA", Set.of("ENCONTRADA", "CASO CERRADO")),
+          Map.entry("MISSING_PERSON:ENCONTRADA", Set.of("DESAPARECIDA", "CASO CERRADO")),
+          Map.entry("MISSING_PERSON:CASO CERRADO", Set.of("DESAPARECIDA")));
 
   private final JdbcTemplate jdbc;
   private final OperatorPermissions operators;
@@ -70,6 +73,7 @@ class ModerationActionService {
             .findFirst()
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.FORBIDDEN));
     Case before = lockCase(id);
+    if ("MISSING_PERSON".equals(before.category())) MissingPersonDetails.validateReason(reason);
     Instant now = clock.instant();
     Case after = before;
     String action =
@@ -89,14 +93,15 @@ class ModerationActionService {
       }
       case "CORRECT" -> {
         if (before.closed()) throw conflict("Reabre el caso antes de corregirlo");
-        CreatePublicationRequest valid = PublicationCreationService.validate(request.correction());
+        CreatePublicationRequest valid =
+            PublicationCreationService.validate(request.correction(), clock);
         if (!valid.category().equals(before.category())
             || !valid.operationalStatus().equals(before.status()))
           throw invalid("La corrección no puede cambiar categoría ni estado");
         after = before.corrected(valid);
         if (before.sameContent(after)) throw conflict("La corrección no cambia el contenido");
         jdbc.update(
-            "UPDATE citizen_publication SET assistance_subtype = ?, title = ?, description = ?, location = ?, impact_type = ?, latitude = ?, longitude = ?, need_type = ?, approximate_quantity = ?, declared_urgency = ?, requester_reference = ?, updated_at = ? WHERE id = ?",
+            "UPDATE citizen_publication SET assistance_subtype = ?, title = ?, description = ?, location = ?, impact_type = ?, latitude = ?, longitude = ?, need_type = ?, approximate_quantity = ?, declared_urgency = ?, requester_reference = ?, reference_name = ?, age_range = ?, physical_description = ?, last_seen_place = ?, last_seen_at = ?, updated_at = ? WHERE id = ?",
             valid.assistanceSubtype(),
             valid.title(),
             valid.description(),
@@ -108,6 +113,13 @@ class ModerationActionService {
             valid.approximateQuantity(),
             valid.declaredUrgency(),
             valid.requesterReference(),
+            valid.missingPerson() == null ? null : valid.missingPerson().referenceName(),
+            valid.missingPerson() == null ? null : valid.missingPerson().ageRange(),
+            valid.missingPerson() == null ? null : valid.missingPerson().physicalDescription(),
+            valid.missingPerson() == null ? null : valid.missingPerson().lastSeenPlace(),
+            valid.missingPerson() == null
+                ? null
+                : Timestamp.from(Instant.parse(valid.missingPerson().lastSeenAt())),
             Timestamp.from(now),
             id);
         invalidateConfirmations(id, actor, "Corrección sustancial de moderación");
@@ -122,7 +134,7 @@ class ModerationActionService {
         jdbc.update("UPDATE citizen_publication SET visible = TRUE WHERE id = ?", id);
         after = before.withVisibility(true);
       }
-      case "CLOSE", "REOPEN" -> {
+      case "CLOSE", "REOPEN", "STATUS" -> {
         String target =
             request.operationalStatus() == null
                 ? ""
@@ -135,13 +147,20 @@ class ModerationActionService {
               case "ASSISTANCE" -> "CERRADO";
               case "ROAD" -> "HABILITADA";
               case "HELP_REQUEST" -> "SATISFECHA";
+              case "MISSING_PERSON" -> "CASO CERRADO";
               default -> throw invalid("Categoría no soportada para cierre");
             };
         if (closing && !terminal.equals(target))
           throw invalid("El cierre debe usar el estado terminal de la categoría");
-        if (closing == before.closed() || !allowed.contains(target))
+        boolean missingStatus = "STATUS".equals(action);
+        if (missingStatus
+            && (!"MISSING_PERSON".equals(before.category())
+                || before.closed()
+                || terminal.equals(target))) throw conflict("Cambio operativo no permitido");
+        if ((!missingStatus && closing == before.closed()) || !allowed.contains(target))
           throw conflict("Transición de estado no permitida");
-        if (!closing && !before.closed()) throw conflict("El caso no está cerrado");
+        if (!closing && !missingStatus && !before.closed())
+          throw conflict("El caso no está cerrado");
         jdbc.update(
             "UPDATE citizen_publication SET operational_status = ?, closed = ?, updated_at = ? WHERE id = ?",
             target,
@@ -172,7 +191,7 @@ class ModerationActionService {
   private Case lockCase(long id) {
     return jdbc
         .query(
-            "SELECT p.id, p.author_id, p.category, p.assistance_subtype, p.title, p.description, p.location, p.operational_status, p.impact_type, p.latitude, p.longitude, p.closed, p.visible, p.review_status, p.need_type, p.approximate_quantity, p.declared_urgency, p.requester_reference, (SELECT COUNT(*) FROM publication_content_report r WHERE r.publication_id = p.id AND r.active_slot = 1) AS active_reports FROM citizen_publication p WHERE p.id = ? AND p.id >= "
+            "SELECT p.id, p.author_id, p.category, p.assistance_subtype, p.title, p.description, p.location, p.operational_status, p.impact_type, p.latitude, p.longitude, p.closed, p.visible, p.review_status, p.need_type, p.approximate_quantity, p.declared_urgency, p.requester_reference, p.reference_name, p.age_range, p.physical_description, p.last_seen_place, p.last_seen_at, (SELECT COUNT(*) FROM publication_content_report r WHERE r.publication_id = p.id AND r.active_slot = 1) AS active_reports FROM citizen_publication p WHERE p.id = ? AND p.id >= "
                 + FIRST_CITIZEN_PUBLICATION_ID
                 + " FOR UPDATE",
             (row, index) ->
@@ -197,7 +216,8 @@ class ModerationActionService {
                     row.getString("need_type"),
                     row.getString("approximate_quantity"),
                     row.getString("declared_urgency"),
-                    row.getString("requester_reference")),
+                    row.getString("requester_reference"),
+                    CitizenPublicationRepository.mapMissingPerson(row)),
             id)
         .stream()
         .findFirst()
@@ -281,7 +301,8 @@ class ModerationActionService {
       String needType,
       String approximateQuantity,
       String declaredUrgency,
-      String requesterReference) {
+      String requesterReference,
+      MissingPersonDetails missingPerson) {
     Case withReviewStatus(String value) {
       return new Case(
           id,
@@ -302,7 +323,8 @@ class ModerationActionService {
           needType,
           approximateQuantity,
           declaredUrgency,
-          requesterReference);
+          requesterReference,
+          missingPerson);
     }
 
     Case withActiveReports(int value) {
@@ -325,7 +347,8 @@ class ModerationActionService {
           needType,
           approximateQuantity,
           declaredUrgency,
-          requesterReference);
+          requesterReference,
+          missingPerson);
     }
 
     Case withVisibility(boolean value) {
@@ -348,7 +371,8 @@ class ModerationActionService {
           needType,
           approximateQuantity,
           declaredUrgency,
-          requesterReference);
+          requesterReference,
+          missingPerson);
     }
 
     Case withStatus(String value, boolean isClosed) {
@@ -371,7 +395,8 @@ class ModerationActionService {
           needType,
           approximateQuantity,
           declaredUrgency,
-          requesterReference);
+          requesterReference,
+          missingPerson);
     }
 
     Case corrected(CreatePublicationRequest value) {
@@ -394,11 +419,13 @@ class ModerationActionService {
           value.needType(),
           value.approximateQuantity(),
           value.declaredUrgency(),
-          value.requesterReference());
+          value.requesterReference(),
+          value.missingPerson());
     }
 
     boolean sameContent(Case other) {
-      return java.util.Objects.equals(needType, other.needType)
+      return java.util.Objects.equals(missingPerson, other.missingPerson)
+          && java.util.Objects.equals(needType, other.needType)
           && java.util.Objects.equals(approximateQuantity, other.approximateQuantity)
           && java.util.Objects.equals(declaredUrgency, other.declaredUrgency)
           && java.util.Objects.equals(requesterReference, other.requesterReference)

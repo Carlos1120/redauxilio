@@ -10,6 +10,8 @@ const SHELL = [
   "/",
   "/app.css",
   "/app.js",
+  "/missing-person.js",
+  "/authorized-contact.js",
   "/freshness.js",
   "/identity-forms.js",
   "/identity-status.js",
@@ -62,6 +64,8 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(event.request.url);
   // La lista permitida evita capturar futuras rutas privadas o enviar mapas externos a esta caché.
   if (event.request.method !== "GET" || url.origin !== self.location.origin) return;
+  // RA-09: contacto bajo demanda nunca entra en caché, ni aunque cambie la lista pública.
+  if (/^\/api\/publications\/[^/]+\/authorized-contact$/.test(url.pathname)) return;
   const publicQuery = url.pathname === "/api/publications";
   const publicShell = SHELL.includes(url.pathname) && !(url.pathname === "/" && url.search);
   const rootNavigation = url.pathname === "/" && event.request.mode === "navigate";

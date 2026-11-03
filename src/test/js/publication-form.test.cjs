@@ -60,6 +60,7 @@ function setup(status = 201) {
     ["assistance-fields", ["assistance-subtype", "assistance-status"]],
     ["road-fields", ["road-impact", "road-status"]],
     ["help-fields", ["help-need-type", "help-quantity", "help-urgency", "help-requester"]],
+    ["missing-fields", ["missing-age", "missing-seen"]],
   ])
     get(id).controls = controls.map(get);
   for (const [id, value] of Object.entries({
@@ -79,7 +80,7 @@ function setup(status = 201) {
     clearDraft: async () => stats.cleared++,
     loadPublications: async () => {},
   };
-  vm.runInNewContext(source, {
+  const context = {
     document: {
       getElementById: get,
       createElement: () => ({ append() {}, addEventListener() {}, setAttribute() {} }),
@@ -99,7 +100,12 @@ function setup(status = 201) {
         url === "/csrf" ? 200 : status,
       );
     },
-  });
+  };
+  vm.runInNewContext(
+    fs.readFileSync(path.join(__dirname, "../../main/resources/static/missing-person.js"), "utf8"),
+    context,
+  );
+  vm.runInNewContext(source, context);
   return { get, requests, stats };
 }
 test("HELP_REQUEST envía datos propios, ABIERTA y CSRF; cambiar tipo desactiva campos ocultos", async () => {
@@ -148,4 +154,27 @@ test("evidencia válida se envía como multipart atómico y conserva JSON tipado
   assert.equal(post.options.body.getAll("files").length, 1);
   assert.match(await post.options.body.get("publication").text(), /"category":"HELP_REQUEST"/);
   assert.equal(h.stats.cleared, 1);
+});
+
+/** RA-09 comparte campos comunes pero envía atributos propios y omite contacto. */
+test("MISSING_PERSON envía fecha y datos estructurados sin contacto ni campos de otras categorías", async () => {
+  const h = setup();
+  h.get("publication-category").value = "MISSING_PERSON";
+  h.get("publication-category").listeners.change();
+  assert.equal(h.get("missing-seen").disabled, false);
+  h.get("publication-title").value = "Referencia ficticia";
+  h.get("missing-age").value = "18–29";
+  h.get("missing-seen").value = "2026-11-03T08:30";
+  await h.get("publish-report").listeners.click();
+  const post = h.requests.find((x) => x.options.method === "POST"),
+    body = JSON.parse(post.options.body);
+  assert.equal(body.operationalStatus, "DESAPARECIDA");
+  assert.equal(body.assistanceSubtype, null);
+  assert.equal(body.impactType, null);
+  assert.equal(body.missingPerson.referenceName, "Referencia ficticia");
+  assert.match(body.missingPerson.lastSeenAt, /Z$/);
+  assert.equal(body.missingPerson.ageRange, "18–29");
+  assert.equal(body.needType, undefined);
+  assert.equal(body.contact, undefined);
+  assert.equal(h.get("help-need-type").disabled, true);
 });

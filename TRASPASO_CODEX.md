@@ -1,17 +1,19 @@
-# RedAuxilio — traspaso RA-11
+# RedAuxilio — traspaso RA-12/RA-13
 
-Actualización: 2 de noviembre de 2026 (Colombia). Historia activa RA-11, contrato RA11.md; no reconstruir historias previas. Rama existente feat/RA-11-solicitudes-ayuda, base 72c5df8e0dfb9384b3668cbb52f177fa67c9ed20 y develop 7665aa6a8074e6c93f76786ebb4e6ad32333846e, ambos verificados en remoto antes de publicar. Trabajar exclusivamente en C:\Users\cmps-\RedAuxilio-recovery\20261102-194520\recovered-repository. El original sufrió corrupción del índice/referencia: permanece intacto, con respaldos independientes working-tree/git-metadata e inventario SHA-256 en el padre. Se recuperaron 18 archivos modificados y dos pruebas nuevas sin pérdida detectada respecto al respaldo. No volver al repositorio corrupto ni eliminar respaldos.
+Actualización: 3 de noviembre de 2026 (Colombia). El checkout principal `C:\Users\Santiago\redauxilio` sigue en `feat/RA-08-acciones-moderacion`, HEAD `d6a2348659eb3c3133ae58eb3ee2ac1dfe72387b`, con cambios locales en `TRASPASO_CODEX.md` y `src/main/resources/static/app.css`; permanecen intactos. El remoto es `origin`.
 
-## Incremento
+## Estado remoto
 
-HELP_REQUEST persiste needType, approximateQuantity opcional, declaredUrgency y requesterReference en columnas anulables, con validación servidor/cliente y mapeo público selectivo. Alta ABIERTA; estados EN ATENCIÓN/SATISFECHA, cierre y reapertura motivada. Autoría, CSRF, auditoría/rollback, invalidación de confirmaciones, denuncias y moderación reutilizan módulos existentes. Vigencia RA-06 de 24 horas no se duplica. Edición idéntica conserva fecha, versión y respaldo; la UI informa «Sin cambios». Otras categorías y seis ejemplos mantienen compatibilidad.
+`origin/develop` avanzó a `3fa21ac2abdcbc38306f92fa5608b3f67f385458` al integrar RA-09 por el PR #28. PR #26 RA-12 y #27 RA-13 siguen abiertos como Draft, inicialmente basados en `59745c9b25a148aee5ade138ffaa5b4271eac497`, con sus HEAD originales `69b77a33fd6c491e466f250f2c7c6985cddd7156` y `cdbb6247a411af8e378dc50dc1136b053450deb0`. El CI SUCCESS conocido pertenece a esos HEAD antiguos. No hay revisión formal APPROVED registrada para ambos. No se fusionaron los PR ni se actualizó Trello.
 
-Formulario, detalle, mapa/lista, Mis publicaciones y corrección de operador transportan los campos propios. IndexedDB conserva todos los campos del borrador; shell público v22, sin recursos privados nuevos. No se añaden dependencias, PostgreSQL, fotos ni historias posteriores.
+## Actualización de ramas
 
-## Validación y límites
+RA-12 está en `C:\Users\Santiago\.codex\worktrees\ra12-evidencias-fotograficas`; RA-13 en `C:\Users\Santiago\.codex\worktrees\ra13-verificacion-oficial`. Se integró localmente el nuevo `origin/develop` para resolver sus conflictos. En RA-12 se combinaron borrador/evidencias con los campos RA-09 en `app.js`, `index.html` y `publication-form.test.cjs`. En RA-13 se conservaron tanto permisos/verificaciones como el esquema de personas/contacto; el service worker subió a `v24` y precarga ambos scripts sin cachear contacto privado. No quedan marcadores de conflicto. Los cambios están preparados localmente, sin commit ni push.
 
-Comprobación ejecutada mediante herramientas automatizadas; validación humana pendiente. Maven verify: 142 Java aprobadas, Spotless/PMD SUCCESS; Node 109 aprobadas, Prettier y diff check correctos. Cobertura crítica 95,03–100%, umbral 80% superado. Evidencia A1–A7 y límites en la última sección RA-11 de EVIDENCIAS.md. Consultar CI sobre el HEAD exacto del PR Draft #25. QA P2: el fieldset del alta heredaba filas de ubicación; se corrige con grid-row auto solo en .draft-section form > #help-fields. Regresión de geometría real falla antes en tableta/escritorio y pasa después en 12 combinaciones de tres tamaños y cambios dinámicos de categorías. Evidencia/guion en VALIDACION_WINDOWS.md y ra11-instance/qa-p2; la prueba de navegador se ejecuta aparte del CI, sin dependencias nuevas.
+## Validación ejecutada
 
-Instancia aislada http://127.0.0.1:59976/, JAR final local y H2 ra11-instance/qa fuera del repositorio, cookie RA11_RECOVERED. Casos 1000000–1000003 ficticios. Herramientas comprobaron HTTP, creación, borrador/recarga, edición/no-op, cierre/reapertura, historial, logout y vista de formulario en tres resoluciones. Instalación PWA y desconexión/reconexión reales, aceptación de Carlos y revisión cruzada siguen pendientes. No certificar PostgreSQL ni WCAG por estas comprobaciones.
+Con Microsoft JDK 21.0.10 (no hay JDK 17 instalado), Node 24.16.0/npm 11.13.0 y H2: RA-12 `mvn verify` pasó con 161 pruebas Java; `npm test` pasó 122/122. RA-13 pasó con 160 pruebas Java y 123/123 JS. Spotless, PMD, Prettier y `git diff --check` aprobaron en ambos worktrees. La base probada fue H2; PostgreSQL no está certificado. Las ejecuciones corresponden al árbol combinado local, todavía sin commit ni CI remoto.
 
-Siguiente acción: comprobar CI del HEAD publicado y ejecutar el guion humano sin mezclar datos/servidores anteriores. Conservar PR Draft, sin merge ni Trello. Capacidad real/reparto/fecha objetivo pendientes: estimación 18–24 h-persona documentada, no es disponibilidad autorizada ni DoR cumplida. No atribuir aprobaciones a Santiago ni declarar RA-11 terminada.
+## Siguiente paso y límites
+
+Crear commits de actualización con la identidad Git configurada, comprobar que `develop` no avanzó, y enviar ambos commits mediante push fast-forward. Después, dejar PR #26/#27 listos para revisión formal de Carlos y comprobar CI en sus nuevos HEAD. No aprobar ni integrar hasta recibir APPROVED formal y CI verde en esos HEAD; el usuario indicó no hacer merge todavía. No afirmar QA visual humana ni cambios de Trello.

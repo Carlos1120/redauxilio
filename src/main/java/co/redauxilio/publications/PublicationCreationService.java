@@ -37,9 +37,12 @@ class PublicationCreationService {
    */
   @Transactional
   long create(String email, CreatePublicationRequest input) {
-    CreatePublicationRequest request = validate(input);
+    CreatePublicationRequest request = validate(input, clock);
     if ("HELP_REQUEST".equals(request.category()) && !"ABIERTA".equals(request.operationalStatus()))
       throw invalid("Una solicitud nueva inicia ABIERTA");
+    if ("MISSING_PERSON".equals(request.category())
+        && !"DESAPARECIDA".equals(request.operationalStatus()))
+      throw invalid("Un caso nuevo inicia DESAPARECIDA");
     long authorId =
         repository
             .lockAuthor(email)
@@ -54,17 +57,31 @@ class PublicationCreationService {
   }
 
   static CreatePublicationRequest validate(CreatePublicationRequest input) {
+    return validate(input, Clock.systemUTC());
+  }
+
+  static CreatePublicationRequest validate(CreatePublicationRequest input, Clock clock) {
     if (input == null) throw invalid("Faltan datos de la publicación");
     String category = required(input.category(), 20, "Categoría");
-    String title = required(input.title(), 120, "Nombre o tramo");
-    String description = required(input.description(), 1000, "Descripción");
-    String location = required(input.location(), 160, "Ubicación");
+    MissingPersonDetails missing =
+        "MISSING_PERSON".equals(category)
+            ? MissingPersonDetails.validate(input.missingPerson(), clock)
+            : null;
+    String title =
+        required(missing == null ? input.title() : missing.referenceName(), 120, "Nombre o tramo");
+    String description =
+        required(
+            missing == null ? input.description() : missing.physicalDescription(),
+            1000,
+            "Descripción");
+    String location =
+        required(missing == null ? input.location() : missing.lastSeenPlace(), 160, "Ubicación");
     String status =
         required(
-                "HELP_REQUEST".equals(category)
+                ("HELP_REQUEST".equals(category) || "MISSING_PERSON".equals(category))
                         && (input.operationalStatus() == null
                             || input.operationalStatus().isBlank())
-                    ? "ABIERTA"
+                    ? ("MISSING_PERSON".equals(category) ? "DESAPARECIDA" : "ABIERTA")
                     : input.operationalStatus(),
                 40,
                 "Estado")
@@ -79,6 +96,11 @@ class PublicationCreationService {
         || latitude > 90
         || longitude < -180
         || longitude > 180) throw invalid("Coordenadas inválidas");
+    // RA-09: no persistir precisión GPS domiciliaria en el caso público (~110 m en latitud).
+    if (missing != null) {
+      latitude = Math.round(latitude * 1000d) / 1000d;
+      longitude = Math.round(longitude * 1000d) / 1000d;
+    }
     String subtype = input.assistanceSubtype();
     String impact = input.impactType();
     String need = null, quantity = null, urgency = null, reference = null;
@@ -115,6 +137,11 @@ class PublicationCreationService {
         throw invalid("Usa un alias o comunidad sin correo, teléfono ni documento");
       subtype = null;
       impact = null;
+    } else if ("MISSING_PERSON".equals(category)) {
+      if (!Set.of("DESAPARECIDA", "ENCONTRADA", "CASO CERRADO").contains(status))
+        throw invalid("Estado de persona desaparecida inválido");
+      subtype = null;
+      impact = null;
     } else {
       throw invalid("Categoría no disponible para publicación");
     }
@@ -131,7 +158,8 @@ class PublicationCreationService {
         need,
         quantity,
         urgency,
-        reference);
+        reference,
+        missing);
   }
 
   private static String required(String value, int maxLength, String label) {

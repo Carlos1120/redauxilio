@@ -1,19 +1,19 @@
 # RedAuxilio — traspaso RA-12 y RA-13
 
-Actualización: 3 de noviembre de 2026 (Colombia). El repositorio principal `C:\Users\Santiago\redauxilio` permanece en `feat/RA-08-acciones-moderacion`, HEAD `d6a2348659eb3c3133ae58eb3ee2ac1dfe72387b`, con modificaciones locales en `TRASPASO_CODEX.md` y `src/main/resources/static/app.css`; no se tocaron. Remoto `origin`: `https://github.com/Carlos1120/redauxilio.git`.
+Actualización: 3 de noviembre de 2026 (Colombia). Repositorio principal `C:\Users\Santiago\redauxilio`, rama `feat/RA-08-acciones-moderacion`, HEAD `d6a2348659eb3c3133ae58eb3ee2ac1dfe72387b`; sus cambios locales en `TRASPASO_CODEX.md` y `src/main/resources/static/app.css` se conservaron. Trabajo RA-12 en `C:\Users\Santiago\.codex\worktrees\ra12-sync-29`, rama auxiliar `codex/ra12-sync-develop-366a550`, que publica en `feat/RA-12-evidencias-fotograficas`. RA-13 revisada en `C:\Users\Santiago\.codex\worktrees\ra13-sync-29`.
 
-## Estado remoto comprobado
+## Estado remoto verificado
 
-`origin/develop` es `366a55045150e9252c081fd3d7627dccf2310353`; avanzó tras integrar el arreglo PostgreSQL del PR #29. PR #26 (RA-12) y PR #27 (RA-13) siguen abiertos y sin aprobación formal de Carlos. Ambos ya incorporaron esta base; GitHub informa `mergeable=true`. Sus commits de sincronización fueron `809fa9d47523f97877fb3159d068993b522687ea` y `e0101781b7e2defa32b090bd4391ab4be549487a`. La aprobación formal de Santiago y la integración de #29 están verificadas. La CI iniciada al publicar la sincronización debe comprobarse sobre el HEAD final.
+`develop` está en `366a55045150e9252c081fd3d7627dccf2310353`. PR #29 está cerrado e integrado por squash con ese SHA; la aprobación formal de Santiago y CI SUCCESS del HEAD `62e575c9a12cdfd3025deadf93cf1123654754db` están comprobados. PR #26 sigue abierto, mergeable y sin aprobación formal de Carlos; su HEAD remoto previo a este bloque era `b23fb86bc6891a4c44a47f26049dbf8a65907c4c`. PR #27 sigue abierto, mergeable y sin revisión formal registrada; HEAD `a69fb8da38ad564f6a2375ea79706d0b6041da39`. No se integró ninguno.
 
-## Alcance
+## RA-12 — trabajo y comprobaciones
 
-RA-12 agrega hasta tres imágenes JPEG, PNG o WebP por publicación, con límite de 5 MiB, validación de contenido, guardado SQL, transacción conjunta al crear, borrador local y permisos de autor para agregar o retirar. Las imágenes solo son públicas si la publicación es visible; el servidor no publica nombres originales ni cachea bytes. Contrato y límites en `RA12.md`.
+Se reprodujo el WebP truncado aceptado por mera inspección RIFF. La validación ahora decodifica y re-encodea por completo el WebP con límite de 20 MP y 5 MiB, y exige firma, MIME y extensión concordantes. Se añadieron regresiones para WebP válido/truncado, MIME y extensión falsos, CSRF, permiso de autor, ocultar/restaurar, caso cerrado, carga múltiple atómica y acceso público. Las rutas de imágenes siguen fuera del service worker. Al cerrar sesión o iniciar otra cuenta se eliminan fotos locales y vistas previas, conservando los otros campos offline.
 
-RA-13 agrega permisos auditados para verificadores, eventos oficiales por versión y retiro trazable, además de administración privada de operadores. La salida pública separa verificación oficial de confianza comunitaria y no expone correos. El service worker excluye los recursos y datos privados. Contrato y límites en `RA13.md`.
+En el HEAD local aún no publicado: Java 21 `mvn verify` pasó 172 pruebas, Spotless y PMD; `npm test` 123/123; `npm run format:check` y `git diff --check` pasaron. CI para el nuevo SHA debe comprobarse tras publicar. El uso de H2 no demuestra PostgreSQL: PostgreSQL local escucha, pero no hay URL/configuración que confirme una base aislada autorizada; no se escribió en ella.
 
-## Sincronización y siguiente paso
+## RA-13 y siguiente paso
 
-Los worktrees originales RA-12 y RA-13 conservan sus notas locales; la actualización se verificó en worktrees auxiliares separados y se publicó por fast-forward. El merge incorpora el arreglo PostgreSQL y su prueba; el código se combinó sin conflictos y se resolvió el documento de traspaso. Con Corretto 21, H2 y Node 24/npm 11: RA-12 `mvn verify` pasó 167 pruebas Java y `npm test` 122/122; RA-13 pasó 166 pruebas Java y 123/123 JS. Spotless, PMD, Prettier y `git diff --check` pasaron en ambas ramas. El primer intento Maven con Java 25 no pasó Spotless por incompatibilidad conocida; se repitió íntegramente con Java 21 y pasó. No se certificó PostgreSQL.
+Auditoría dirigida de servicio, controlador y pruebas: permisos de operador/verificador separados, CSRF y rutas privadas, revocación e historial, invalidación por versión, privacidad pública y separación de confianza/vigencia. `OfficialVerificationTests`: 3/3 pasan en H2. CI SUCCESS conocido corresponde al HEAD remoto anterior, no a nuevos cambios (no se modificó RA-13). Revisiones cruzadas formales de Carlos siguen pendientes.
 
-Siguiente: comprobar CI verde en los HEAD finales de #26/#27 y esperar la revisión formal de Carlos. No fusionar los PR ni actualizar Trello. La inspección visual humana y QA PWA siguen pendientes y no se atribuyen a estas pruebas automatizadas.
+Siguiente: comprobar el nuevo SHA y CI de #26, facilitar a Carlos la revisión formal y ejecutar la prueba multipart contra PostgreSQL aislado cuando exista una conexión de pruebas identificada. Después, volver a comprobar #27. Sin merge, cambio de Trello ni afirmación de aceptación humana; QA visual/PWA queda pendiente.

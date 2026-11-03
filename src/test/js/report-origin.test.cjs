@@ -374,6 +374,16 @@ test("borrador HELP_REQUEST conserva los cuatro campos al recargar sin enviar", 
   assert.equal(second.element("help-requester").value, "Comunidad ficticia");
   assert.match(second.element("draft-message").textContent, /recuperado/);
 });
+test("cerrar sesión elimina evidencias locales y conserva el resto del borrador", async () => {
+  const storage = {
+    value: { text: "reporte offline", title: "Punto", evidence: [{ name: "foto.webp" }] },
+  };
+  const view = await loadReportView([], null, { draftStorage: storage });
+  await view.context.window.RedAuxilioPublicationUI.clearEvidenceDraft();
+  assert.equal(storage.value.text, "reporte offline");
+  assert.equal(storage.value.title, "Punto");
+  assert.deepEqual(Array.from(storage.value.evidence), []);
+});
 test("detalle público de ayuda muestra datos propios y urgencia no oficial como texto", async () => {
   const item = {
     ...report(1000000),

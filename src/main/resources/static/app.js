@@ -205,6 +205,23 @@ window.RedAuxilioPublicationUI = {
   },
   loadPublications: () => loadPublications(),
   saveDraft: () => saveDraft(),
+  // Al cerrar sesión elimina blobs privados de fotos y conserva el resto del borrador offline.
+  clearEvidenceDraft: async () => {
+    window.RedAuxilioEvidenceDraft?.clear();
+    window.__redauxilioDraftEvidence = [];
+    const db = await database;
+    await new Promise((resolve, reject) => {
+      const transaction = db.transaction("drafts", "readwrite");
+      const store = transaction.objectStore("drafts");
+      const request = store.get("current");
+      request.onsuccess = () => {
+        if (request.result) store.put({ ...request.result, evidence: [] }, "current");
+      };
+      transaction.oncomplete = resolve;
+      transaction.onerror = () => reject(transaction.error);
+      transaction.onabort = () => reject(transaction.error);
+    });
+  },
   clearDraft: () => executeDraftOperation("readwrite", (store) => store.delete("current")),
 };
 getElement("reset-map").disabled = !reportMap;

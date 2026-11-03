@@ -109,10 +109,72 @@ class PublicationEvidenceTests {
   }
 
   @Test
+  void rejectsAWebpFrameWithDimensionsButNoDecodableBitstream() throws Exception {
+    mvc.perform(
+            upload(
+                new MockMultipartFile(
+                    "files", "truncated.webp", "image/webp", truncatedLossyWebp())))
+        .andExpect(status().isBadRequest());
+    assertEquals(0, countForPublication());
+  }
+
+  @Test
+  void acceptsAWebpThatTheDecoderCanRead() throws Exception {
+    mvc.perform(upload(webp())).andExpect(status().isCreated());
+    assertEquals(1, countForPublication());
+  }
+
+  @Test
+  void rejectsAnImageWhoseDeclaredMimeDoesNotMatchItsContent() throws Exception {
+    byte[] png = png().getBytes();
+    mvc.perform(upload(new MockMultipartFile("files", "evidence.png", "image/jpeg", png)))
+        .andExpect(status().isBadRequest());
+    assertEquals(0, countForPublication());
+    MockMultipartFile wrongExtension =
+        new MockMultipartFile("files", "evidence.jpg", "image/png", png().getBytes());
+    mvc.perform(upload(wrongExtension)).andExpect(status().isBadRequest());
+    assertEquals(0, countForPublication());
+  }
+
+  @Test
   void onlyOwnerCanWriteAndHiddenPublicationHidesImages() throws Exception {
     String stranger = account();
     mvc.perform(uploadAs(stranger, png())).andExpect(status().isNotFound());
     mvc.perform(uploadAs(null, png())).andExpect(status().isUnauthorized());
+    mvc.perform(
+            multipart("/api/my/publications/{id}/evidence", publicationId)
+                .file(png())
+                .with(user(owner)))
+        .andExpect(status().isForbidden());
+    assertEquals(0, countForPublication());
+  }
+
+  @Test
+  void hiddenAndClosedPublicationsProtectEvidence() throws Exception {
+    mvc.perform(upload(png())).andExpect(status().isCreated());
+    long imageId =
+        jdbc.queryForObject(
+            "SELECT id FROM publication_evidence WHERE publication_id = ?",
+            Long.class,
+            publicationId);
+    jdbc.update("UPDATE citizen_publication SET visible = FALSE WHERE id = ?", publicationId);
+    mvc.perform(get("/api/publications/{id}/evidence", publicationId))
+        .andExpect(status().isNotFound());
+    mvc.perform(get("/api/publications/{id}/evidence/{imageId}", publicationId, imageId))
+        .andExpect(status().isNotFound());
+    jdbc.update("UPDATE citizen_publication SET visible = TRUE WHERE id = ?", publicationId);
+    mvc.perform(get("/api/publications/{id}/evidence", publicationId)).andExpect(status().isOk());
+    jdbc.update(
+        "UPDATE citizen_publication SET visible = TRUE, closed = TRUE WHERE id = ?", publicationId);
+    mvc.perform(upload(png())).andExpect(status().isConflict());
+    assertEquals(1, countForPublication());
+  }
+
+  @Test
+  void invalidImageInBatchDoesNotInsertValidEarlierFile() throws Exception {
+    mvc.perform(
+            upload(png(), new MockMultipartFile("files", "bad.png", "image/png", "bad".getBytes())))
+        .andExpect(status().isBadRequest());
     assertEquals(0, countForPublication());
   }
 
@@ -202,6 +264,30 @@ class PublicationEvidenceTests {
     ByteArrayOutputStream bytes = new ByteArrayOutputStream();
     ImageIO.write(image, "png", bytes);
     return new MockMultipartFile("files", "evidence.png", "image/png", bytes.toByteArray());
+  }
+
+  private static MockMultipartFile webp() throws Exception {
+    BufferedImage image = new BufferedImage(3, 2, BufferedImage.TYPE_INT_RGB);
+    image.setRGB(0, 0, 0x336699);
+    ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+    if (!ImageIO.write(image, "webp", bytes))
+      throw new IllegalStateException("WebP writer missing");
+    return new MockMultipartFile("files", "evidence.webp", "image/webp", bytes.toByteArray());
+  }
+
+  private static byte[] truncatedLossyWebp() {
+    byte[] bytes = new byte[30];
+    System.arraycopy("RIFF".getBytes(java.nio.charset.StandardCharsets.US_ASCII), 0, bytes, 0, 4);
+    bytes[4] = (byte) (bytes.length - 8);
+    System.arraycopy("WEBP".getBytes(java.nio.charset.StandardCharsets.US_ASCII), 0, bytes, 8, 4);
+    System.arraycopy("VP8 ".getBytes(java.nio.charset.StandardCharsets.US_ASCII), 0, bytes, 12, 4);
+    bytes[16] = 10;
+    bytes[23] = (byte) 0x9d;
+    bytes[24] = 0x01;
+    bytes[25] = 0x2a;
+    bytes[26] = 1;
+    bytes[28] = 1;
+    return bytes;
   }
 
   private static String pointRequest() {

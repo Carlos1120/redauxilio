@@ -124,12 +124,29 @@ class PublicationEvidenceService {
     if (file.getSize() > MAX_IMAGE_BYTES) throw invalid("Cada imagen debe pesar máximo 5 MB.");
     try {
       byte[] bytes = file.getBytes();
-      if (isPng(bytes)) return decodeAndReencode(bytes, "png", "image/png");
-      if (isJpeg(bytes)) return decodeAndReencode(bytes, "jpeg", "image/jpeg");
-      if (isWebp(bytes)) return validateWebp(bytes);
-      throw invalid("El contenido no es una imagen JPEG, PNG o WebP válida.");
+      String format = isPng(bytes) ? "png" : isJpeg(bytes) ? "jpeg" : isWebp(bytes) ? "webp" : null;
+      if (format == null) throw invalid("El contenido no es una imagen JPEG, PNG o WebP válida.");
+      String contentType = format.equals("jpeg") ? "image/jpeg" : "image/" + format;
+      String declaredType = file.getContentType();
+      String filename = file.getOriginalFilename();
+      String extension =
+          filename == null || filename.lastIndexOf('.') < 0
+              ? ""
+              : filename
+                  .substring(filename.lastIndexOf('.') + 1)
+                  .toLowerCase(java.util.Locale.ROOT);
+      if (!contentType.equalsIgnoreCase(declaredType == null ? "" : declaredType.trim())
+          || !(format.equals("jpeg")
+              ? extension.equals("jpg") || extension.equals("jpeg")
+              : extension.equals(format)))
+        throw invalid("El tipo y la extensión deben coincidir con el contenido de la imagen.");
+      if (format.equals("webp")) return validateWebp(bytes);
+      return decodeAndReencode(bytes, format, contentType);
     } catch (IOException failure) {
       throw invalid("No se pudo leer una imagen válida.");
+    } catch (RuntimeException failure) {
+      if (failure instanceof ResponseStatusException response) throw response;
+      throw invalid("No se pudo decodificar una imagen válida.");
     }
   }
 
@@ -159,74 +176,16 @@ class PublicationEvidenceService {
     }
   }
 
-  /** Comprueba el contenedor RIFF y un chunk de imagen; no confía en el MIME ni la extensión. */
+  /** Comprueba RIFF y decodifica por completo el primer frame bajo el límite de píxeles. */
   private static ValidatedImage validateWebp(byte[] bytes) {
-    if (bytes.length < 30 || littleEndianInt(bytes, 4) != bytes.length - 8)
+    if (bytes.length < 20 || littleEndianInt(bytes, 4) != bytes.length - 8)
       throw invalid("El contenedor WebP está incompleto.");
-    int offset = 12;
-    boolean imageChunk = false;
-    while (offset + 8 <= bytes.length) {
-      String type = new String(bytes, offset, 4, java.nio.charset.StandardCharsets.US_ASCII);
-      long size = Integer.toUnsignedLong(littleEndianInt(bytes, offset + 4));
-      long end = (long) offset + 8 + size + (size & 1);
-      if (end > bytes.length) throw invalid("El contenedor WebP está incompleto.");
-      if (type.equals("VP8 ") && size >= 10) {
-        int p = offset + 8;
-        if ((bytes[p + 3] & 0xff) != 0x9d
-            || (bytes[p + 4] & 0xff) != 0x01
-            || (bytes[p + 5] & 0xff) != 0x2a) throw invalid("La trama WebP no es válida.");
-        checkPixels(
-            ((bytes[p + 7] & 0x3f) << 8) | (bytes[p + 6] & 0xff),
-            ((bytes[p + 9] & 0x3f) << 8) | (bytes[p + 8] & 0xff));
-        imageChunk = true;
-      } else if (type.equals("VP8L") && size >= 5) {
-        int p = offset + 8;
-        if ((bytes[p] & 0xff) != 0x2f) throw invalid("La trama WebP no es válida.");
-        int width = 1 + (bytes[p + 1] & 0xff) + ((bytes[p + 2] & 0x3f) << 8);
-        int height =
-            1
-                + ((bytes[p + 2] & 0xc0) >>> 6)
-                + ((bytes[p + 3] & 0xff) << 2)
-                + ((bytes[p + 4] & 0x0f) << 10);
-        checkPixels(width, height);
-        imageChunk = true;
-      } else if (type.equals("VP8X") && size >= 10) {
-        int p = offset + 8;
-        int width =
-            1
-                + (bytes[p + 4] & 0xff)
-                + ((bytes[p + 5] & 0xff) << 8)
-                + ((bytes[p + 6] & 0xff) << 16);
-        int height =
-            1
-                + (bytes[p + 7] & 0xff)
-                + ((bytes[p + 8] & 0xff) << 8)
-                + ((bytes[p + 9] & 0xff) << 16);
-        checkPixels(width, height);
-      }
-      offset = (int) end;
+    try {
+      return decodeAndReencode(bytes, "webp", "image/webp");
+    } catch (IOException | RuntimeException failure) {
+      if (failure instanceof ResponseStatusException response) throw response;
+      throw invalid("La imagen WebP está incompleta o no se puede decodificar.");
     }
-    if (offset != bytes.length || !imageChunk)
-      throw invalid("El WebP no contiene una imagen completa.");
-    // Las imágenes WebP se aceptan solo con contenedor estructural consistente; el tamaño total
-    // limita el recurso y se omiten metadatos EXIF/XMP al reconstruir los chunks.
-    ByteArrayOutputStream output = new ByteArrayOutputStream(bytes.length);
-    output.writeBytes("RIFF".getBytes(java.nio.charset.StandardCharsets.US_ASCII));
-    output.write(new byte[4], 0, 4);
-    output.writeBytes("WEBP".getBytes(java.nio.charset.StandardCharsets.US_ASCII));
-    for (int chunkOffset = 12; chunkOffset < bytes.length; ) {
-      String type = new String(bytes, chunkOffset, 4, java.nio.charset.StandardCharsets.US_ASCII);
-      int size = littleEndianInt(bytes, chunkOffset + 4);
-      int end = chunkOffset + 8 + size + (size & 1);
-      if (!type.equals("EXIF") && !type.equals("XMP ")) {
-        if (type.equals("VP8X")) bytes[chunkOffset + 8] = (byte) (bytes[chunkOffset + 8] & ~0x0c);
-        output.write(bytes, chunkOffset, end - chunkOffset);
-      }
-      chunkOffset = end;
-    }
-    byte[] sanitized = output.toByteArray();
-    putLittleEndianInt(sanitized, 4, sanitized.length - 8);
-    return new ValidatedImage("image/webp", sanitized);
   }
 
   private static boolean isPng(byte[] b) {
@@ -254,20 +213,8 @@ class PublicationEvidenceService {
     return true;
   }
 
-  private static void checkPixels(int width, int height) {
-    if (width < 1 || height < 1 || (long) width * height > MAX_PIXELS)
-      throw invalid("La imagen tiene dimensiones demasiado grandes.");
-  }
-
   private static int littleEndianInt(byte[] b, int p) {
     return (b[p] & 0xff) | ((b[p + 1] & 0xff) << 8) | ((b[p + 2] & 0xff) << 16) | (b[p + 3] << 24);
-  }
-
-  private static void putLittleEndianInt(byte[] b, int p, int value) {
-    b[p] = (byte) value;
-    b[p + 1] = (byte) (value >>> 8);
-    b[p + 2] = (byte) (value >>> 16);
-    b[p + 3] = (byte) (value >>> 24);
   }
 
   private static ResponseStatusException invalid(String message) {

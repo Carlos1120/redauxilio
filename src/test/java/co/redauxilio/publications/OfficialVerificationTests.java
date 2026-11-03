@@ -1,6 +1,7 @@
 package co.redauxilio.publications;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -8,6 +9,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import jakarta.servlet.ServletException;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -19,12 +21,33 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 
-/** Comprueba permisos, versiones, privacidad y auditoría oficial mediante HTTP y SQL. */
+/**
+ * Comprueba permisos, versiones, privacidad y auditoría HTTP/SQL; H2 por defecto o PostgreSQL
+ * temporal.
+ */
 @SpringBootTest
 @AutoConfigureMockMvc
 class OfficialVerificationTests {
+  /** Habilita una base aislada indicada por la prueba sin cambiar la configuración normal de CI. */
+  @DynamicPropertySource
+  static void testDatabase(DynamicPropertyRegistry properties) {
+    String url = System.getenv("RA13_TEST_DB_URL");
+    if (url != null && !url.isBlank()) {
+      properties.add("spring.datasource.url", () -> url);
+      properties.add(
+          "spring.datasource.username",
+          () -> System.getenv().getOrDefault("RA13_TEST_DB_USERNAME", "ra_test"));
+      properties.add(
+          "spring.datasource.password",
+          () -> System.getenv().getOrDefault("RA13_TEST_DB_PASSWORD", ""));
+    }
+    properties.add("spring.sql.init.mode", () -> "always");
+  }
+
   @Autowired private MockMvc mvc;
   @Autowired private JdbcTemplate jdbc;
   @Autowired private OfficialVerificationService verifications;
@@ -107,13 +130,43 @@ class OfficialVerificationTests {
                         + "\",\"action\":\"GRANT\",\"reason\":\"Acreditación comprobada\"}"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.granted").value(true));
-    mvc.perform(
-            post("/api/my/publications/{id}/official-verifications", publication)
-                .with(user(verifier))
-                .with(csrf())
-                .contentType("application/json")
-                .content("{\"note\":\"Inspección en sitio\",\"reference\":\"ACTA-42\"}"))
-        .andExpect(status().isCreated());
+    var verificationResponse =
+        mvc.perform(
+                post("/api/my/publications/{id}/official-verifications", publication)
+                    .with(user(verifier))
+                    .with(csrf())
+                    .contentType("application/json")
+                    .content("{\"note\":\"Inspección en sitio\",\"reference\":\"ACTA-42\"}"))
+            .andExpect(status().isCreated())
+            .andReturn()
+            .getResponse();
+    String location = verificationResponse.getHeader("Location");
+    long verificationId = Long.parseLong(location.substring(location.lastIndexOf('/') + 1));
+    assertEquals(
+        1,
+        jdbc.queryForObject(
+            "SELECT COUNT(*) FROM official_verification WHERE id = ? AND publication_id = ?",
+            Integer.class,
+            verificationId,
+            publication));
+    assertEquals(
+        1,
+        jdbc.queryForObject(
+            "SELECT COUNT(*) FROM official_verification_action WHERE verification_id = ? AND action = 'VERIFY'",
+            Integer.class,
+            verificationId));
+    assertEquals(
+        1,
+        jdbc.queryForObject(
+            "SELECT COUNT(*) FROM verification_permission WHERE account_id = (SELECT id FROM citizen_account WHERE email = ?)",
+            Integer.class,
+            verifier));
+    assertEquals(
+        1,
+        jdbc.queryForObject(
+            "SELECT COUNT(*) FROM verification_permission_audit WHERE account_id = (SELECT id FROM citizen_account WHERE email = ?) AND action = 'GRANT'",
+            Integer.class,
+            verifier));
     mvc.perform(get("/api/publications/{id}", publication))
         .andExpect(jsonPath("$.confidenceLevel").value("VERIFICADA"))
         .andExpect(jsonPath("$.confirmationCount").value(3))
@@ -226,6 +279,37 @@ class OfficialVerificationTests {
                 .content("{\"note\":\"\",\"reference\":\"\"}"))
         .andExpect(status().isBadRequest());
     assertEquals(0, count("official_verification", publication));
+  }
+
+  @Test
+  void rollsBackVerificationWhenItsAuditCannotBeInserted() throws Exception {
+    String author = account("Autora de rollback");
+    String verifier = account("Verificador de rollback");
+    String operator = operator();
+    long publication = publication(author);
+    verifications.changePermission(verifier, operator, "GRANT", "Permiso para probar rollback");
+    jdbc.execute(
+        "ALTER TABLE official_verification_action ADD CONSTRAINT ra13_reject_verify CHECK (action <> 'VERIFY')");
+    try {
+      assertThrows(
+          ServletException.class,
+          () ->
+              mvc.perform(
+                  post("/api/my/publications/{id}/official-verifications", publication)
+                      .with(user(verifier))
+                      .with(csrf())
+                      .contentType("application/json")
+                      .content("{\"note\":\"Revisión temporal\"}")));
+    } finally {
+      jdbc.execute("ALTER TABLE official_verification_action DROP CONSTRAINT ra13_reject_verify");
+    }
+    assertEquals(0, count("official_verification", publication));
+    assertEquals(
+        0,
+        jdbc.queryForObject(
+            "SELECT COUNT(*) FROM official_verification_action WHERE verification_id IN (SELECT id FROM official_verification WHERE publication_id = ?)",
+            Integer.class,
+            publication));
   }
 
   private int count(String table, long publication) {

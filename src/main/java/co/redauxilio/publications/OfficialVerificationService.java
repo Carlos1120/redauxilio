@@ -121,7 +121,7 @@ class OfficialVerificationService {
           var statement =
               connection.prepareStatement(
                   "INSERT INTO official_verification (publication_id, publication_version, verifier_id, note, reference, verified_at) VALUES (?, ?, ?, ?, ?, ?)",
-                  java.sql.Statement.RETURN_GENERATED_KEYS);
+                  new String[] {"id"});
           statement.setLong(1, publicationId);
           statement.setLong(2, publication.version());
           statement.setLong(3, actorId);

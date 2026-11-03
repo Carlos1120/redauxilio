@@ -9,6 +9,71 @@ const draftForm = publicationField("draft-form");
 const publicationCategory = publicationField("publication-category");
 const publicationMessage = publicationField("draft-message");
 const locationMessage = publicationField("location-message");
+const evidenceInput = publicationField("publication-evidence");
+const evidencePreview = publicationField("evidence-preview");
+let evidenceFiles = [];
+let evidenceObjectUrls = [];
+
+/** Mantiene imágenes locales en el borrador sin enviarlas hasta guardar la publicación. */
+window.RedAuxilioEvidenceDraft = {
+  serialize: () => evidenceFiles,
+  clear() {
+    evidenceFiles = [];
+    renderEvidencePreview();
+  },
+  restore(files) {
+    evidenceFiles = files.map((file) => new File([file], file.name, { type: file.type }));
+    renderEvidencePreview();
+  },
+};
+
+function renderEvidencePreview() {
+  evidenceObjectUrls.forEach(URL.revokeObjectURL);
+  evidenceObjectUrls = [];
+  evidencePreview.replaceChildren();
+  evidenceFiles.forEach((file, index) => {
+    const figure = document.createElement("figure");
+    const image = document.createElement("img");
+    const caption = document.createElement("figcaption");
+    const remove = document.createElement("button");
+    image.src = URL.createObjectURL(file);
+    evidenceObjectUrls.push(image.src);
+    image.alt = `Vista previa de evidencia ${index + 1}`;
+    caption.textContent = `${file.name} · ${(file.size / 1024 / 1024).toFixed(2)} MB`;
+    remove.type = "button";
+    remove.className = "secondary-button";
+    remove.textContent = "Quitar";
+    remove.setAttribute("aria-label", `Quitar ${file.name}`);
+    remove.addEventListener("click", () => {
+      evidenceFiles.splice(index, 1);
+      renderEvidencePreview();
+    });
+    figure.append(image, caption, remove);
+    evidencePreview.append(figure);
+  });
+}
+
+evidenceInput.addEventListener("change", () => {
+  const additions = [...evidenceInput.files];
+  evidenceInput.value = "";
+  if (evidenceFiles.length + additions.length > 3) {
+    publicationMessage.textContent = "Puedes adjuntar máximo tres imágenes.";
+    return;
+  }
+  const accepted = additions.every(
+    (file) =>
+      ["image/jpeg", "image/png", "image/webp"].includes(file.type) &&
+      file.size > 0 &&
+      file.size <= 5 * 1024 * 1024,
+  );
+  if (!accepted) {
+    publicationMessage.textContent = "Usa imágenes JPEG, PNG o WebP de hasta 5 MB cada una.";
+    return;
+  }
+  evidenceFiles.push(...additions);
+  publicationMessage.textContent = "Imágenes listas en la vista previa; aún no se han publicado.";
+  renderEvidencePreview();
+});
 
 function syncPublicationCategory() {
   const category = publicationCategory.value;
@@ -186,16 +251,23 @@ publicationField("publish-report").addEventListener("click", async () => {
     });
     if (!tokenResponse.ok) throw new Error("No se pudo validar la sesión. Intenta de nuevo.");
     const csrf = await tokenResponse.json();
-    const response = await fetch("/api/publications", {
+    const headers = { Accept: "application/json", "X-CSRF-TOKEN": csrf.token };
+    let endpoint = "/api/publications";
+    let body = JSON.stringify(request);
+    if (evidenceFiles.length) {
+      endpoint = "/api/publications/with-evidence";
+      body = new FormData();
+      body.append("publication", new Blob([JSON.stringify(request)], { type: "application/json" }));
+      evidenceFiles.forEach((file) => body.append("files", file, file.name));
+    } else {
+      headers["Content-Type"] = "application/json";
+    }
+    const response = await fetch(endpoint, {
       method: "POST",
       credentials: "same-origin",
       cache: "no-store",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-        "X-CSRF-TOKEN": csrf.token,
-      },
-      body: JSON.stringify(request),
+      headers,
+      body,
     });
     if (response.status === 401) throw new Error("La sesión terminó. Inicia sesión otra vez.");
     const result = await response.json().catch(() => ({}));
@@ -213,6 +285,7 @@ publicationField("publish-report").addEventListener("click", async () => {
       draftWarning = " El borrador local no pudo borrarse; descártalo antes de crear otro.";
     }
     draftForm.reset();
+    window.RedAuxilioEvidenceDraft.clear();
     syncPublicationCategory();
     publicationUI.reportMap?.focusOn(result.latitude, result.longitude);
     try {

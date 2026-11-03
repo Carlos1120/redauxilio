@@ -15,7 +15,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 /**
@@ -26,10 +28,15 @@ import org.springframework.web.server.ResponseStatusException;
 public class PublicationController {
   private final PublicationService service;
   private final PublicationCreationService creation;
+  private final PublicationSubmissionService submissions;
 
-  public PublicationController(PublicationService service, PublicationCreationService creation) {
+  public PublicationController(
+      PublicationService service,
+      PublicationCreationService creation,
+      PublicationSubmissionService submissions) {
     this.service = service;
     this.creation = creation;
+    this.submissions = submissions;
   }
 
   /**
@@ -88,6 +95,23 @@ public class PublicationController {
     return ResponseEntity.created(URI.create("/api/publications/" + id))
         .cacheControl(CacheControl.noStore())
         .body(service.findPublication(id));
+  }
+
+  /** Crea una publicación y hasta tres imágenes como operación atómica protegida por CSRF. */
+  @PostMapping(
+      path = "/api/publications/with-evidence",
+      consumes = "multipart/form-data",
+      produces = "application/json")
+  @ResponseBody
+  public ResponseEntity<PublicationService.Publication> createWithEvidence(
+      @AuthenticationPrincipal UserDetails citizen,
+      @RequestPart("publication") CreatePublicationRequest request,
+      @RequestPart(value = "files", required = false) List<MultipartFile> files) {
+    PublicationService.Publication created =
+        submissions.submit(citizen.getUsername(), request, files);
+    return ResponseEntity.created(URI.create("/api/publications/" + created.id()))
+        .cacheControl(CacheControl.noStore())
+        .body(created);
   }
 
   /** Expone solo errores de validación conocidos; nunca una traza o una excepción de base. */

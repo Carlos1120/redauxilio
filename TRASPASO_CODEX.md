@@ -12,7 +12,7 @@ Decisión no explícita en el requisito original, pendiente de revisión de Carl
 
 Pruebas actuales: `MissingPersonSightingTests` 4/4 en H2, incluida transacción completa al fallar la inserción de imagen. Tras sincronizar develop/RA-13: `mvnw.cmd -B verify` pasó 181 Java, Spotless y PMD; el segundo intento terminó `BUILD SUCCESS` tras DNS transitorio de Maven Central. `npm ci`; `npm test` 129/129; Prettier y `git diff --check` aprobados. Sin PostgreSQL ni navegador real.
 
-Commit funcional publicado: `a9aa6d3366bbbe3df99b99e290bd0a1536d6f8d5`. PR #30 abierto hacia develop `0b581020afe2de0c7cc02494163460ff7d3847d3`, GitHub lo reporta MERGEABLE; revisión formal solicitada a Carlos. CI verify en cola sobre `a9aa6d3` (run 41878569912 observado). Hay un seguimiento documental local aún sin publicar; el último push falló por DNS de `github.com`, sin mover la rama remota. La regla provisional sobre casos encontrados/cerrados requiere respuesta/revisión de Carlos. Siguiente: reintentar push normal cuando vuelva la conexión, comprobar CI sobre el HEAD publicado y esperar revisión formal. No integrar ni mover Trello.
+Commit funcional `a9aa6d3` y seguimiento documental `47e6f7fe8bbd84e4b4f7aafb2303c4b486ca3489` publicados en `codex/ra10-avistamientos`. PR #30 apunta a `develop` `0b581020afe2de0c7cc02494163460ff7d3847d3`; GitHub reporta MERGEABLE y Carlos está solicitado como revisor formal. CI `verify` en cola sobre HEAD `47e6f7f` (run 41878960010 observado). La regla provisional sobre casos encontrados/cerrados requiere decisión/revisión de Carlos. Siguiente: comprobar CI del HEAD publicado y esperar revisión formal. No integrar ni mover Trello.
 
 ## Estado integrado
 

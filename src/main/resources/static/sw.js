@@ -4,13 +4,14 @@
  * Intenta primero la red; solo ante un fallo de red utiliza una copia previamente guardada.
  * No almacena borradores, operaciones de escritura, bibliotecas CDN ni cartografía externa.
  */
-// RA-09/13 renuevan recursos públicos; contacto y rutas privadas siguen fuera de caché.
-const CACHE = "redauxilio-demo-v24";
+// RA-10/13 renuevan recursos públicos; contacto, fotos e historiales siguen fuera de caché.
+const CACHE = "redauxilio-demo-v25";
 const SHELL = [
   "/",
   "/app.css",
   "/app.js",
   "/missing-person.js",
+  "/missing-person-sightings.js",
   "/authorized-contact.js",
   "/freshness.js",
   "/identity-forms.js",

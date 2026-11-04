@@ -171,6 +171,7 @@ function showReportDetail(item, trigger, initial = false) {
   const contentReport = createReportElement("div", "content-report-actions", "");
   detail.append(contentReport);
   window.RedAuxilioContentReport?.render(item, contentReport);
+  window.RedAuxilioSightings?.render(item, detail);
   for (const card of getElement("publications").querySelectorAll(".card")) {
     card.dataset.selected = String(card.dataset.reportId === String(item.id));
   }

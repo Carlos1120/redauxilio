@@ -119,7 +119,8 @@ class PublicationEvidenceService {
           HttpStatus.CONFLICT, "Reabre la publicación antes de cambiar imágenes.");
   }
 
-  private static ValidatedImage validate(MultipartFile file) {
+  /** Valida y sanea una imagen para que otros flujos reutilicen exactamente la política RA-12. */
+  static ValidatedImage validate(MultipartFile file) {
     if (file == null || file.isEmpty()) throw invalid("El archivo está vacío.");
     if (file.getSize() > MAX_IMAGE_BYTES) throw invalid("Cada imagen debe pesar máximo 5 MB.");
     try {
@@ -229,5 +230,5 @@ class PublicationEvidenceService {
 
   record Image(String contentType, byte[] bytes) {}
 
-  private record ValidatedImage(String contentType, byte[] bytes) {}
+  record ValidatedImage(String contentType, byte[] bytes) {}
 }

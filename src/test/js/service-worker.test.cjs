@@ -77,6 +77,8 @@ test("el service worker no intercepta rutas de acceso independientes ni escritur
   assert.equal(fetchEvent(worker, "http://localhost:8081/login", "POST"), undefined);
   assert.equal(fetchEvent(worker, "http://localhost:8081/logout", "POST"), undefined);
   assert.equal(fetchEvent(worker, "http://localhost:8081/csrf"), undefined);
+  assert.equal(fetchEvent(worker, "http://localhost:8081/api/publications/7/evidence"), undefined);
+  assert.equal(fetchEvent(worker, "http://localhost:8081/api/publications/7/evidence/9"), undefined);
 });
 
 test("una recarga de cuenta sin red usa el shell público saneado y no guarda la vista privada", async () => {

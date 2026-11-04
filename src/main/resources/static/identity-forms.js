@@ -17,12 +17,16 @@ async function submitIdentityFormWithoutReload(form) {
 
   if (path === "/login" && access === "account" && response.ok) {
     form.reset();
+    // Una cuenta nueva no debe heredar fotos privadas del borrador anterior en este navegador.
+    await window.RedAuxilioPublicationUI?.clearEvidenceDraft?.();
     window.dispatchEvent(
       new CustomEvent("redauxilio:identity-action", {
         detail: { authenticated: true, message: "Sesión iniciada." },
       }),
     );
   } else if (path === "/logout" && destination.searchParams.has("signedout") && response.ok) {
+    // Retira fotos privadas antes de anunciar el cambio de sesión; mantiene el resto del borrador.
+    await window.RedAuxilioPublicationUI?.clearEvidenceDraft?.();
     window.dispatchEvent(
       new CustomEvent("redauxilio:identity-action", {
         detail: { authenticated: false, message: "Cerraste la sesión." },

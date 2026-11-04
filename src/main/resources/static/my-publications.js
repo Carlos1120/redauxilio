@@ -71,6 +71,7 @@
     ])
       find(id).value = "";
     states.replaceChildren();
+    find("own-evidence").replaceChildren();
     for (const form of [editForm, stateForm]) {
       for (const control of form.querySelectorAll("input, textarea, select, button"))
         control.disabled = true;
@@ -208,6 +209,56 @@
     }
   }
 
+  /** Expone acciones de retiro solo en el área privada del autor autenticado. */
+  async function loadEvidence(item, version) {
+    const gallery = find("own-evidence");
+    gallery.replaceChildren();
+    try {
+      const response = await fetch(`/api/publications/${item.id}/evidence`, {
+        credentials: "same-origin",
+        cache: "no-store",
+        headers: { Accept: "application/json" },
+      });
+      const images = response.ok ? await response.json() : [];
+      if (!stillCurrent(version) || current()?.id !== item.id) return;
+      for (const image of images) {
+        const figure = document.createElement("figure");
+        const preview = document.createElement("img");
+        const remove = document.createElement("button");
+        preview.src = image.url;
+        preview.alt = "Evidencia adjunta";
+        remove.type = "button";
+        remove.className = "secondary-button";
+        remove.textContent = "Retirar imagen";
+        remove.disabled = item.closed || saving;
+        remove.addEventListener("click", async () => {
+          if (!stillCurrent(version) || item.closed) return;
+          try {
+            const token = await fetch("/csrf", {
+              credentials: "same-origin",
+              cache: "no-store",
+            }).then((r) => r.json());
+            const result = await fetch(`/api/my/publications/${item.id}/evidence/${image.id}`, {
+              method: "DELETE",
+              credentials: "same-origin",
+              cache: "no-store",
+              headers: { "X-CSRF-TOKEN": token.token },
+            });
+            if (!result.ok) throw new Error("No se pudo retirar la imagen.");
+            await loadEvidence(item, version);
+          } catch (error) {
+            if (stillCurrent(version)) notify(error.message || "No se pudo retirar la imagen.");
+          }
+        });
+        figure.append(preview, remove);
+        gallery.append(figure);
+      }
+      if (!images.length) gallery.textContent = "No hay imágenes adjuntas.";
+    } catch {
+      if (stillCurrent(version)) gallery.textContent = "No se pudieron consultar las imágenes.";
+    }
+  }
+
   function showCurrent(withHistory = true) {
     const item = current();
     workspace.hidden = !item;
@@ -224,6 +275,7 @@
       control.disabled = item.closed || saving;
     }
     const isHelp = item.category === "HELP_REQUEST";
+    void loadEvidence(item, sessionVersion);
     find("own-help-fields").hidden = !isHelp;
     for (const [id, value] of [
       ["need-type", item.needType],

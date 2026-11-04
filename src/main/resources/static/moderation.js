@@ -17,8 +17,12 @@
     list.replaceChildren();
     detail.replaceChildren();
     events.replaceChildren();
+    get("verifier-list")?.replaceChildren();
+    get("verifier-events")?.replaceChildren();
     get("manual-review-id").value = "";
     get("manual-review-reason").value = "";
+    get("verifier-email").value = "";
+    get("verifier-reason").value = "";
     list.setAttribute("aria-busy", "false");
     get("moderation-next").disabled = true;
     get("moderation-previous").disabled = true;
@@ -270,12 +274,144 @@
         id,
         isCurrent,
       );
+      appendOfficialVerificationTools(detail, p, isCurrent);
       detail.focus();
       message.textContent = "Contexto privado cargado.";
       return true;
     } catch (error) {
       if (version === generation && selected === selection) failed(error);
       return false;
+    }
+  }
+
+  /** Permite al operador registrar una corrección o retirar respaldo, con historial por versión. */
+  async function appendOfficialVerificationTools(container, publication, isCurrent) {
+    const section = text("section", "");
+    section.className = "operator-history official-verification-admin";
+    section.append(text("h3", "Verificación oficial y auditoría"));
+    const status = text("p", "Consultando historial…");
+    status.setAttribute("role", "status");
+    const entries = text("div", "");
+    section.append(status, entries);
+    container.append(section);
+    const form = document.createElement("form");
+    form.className = "moderation-decision";
+    const noteLabel = text("label", "Nota de la corrección (hasta 500 caracteres)");
+    const note = document.createElement("textarea");
+    note.maxLength = 500;
+    note.rows = 2;
+    noteLabel.append(note);
+    const referenceLabel = text("label", "Referencia documental (opcional)");
+    const reference = document.createElement("input");
+    reference.maxLength = 200;
+    referenceLabel.append(reference);
+    const reasonLabel = text("label", "Motivo administrativo obligatorio");
+    const reason = document.createElement("textarea");
+    reason.maxLength = 500;
+    reason.rows = 2;
+    reason.required = true;
+    reasonLabel.append(reason);
+    const register = text("button", "Registrar verificación oficial");
+    register.type = "submit";
+    form.append(noteLabel, referenceLabel, reasonLabel, register);
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const noteText = note.value.trim();
+      const referenceText = reference.value.trim();
+      if (!noteText && !referenceText) {
+        status.textContent = "Indica una nota o una referencia para registrar el respaldo.";
+        return;
+      }
+      try {
+        const reasonText = reason.value.trim();
+        if (!reasonText) {
+          status.textContent = "El motivo administrativo es obligatorio.";
+          return;
+        }
+        await saveOfficial({
+          note: noteText,
+          reference: referenceText || null,
+          reason: reasonText,
+        });
+      } catch (error) {
+        if (isCurrent())
+          status.textContent = error.message || "No se pudo registrar la verificación.";
+      }
+    });
+    section.append(form);
+
+    async function saveOfficial(payload, verificationId = null) {
+      if (!isCurrent()) return;
+      const response = await fetch("/csrf", { credentials: "same-origin", cache: "no-store" }).then(
+        (result) => {
+          if (!result.ok) throw new Error("No se pudo validar la sesión.");
+          return result.json();
+        },
+      );
+      const url = verificationId
+        ? `/api/operator/publications/${publication.id}/official-verifications/${verificationId}/revoke`
+        : `/api/operator/publications/${publication.id}/official-verifications`;
+      const result = await fetch(url, {
+        method: "POST",
+        credentials: "same-origin",
+        cache: "no-store",
+        headers: { "Content-Type": "application/json", "X-CSRF-TOKEN": response.token },
+        body: JSON.stringify(payload),
+      });
+      if (!result.ok) throw new Error("No se pudo guardar la decisión oficial.");
+      if (!isCurrent()) return;
+      message.textContent = verificationId
+        ? "Verificación retirada; el historial original se conserva."
+        : "Verificación oficial registrada con actor, fecha y versión.";
+      if (!verificationId) {
+        note.value = "";
+        reference.value = "";
+        reason.value = "";
+      }
+      await loadDetail(publication.id);
+    }
+
+    try {
+      const items = await read(
+        `/api/operator/publications/${publication.id}/official-verifications`,
+      );
+      if (!isCurrent()) return;
+      entries.replaceChildren();
+      for (const item of items) {
+        const row = text(
+          "article",
+          `${item.accountName} · versión ${item.publicationVersion} · ${formatDate(item.verifiedAt)} · ${item.note}${item.reference ? ` · ${item.reference}` : ""} · ${item.revoked ? `retirada por ${item.revokedBy} el ${formatDate(item.revokedAt)}: ${item.revokeReason}` : item.publicationVersion === publication.confirmationVersion ? "vigente" : "histórica por cambio de versión"}`,
+        );
+        if (!item.revoked && item.publicationVersion === publication.confirmationVersion) {
+          const revokeForm = document.createElement("form");
+          revokeForm.className = "moderation-decision";
+          const reason = document.createElement("textarea");
+          reason.maxLength = 500;
+          reason.rows = 2;
+          reason.required = true;
+          reason.setAttribute("aria-label", "Motivo para retirar esta verificación");
+          const button = text("button", "Retirar verificación");
+          button.type = "submit";
+          revokeForm.append(reason, button);
+          revokeForm.addEventListener("submit", async (event) => {
+            event.preventDefault();
+            const detail = reason.value.trim();
+            if (!detail) return;
+            try {
+              await saveOfficial({ reason: detail }, item.id);
+            } catch (error) {
+              if (isCurrent()) status.textContent = error.message;
+            }
+          });
+          row.append(revokeForm);
+        }
+        entries.append(row);
+      }
+      if (!items.length) entries.append(text("p", "Sin verificaciones anteriores."));
+      status.textContent = "El historial incluye versiones anteriores y retiros.";
+    } catch (error) {
+      if (isCurrent())
+        status.textContent = error.message || "No se pudo consultar el historial oficial.";
     }
   }
 
@@ -805,6 +941,98 @@
     }
   }
 
+  /** Mantiene privada la lista de entidades verificadoras y la auditoría de sus permisos. */
+  async function loadVerifierAdmin() {
+    const version = generation;
+    const list = get("verifier-list");
+    const history = get("verifier-events");
+    if (!list || !history) return;
+    list.replaceChildren();
+    history.replaceChildren();
+    try {
+      const [accounts, changes] = await Promise.all([
+        read("/api/operator/verifier-permissions"),
+        read("/api/operator/verifier-permissions/history?limit=20&offset=0"),
+      ]);
+      if (version !== generation) return;
+      for (const account of accounts) {
+        const row = text(
+          "p",
+          `${account.displayName} · ${account.email} · autorizado ${formatDate(account.grantedAt)} `,
+        );
+        const revoke = text("button", "Retirar permiso");
+        revoke.type = "button";
+        revoke.className = "secondary-button";
+        revoke.addEventListener("click", () => {
+          get("verifier-email").value = account.email;
+          get("verifier-action").value = "REVOKE";
+          get("verifier-reason").focus();
+        });
+        row.append(revoke);
+        list.append(row);
+      }
+      for (const item of changes)
+        history.append(
+          text(
+            "p",
+            `${formatDate(item.changedAt)} · ${item.actorEmail} · ${item.action} ${item.email} · ${item.beforeGranted} → ${item.afterGranted} · ${item.reason}`,
+          ),
+        );
+      if (!accounts.length) list.append(text("p", "No hay cuentas autorizadas actualmente."));
+      if (!changes.length) history.append(text("p", "Sin cambios de permisos registrados."));
+    } catch (error) {
+      if (version === generation) failed(error);
+    }
+  }
+
+  /** Envía GRANT/REVOKE con CSRF y motivo; el servidor conserva estado y autoría. */
+  get("verifier-permission-form")?.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const email = get("verifier-email").value.trim();
+    const action = get("verifier-action").value;
+    const reason = get("verifier-reason").value.trim();
+    if (!email || !reason || reason.length > 500) {
+      message.textContent = "Indica el correo de una cuenta existente y un motivo válido.";
+      return;
+    }
+    if (!navigator.onLine) {
+      clearPrivate();
+      message.textContent = "Sin conexión. No se modificaron permisos.";
+      return;
+    }
+    const submit = get("verifier-permission-submit");
+    const version = generation;
+    submit.disabled = true;
+    try {
+      const csrf = await fetch("/csrf", { credentials: "same-origin", cache: "no-store" }).then(
+        (response) => {
+          if (!response.ok) throw new Error("No se pudo validar la sesión del operador.");
+          return response.json();
+        },
+      );
+      const response = await fetch("/api/operator/verifier-permissions", {
+        method: "POST",
+        credentials: "same-origin",
+        cache: "no-store",
+        headers: { "Content-Type": "application/json", "X-CSRF-TOKEN": csrf.token },
+        body: JSON.stringify({ email, action, reason }),
+      });
+      if (!response.ok)
+        throw new Error("No se pudo guardar el permiso. Comprueba cuenta y motivo.");
+      if (version !== generation) return;
+      get("verifier-reason").value = "";
+      message.textContent =
+        action === "GRANT"
+          ? "Autorización concedida y auditada."
+          : "Autorización retirada y auditada.";
+      await loadVerifierAdmin();
+    } catch (error) {
+      if (version === generation) failed(error);
+    } finally {
+      submit.disabled = false;
+    }
+  });
+
   /** RF-16: valida ID/motivo, renueva CSRF y solo anuncia éxito tras persistir; no guarda borrador. */
   get("manual-review-form").addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -856,12 +1084,20 @@
   get("moderation-next").addEventListener("click", () => loadQueue(offset + 20));
   get("moderation-previous").addEventListener("click", () => loadQueue(Math.max(0, offset - 20)));
   get("permission-history").addEventListener("click", loadPermissions);
+  get("verifier-refresh")?.addEventListener("click", loadVerifierAdmin);
+  get("verification-permission-admin")?.addEventListener("toggle", (event) => {
+    if (event.currentTarget.open) loadVerifierAdmin();
+  });
   get("operator-logout").addEventListener("submit", clearPrivate);
   window.addEventListener("offline", () => {
     clearPrivate();
     message.textContent = "Sin conexión. La cola privada no está disponible.";
   });
-  window.addEventListener("online", () => loadQueue());
+  window.addEventListener("online", () => {
+    const pending = loadQueue();
+    if (get("verification-permission-admin")?.open) loadVerifierAdmin();
+    return pending;
+  });
   window.addEventListener("pagehide", clearPrivate);
   window.addEventListener("pageshow", (event) => {
     if (event.persisted) loadQueue();
@@ -872,7 +1108,10 @@
   });
   document.addEventListener("visibilitychange", () => {
     if (document.hidden) clearPrivate();
-    else loadQueue();
+    else {
+      loadQueue();
+      if (get("verification-permission-admin")?.open) loadVerifierAdmin();
+    }
   });
   void loadQueue();
 })();

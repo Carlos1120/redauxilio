@@ -108,7 +108,9 @@ function showReportDetail(item, trigger, initial = false) {
         ? "Reportada · sin verificar"
         : item.confidenceLevel === "CONFIRMADA"
           ? "Confirmada por la comunidad"
-          : item.confidenceLevel,
+          : item.confidenceLevel === "VERIFICADA"
+            ? "Verificada oficialmente"
+            : item.confidenceLevel,
     ],
     [
       "Revisión de contenido",
@@ -163,6 +165,9 @@ function showReportDetail(item, trigger, initial = false) {
   const confirmation = createReportElement("div", "confirmation-actions", "");
   detail.append(confirmation);
   window.RedAuxilioConfirmation?.render(item, confirmation);
+  const officialVerification = createReportElement("section", "official-verification", "");
+  detail.append(officialVerification);
+  window.RedAuxilioOfficialVerification?.render(item, officialVerification);
   const contentReport = createReportElement("div", "content-report-actions", "");
   detail.append(contentReport);
   window.RedAuxilioContentReport?.render(item, contentReport);
@@ -272,7 +277,9 @@ function renderPublications(items) {
           ? "Reportada · sin verificar"
           : item.confidenceLevel === "CONFIRMADA"
             ? "Confirmada por la comunidad"
-            : item.confidenceLevel,
+            : item.confidenceLevel === "VERIFICADA"
+              ? "Verificada oficialmente"
+              : item.confidenceLevel,
       ],
     ]) {
       const fact = document.createElement("div");

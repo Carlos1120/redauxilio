@@ -33,12 +33,13 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMultipartHttpServletRequestBuilder;
 
-/** Comprueba el historial HTTP/SQL del avistamiento con casos y cuentas ficticios en H2. */
-@SpringBootTest(
-    properties = "spring.datasource.url=jdbc:h2:mem:ra10sighting;MODE=PostgreSQL;DB_CLOSE_DELAY=-1")
+/** Comprueba el historial HTTP/SQL en H2 o PostgreSQL aislado con casos y cuentas ficticios. */
+@SpringBootTest
 @AutoConfigureMockMvc
 @Import(PublicationFreshnessTests.TimeConfig.class)
 class MissingPersonSightingTests {
@@ -49,6 +50,24 @@ class MissingPersonSightingTests {
   @Autowired PublicationFreshnessTests.TestClock clock;
   String author;
   String observer;
+
+  @DynamicPropertySource
+  static void configureDataSource(DynamicPropertyRegistry properties) {
+    properties.add("spring.sql.init.mode", () -> "always");
+    properties.add(
+        "spring.datasource.url",
+        () ->
+            System.getenv()
+                .getOrDefault(
+                    "RA10_TEST_DB_URL",
+                    "jdbc:h2:mem:ra10sighting;MODE=PostgreSQL;DB_CLOSE_DELAY=-1"));
+    properties.add(
+        "spring.datasource.username",
+        () -> System.getenv().getOrDefault("RA10_TEST_DB_USERNAME", "sa"));
+    properties.add(
+        "spring.datasource.password",
+        () -> System.getenv().getOrDefault("RA10_TEST_DB_PASSWORD", ""));
+  }
 
   @BeforeEach
   void resetData() {

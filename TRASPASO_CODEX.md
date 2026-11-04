@@ -1,6 +1,6 @@
 # RedAuxilio — traspaso RA-10
 
-Actualización: 3 de noviembre de 2026 (Colombia). Clon principal `C:\Users\Santiago\redauxilio`, rama `feat/RA-08-acciones-moderacion`, HEAD local `d6a2348659eb3c3133ae58eb3ee2ac1dfe72387b`; conservar modificaciones locales allí en `TRASPASO_CODEX.md` y `src/main/resources/static/app.css`. Este incremento está aislado en `C:\Users\Santiago\.codex\worktrees\ra10-avistamientos`, rama `codex/ra10-avistamientos`, ahora alineada con `origin/develop` `0b581020afe2de0c7cc02494163460ff7d3847d3` antes del commit RA-10.
+Actualización: 4 de noviembre de 2026 (Colombia). Clon principal `C:\Users\Santiago\redauxilio`, rama `feat/RA-08-acciones-moderacion`, HEAD local `d6a2348659eb3c3133ae58eb3ee2ac1dfe72387b`; conservar modificaciones locales en `TRASPASO_CODEX.md`, `src/main/resources/static/app.css` y carpetas no rastreadas `output/`, `tmp/` (no inspeccionadas ni tocadas). Este incremento está aislado en `C:\Users\Santiago\.codex\worktrees\ra10-avistamientos`, rama `codex/ra10-avistamientos`, base `develop` `0b581020afe2de0c7cc02494163460ff7d3847d3`.
 
 ## Progreso RA-10 — Avistamientos
 
@@ -10,9 +10,9 @@ Añadidos API/servicio, tablas SQL, proyección pública sin identidad del autor
 
 Decisión no explícita en el requisito original, pendiente de revisión de Carlos: impedir nuevos avistamientos si el caso ya está encontrado o cerrado. No asumirla como política aceptada hasta revisión.
 
-Pruebas actuales: `MissingPersonSightingTests` 4/4 en H2, incluida transacción completa al fallar la inserción de imagen. Tras sincronizar develop/RA-13: `mvnw.cmd -B verify` pasó 181 Java, Spotless y PMD; el segundo intento terminó `BUILD SUCCESS` tras DNS transitorio de Maven Central. `npm ci`; `npm test` 129/129; Prettier y `git diff --check` aprobados. Sin PostgreSQL ni navegador real.
+Pruebas actuales: `MissingPersonSightingTests` 4/4 en H2 y 4/4 en PostgreSQL 18.3 sobre un clúster/base temporales de esta sesión; comprobó multipart HTTP, lectura/foto, seguridad y rollback. La clase usa H2 por defecto o RA10_TEST_DB_URL/USERNAME/PASSWORD y fuerza schema init; nunca dirigirla a una base con datos. `mvnw.cmd -B verify` después de ese cambio: 181 Java, Spotless y PMD aprobados. `npm ci`; `npm test` 129/129; Prettier y `git diff --check` aprobados. Navegador visual sigue pendiente.
 
-Commit funcional `a9aa6d3` y seguimiento documental `47e6f7fe8bbd84e4b4f7aafb2303c4b486ca3489` publicados en `codex/ra10-avistamientos`. PR #30 apunta a `develop` `0b581020afe2de0c7cc02494163460ff7d3847d3`; GitHub reporta MERGEABLE y Carlos está solicitado como revisor formal. CI `verify` en cola sobre HEAD `47e6f7f` (run 41878960010 observado). La regla provisional sobre casos encontrados/cerrados requiere decisión/revisión de Carlos. Siguiente: comprobar CI del HEAD publicado y esperar revisión formal. No integrar ni mover Trello.
+La rama remota/PR #30 sigue en `212494c9001d2e3140e49fd33ea614d338f6cdd9`; CI `verify` SUCCESS para ese SHA y GitHub reporta MERGEABLE. Carlos está solicitado formalmente; sin revisión aún. Hay cambios locales en el test configurable para PostgreSQL y estos documentos; requieren un commit/push normal, tras el cual CI debe comprobarse sobre el nuevo HEAD. La regla propuesta para casos encontrados/cerrados aún necesita revisión de Carlos. No integrar ni mover Trello.
 
 ## Estado integrado
 

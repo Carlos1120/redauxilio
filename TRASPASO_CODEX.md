@@ -12,7 +12,7 @@ Decisión no explícita en el requisito original, pendiente de revisión de Carl
 
 Pruebas actuales: `MissingPersonSightingTests` 4/4 en H2 y 4/4 en PostgreSQL 18.3 sobre un clúster/base temporales de esta sesión; comprobó multipart HTTP, lectura/foto, seguridad y rollback. La clase usa H2 por defecto o RA10_TEST_DB_URL/USERNAME/PASSWORD y fuerza schema init; nunca dirigirla a una base con datos. `mvnw.cmd -B verify` después de ese cambio: 181 Java, Spotless y PMD aprobados. `npm ci`; `npm test` 129/129; Prettier y `git diff --check` aprobados. Navegador visual sigue pendiente.
 
-La rama remota/PR #30 sigue en `212494c9001d2e3140e49fd33ea614d338f6cdd9`; CI `verify` SUCCESS para ese SHA y GitHub reporta MERGEABLE. Carlos está solicitado formalmente; sin revisión aún. Hay cambios locales en el test configurable para PostgreSQL y estos documentos; requieren un commit/push normal, tras el cual CI debe comprobarse sobre el nuevo HEAD. La regla propuesta para casos encontrados/cerrados aún necesita revisión de Carlos. No integrar ni mover Trello.
+HEAD local/remoto `92e8e050144a1aa2593c587ba24d0894e1d09d81`, incluye configuración PostgreSQL de la prueba y contrato/evidencias. PR #30 abierto hacia develop `0b581020afe2de0c7cc02494163460ff7d3847d3`, GitHub MERGEABLE; Carlos solicitado como revisor formal, sin revisión registrada. CI `verify` SUCCESS en `212494c`; nuevo CI del HEAD `92e8e05` en ejecución (run 41902550173). Descripción del PR registra PostgreSQL 4/4. La regla de casos encontrados/cerrados requiere decisión de Carlos. Siguiente: confirmar CI exacto y esperar revisión; no integrar ni mover Trello.
 
 ## Estado integrado
 

@@ -31,6 +31,9 @@ function setup(status = 201) {
         addEventListener(n, f) {
           this.listeners[n] = f;
         },
+        setAttribute(n, value) {
+          this[n] = value;
+        },
         querySelectorAll() {
           return this.controls ?? [];
         },
@@ -80,9 +83,13 @@ function setup(status = 201) {
   const context = {
     document: {
       getElementById: get,
-      createElement: () => ({ append() {}, addEventListener() {} }),
+      createElement: () => ({ append() {}, addEventListener() {}, setAttribute() {} }),
     },
     window: { RedAuxilioPublicationUI: ui },
+    URL,
+    FormData,
+    Blob,
+    File,
     navigator: {},
     fetch: async (url, options) => {
       requests.push({ url, options });
@@ -133,6 +140,20 @@ test("un rechazo conserva borrador y no anuncia éxito; referencias sensibles no
   invalid.get("help-requester").value = "correo@example.invalid";
   await invalid.get("publish-report").listeners.click();
   assert.equal(invalid.requests.length, 0);
+});
+
+test("evidencia válida se envía como multipart atómico y conserva JSON tipado", async () => {
+  const h = setup();
+  const photo = new File([new Uint8Array([1, 2, 3])], "evidencia.png", { type: "image/png" });
+  h.get("publication-evidence").files = [photo];
+  h.get("publication-evidence").listeners.change();
+  await h.get("publish-report").listeners.click();
+  const post = h.requests.find((request) => request.options.method === "POST");
+  assert.equal(post.url, "/api/publications/with-evidence");
+  assert.equal(post.options.headers["Content-Type"], undefined);
+  assert.equal(post.options.body.getAll("files").length, 1);
+  assert.match(await post.options.body.get("publication").text(), /"category":"HELP_REQUEST"/);
+  assert.equal(h.stats.cleared, 1);
 });
 
 /** RA-09 comparte campos comunes pero envía atributos propios y omite contacto. */

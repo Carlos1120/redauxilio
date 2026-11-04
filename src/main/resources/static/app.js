@@ -44,6 +44,27 @@ function showReportDetail(item, trigger, initial = false) {
   getElement("detail-title").textContent = item.title;
   const detail = getElement("detail-content");
   detail.replaceChildren();
+  const evidenceGallery = createReportElement("div", "detail-evidence", "");
+  evidenceGallery.setAttribute("aria-label", "Evidencias fotográficas");
+  detail.append(evidenceGallery);
+  fetch(`/api/publications/${item.id}/evidence`, { cache: "no-store" })
+    .then((response) => (response.ok ? response.json() : []))
+    .then((images) => {
+      if (selectedReportId !== item.id || !Array.isArray(images)) return;
+      for (const image of images) {
+        const figure = document.createElement("figure");
+        const element = document.createElement("img");
+        element.src = image.url;
+        element.alt = `Evidencia fotográfica ${images.indexOf(image) + 1}`;
+        element.loading = "lazy";
+        figure.append(element);
+        evidenceGallery.append(figure);
+      }
+      evidenceGallery.hidden = images.length === 0;
+    })
+    .catch(() => {
+      evidenceGallery.hidden = true;
+    });
   const facts = createReportElement("div", "detail-facts", "");
   const specificFacts =
     item.category === "HELP_REQUEST" && item.needType
@@ -184,6 +205,23 @@ window.RedAuxilioPublicationUI = {
   },
   loadPublications: () => loadPublications(),
   saveDraft: () => saveDraft(),
+  // Al cerrar sesión elimina blobs privados de fotos y conserva el resto del borrador offline.
+  clearEvidenceDraft: async () => {
+    window.RedAuxilioEvidenceDraft?.clear();
+    window.__redauxilioDraftEvidence = [];
+    const db = await database;
+    await new Promise((resolve, reject) => {
+      const transaction = db.transaction("drafts", "readwrite");
+      const store = transaction.objectStore("drafts");
+      const request = store.get("current");
+      request.onsuccess = () => {
+        if (request.result) store.put({ ...request.result, evidence: [] }, "current");
+      };
+      transaction.oncomplete = resolve;
+      transaction.onerror = () => reject(transaction.error);
+      transaction.onabort = () => reject(transaction.error);
+    });
+  },
   clearDraft: () => executeDraftOperation("readwrite", (store) => store.delete("current")),
 };
 getElement("reset-map").disabled = !reportMap;
@@ -465,6 +503,8 @@ function saveDraft() {
         approximateQuantity: getElement("help-quantity").value,
         declaredUrgency: getElement("help-urgency").value,
         requesterReference: getElement("help-requester").value,
+        evidence:
+          window.RedAuxilioEvidenceDraft?.serialize() || window.__redauxilioDraftEvidence || [],
         missingAge: getElement("missing-age").value,
         missingSeen: getElement("missing-seen").value,
       },
@@ -487,6 +527,8 @@ getElement("discard").addEventListener("click", async () => {
   try {
     await executeDraftOperation("readwrite", (store) => store.delete("current"));
     getElement("draft-form").reset();
+    window.RedAuxilioEvidenceDraft?.clear();
+    window.__redauxilioDraftEvidence = [];
     getElement("publication-category").dispatchEvent(new Event("change"));
     getElement("draft-message").textContent = "Borrador local descartado.";
   } catch {
@@ -510,6 +552,8 @@ executeDraftOperation("readonly", (store) => store.get("current"))
       getElement("help-quantity").value = draft.approximateQuantity || "";
       getElement("help-urgency").value = draft.declaredUrgency || "";
       getElement("help-requester").value = draft.requesterReference || "";
+      window.__redauxilioDraftEvidence = Array.isArray(draft.evidence) ? draft.evidence : [];
+      window.RedAuxilioEvidenceDraft?.restore(window.__redauxilioDraftEvidence);
       getElement("missing-age").value = draft.missingAge || "";
       getElement("missing-seen").value = draft.missingSeen || "";
       getElement("publication-category").dispatchEvent(new Event("change"));

@@ -521,6 +521,23 @@
                 </div>
               </div>
             </fieldset>
+            <fieldset id="evidence-fields" aria-describedby="evidence-help">
+              <legend>Fotografías de evidencia (opcional)</legend>
+              <label for="publication-evidence"
+                >Hasta 3 imágenes JPEG, PNG o WebP; máximo 5 MB cada una</label
+              >
+              <input
+                id="publication-evidence"
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                multiple
+              />
+              <small id="evidence-help"
+                >Evita incluir documentos, rostros de menores o datos que identifiquen
+                domicilios.</small
+              >
+              <div id="evidence-preview" class="evidence-preview" aria-live="polite"></div>
+            </fieldset>
             <div class="draft-actions">
               <button type="submit">Guardar borrador</button
               ><button type="button" id="publish-report">Publicar con mi cuenta</button
@@ -620,6 +637,10 @@
                   <label for="own-help-requester">Alias o comunidad solicitante</label
                   ><input id="own-help-requester" required maxlength="120" autocomplete="off" />
                 </div>
+              </fieldset>
+              <fieldset>
+                <legend>Evidencias adjuntas</legend>
+                <div id="own-evidence" class="evidence-preview" aria-live="polite"></div>
               </fieldset>
               <fieldset id="own-missing-fields" class="publication-specific" hidden>
                 <legend>Datos de la persona desaparecida</legend>

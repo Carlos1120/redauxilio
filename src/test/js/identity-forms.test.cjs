@@ -88,6 +88,7 @@ test("login y logout usan CSRF y actualizan sesión sin navegación completa", a
   ]) {
     const listeners = new Map();
     const events = [];
+    const cleanupOrder = [];
     const csrfField = { value: "token-antiguo" };
     const message = { textContent: "", hidden: true };
     const form = {
@@ -112,6 +113,9 @@ test("login y logout usan CSRF y actualizan sesión sin navegación completa", a
       window: {
         location: { origin: "http://localhost" },
         dispatchEvent: (event) => events.push(event),
+        RedAuxilioPublicationUI: {
+          clearEvidenceDraft: async () => cleanupOrder.push("photos-cleared"),
+        },
       },
       CustomEvent: class CustomEvent {
         constructor(type, options) {
@@ -158,5 +162,6 @@ test("login y logout usan CSRF y actualizan sesión sin navegación completa", a
     assert.equal(events[0].type, "redauxilio:identity-action");
     assert.equal(events[0].detail.authenticated, authenticated);
     assert.equal(message.hidden, true);
+    assert.deepEqual(cleanupOrder, ["photos-cleared"]);
   }
 });

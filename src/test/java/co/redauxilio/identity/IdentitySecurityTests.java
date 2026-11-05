@@ -85,7 +85,8 @@ class IdentitySecurityTests {
   /** El detalle anonimo debe cargar los modulos sin recibir una pagina de acceso como script. */
   @Test
   void publicDetailScriptsLoadWithoutAuthentication() throws Exception {
-    for (String resource : java.util.List.of("/missing-person-sightings.js", "/official-verification.js")) {
+    for (String resource :
+        java.util.List.of("/missing-person-sightings.js", "/official-verification.js")) {
       mvc.perform(get(resource))
           .andExpect(status().isOk())
           .andExpect(content().contentTypeCompatibleWith("text/javascript"));

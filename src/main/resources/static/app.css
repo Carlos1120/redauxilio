@@ -2099,3 +2099,19 @@ footer {
 .authorized-contact {
   overflow-wrap: anywhere;
 }
+
+/* RA-10: el boton compartido no debe crear una columna implicita dentro del dialogo. */
+.sighting-form {
+  grid-template-columns: minmax(0, 1fr);
+  min-width: 0;
+}
+.sighting-form > *,
+.sighting-coordinates-fields > *,
+.sighting-form input,
+.sighting-form textarea {
+  min-width: 0;
+}
+.sighting-form > button {
+  grid-row: auto;
+  grid-column: 1;
+}

@@ -129,6 +129,22 @@
           <div id="permission-events"></div>
         </section>
       </details>
+      <details class="operator-permissions">
+        <summary>Ocultar un avistamiento perjudicial</summary>
+        <form id="sighting-hide-form" class="operator-manual-form">
+          <label for="sighting-hide-id"
+            >ID del avistamiento (visible en el historial del caso)</label
+          >
+          <input id="sighting-hide-id" type="number" min="1" step="1" required />
+          <label for="sighting-hide-reason">Motivo del ocultamiento</label>
+          <textarea id="sighting-hide-reason" maxlength="500" required rows="2"></textarea>
+          <button id="sighting-hide-submit" type="submit">Ocultar solo este avistamiento</button>
+          <button id="sighting-history" type="button" class="secondary-button">
+            Consultar auditoría del ID
+          </button>
+        </form>
+        <div id="sighting-hide-history" aria-live="polite"></div>
+      </details>
       <p class="operator-footer">
         Datos internos: no se almacenan en caché ni se muestran sin conexión. Para volver a
         consultar, confirma tu sesión y tu conexión.

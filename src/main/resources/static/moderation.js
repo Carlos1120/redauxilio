@@ -12,6 +12,9 @@
 
   /** Invalida peticiones anteriores y elimina contexto al cambiar sesión, red o visibilidad. */
   function clearPrivate() {
+    if (get("sighting-hide-id")) get("sighting-hide-id").value = "";
+    if (get("sighting-hide-reason")) get("sighting-hide-reason").value = "";
+    get("sighting-hide-history")?.replaceChildren();
     generation++;
     selection++;
     list.replaceChildren();
@@ -986,6 +989,71 @@
   }
 
   /** Envía GRANT/REVOKE con CSRF y motivo; el servidor conserva estado y autoría. */
+  /** Ocultamiento individual con CSRF, permiso vigente y limpieza privada ya compartida. */
+  get("sighting-hide-form")?.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const id = Number(get("sighting-hide-id").value);
+    const reason = get("sighting-hide-reason").value.trim();
+    if (!Number.isSafeInteger(id) || id <= 0 || !reason || reason.length > 500) {
+      message.textContent = "Indica un ID positivo y un motivo de 1 a 500 caracteres.";
+      return;
+    }
+    if (!navigator.onLine) {
+      clearPrivate();
+      message.textContent = "Sin conexion. No se oculto el avistamiento.";
+      return;
+    }
+    const version = generation;
+    const submit = get("sighting-hide-submit");
+    if (submit.disabled) return;
+    submit.disabled = true;
+    try {
+      const csrf = await read("/csrf");
+      if (version !== generation) return;
+      const response = await fetch(`/api/operator/sightings/${id}/hide`, {
+        method: "POST",
+        credentials: "same-origin",
+        cache: "no-store",
+        headers: {
+          "Content-Type": "application/json",
+          [csrf.headerName || "X-CSRF-TOKEN"]: csrf.token,
+        },
+        body: JSON.stringify({ reason }),
+      });
+      if (version !== generation) return;
+      if (response.redirected || !response.ok) {
+        const error = await response.json().catch(() => ({}));
+        if (version !== generation) return;
+        throw new Error(error.message || "No se pudo ocultar el avistamiento.");
+      }
+      get("sighting-hide-reason").value = "";
+      message.textContent = "Avistamiento ocultado. El caso permanece sin cambios.";
+    } catch (error) {
+      if (version === generation) message.textContent = error.message;
+    } finally {
+      submit.disabled = false;
+    }
+  });
+  get("sighting-history")?.addEventListener("click", async () => {
+    const id = Number(get("sighting-hide-id").value);
+    if (!Number.isSafeInteger(id) || id <= 0) return;
+    const version = generation;
+    try {
+      const rows = await read(`/api/operator/sightings/${id}/history`);
+      if (version !== generation) return;
+      get("sighting-hide-history").replaceChildren(
+        ...rows.map((row) =>
+          text(
+            "p",
+            `${formatDate(row.changedAt)} · Actor ${row.actorId} · ${row.action} · Visible: ${row.beforeVisible} → ${row.afterVisible} · ${row.reason}`,
+          ),
+        ),
+      );
+    } catch {
+      if (version === generation) message.textContent = "Auditoria no disponible.";
+    }
+  });
+
   get("verifier-permission-form")?.addEventListener("submit", async (event) => {
     event.preventDefault();
     const email = get("verifier-email").value.trim();

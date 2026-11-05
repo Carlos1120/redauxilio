@@ -925,3 +925,43 @@ test("moderación de persona usa estado encontrado sin cierre y conserva campos 
   assert.equal(correction.missingPerson.lastSeenAt, "2026-11-03T08:30:00Z");
   assert.equal(correction.contact, undefined);
 });
+
+test("ocultamiento individual conserva rechazo y evita falso exito", async () => {
+  const ui = await setup(async (url) =>
+    url === "/csrf"
+      ? response({ token: "token" })
+      : url.endsWith("/hide")
+        ? response({ message: "Ya oculto" }, 409)
+        : response(page()),
+  );
+  ui.element("sighting-hide-id").value = "7";
+  ui.element("sighting-hide-reason").value = "Motivo privado";
+  await ui.element("sighting-hide-form").listeners.submit({ preventDefault() {} });
+  assert.equal(ui.element("moderation-message").textContent, "Ya oculto");
+  const request = ui.requests.find((r) => r.url.endsWith("/hide"));
+  assert.equal(request.options.headers["X-CSRF-TOKEN"], "token");
+  assert.equal(request.options.cache, "no-store");
+});
+
+test("ocultamiento ignora respuesta tardia tras desconexion", async () => {
+  let finish;
+  const ui = await setup(async (url) =>
+    url === "/csrf"
+      ? response({ token: "token" })
+      : url.endsWith("/hide")
+        ? new Promise((resolve) => {
+            finish = resolve;
+          })
+        : response(page()),
+  );
+  ui.element("sighting-hide-id").value = "7";
+  ui.element("sighting-hide-reason").value = "Motivo privado";
+  const pending = ui.element("sighting-hide-form").listeners.submit({ preventDefault() {} });
+  await flush();
+  ui.listeners.get("offline")();
+  finish(response({}));
+  await pending;
+  assert.equal(ui.element("sighting-hide-id").value, "");
+  assert.equal(ui.element("sighting-hide-reason").value, "");
+  assert.doesNotMatch(ui.element("moderation-message").textContent, /Avistamiento ocultado/);
+});

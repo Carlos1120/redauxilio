@@ -66,16 +66,19 @@
     }
   }
 
-  async function loadHistory(publicationId, version, history) {
+  async function loadHistory(publicationId, version, history, offset = 0) {
     try {
-      const response = await fetch(`/api/publications/${publicationId}/sightings`, {
-        cache: "no-store",
-        headers: { Accept: "application/json" },
-      });
+      const response = await fetch(
+        `/api/publications/${publicationId}/sightings?limit=20&offset=${offset}`,
+        {
+          cache: "no-store",
+          headers: { Accept: "application/json" },
+        },
+      );
       if (!response.ok) throw new Error("No se pudo consultar el historial.");
       const sightings = await response.json();
       if (version !== renderVersion) return;
-      history.replaceChildren();
+      if (offset === 0) history.replaceChildren();
       if (!Array.isArray(sightings) || sightings.length === 0) {
         history.append(element("p", "sighting-message", "Aún no hay avistamientos registrados."));
         return;
@@ -83,7 +86,11 @@
       for (const sighting of sightings) {
         const entry = element("article", "sighting-entry");
         entry.append(
-          element("h4", "", new Date(sighting.observedAt).toLocaleString("es-CO")),
+          element(
+            "h4",
+            "",
+            `Avistamiento #${sighting.id} · ${new Date(sighting.observedAt).toLocaleString("es-CO")}`,
+          ),
           element("p", "", sighting.location),
           element("p", "", sighting.description),
           element(
@@ -102,6 +109,17 @@
           entry.append(figure);
         }
         history.append(entry);
+      }
+      // Solo se solicita una pagina acotada por accion; se preservan las entradas anteriores.
+      if (sightings.length === 20) {
+        const more = element("button", "secondary-button", "Cargar mas avistamientos");
+        more.type = "button";
+        more.addEventListener("click", async () => {
+          more.disabled = true;
+          await loadHistory(publicationId, version, history, offset + sightings.length);
+          more.remove();
+        });
+        history.append(more);
       }
     } catch {
       if (version === renderVersion)

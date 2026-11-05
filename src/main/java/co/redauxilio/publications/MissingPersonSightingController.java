@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
@@ -28,10 +30,13 @@ class MissingPersonSightingController {
   }
 
   @GetMapping("/api/publications/{publicationId}/sightings")
-  ResponseEntity<List<MissingPersonSighting>> list(@PathVariable long publicationId) {
+  ResponseEntity<List<MissingPersonSighting>> list(
+      @PathVariable long publicationId,
+      @RequestParam(defaultValue = "20") int limit,
+      @RequestParam(defaultValue = "0") int offset) {
     return ResponseEntity.ok()
         .cacheControl(CacheControl.noStore())
-        .body(sightings.listPublic(publicationId));
+        .body(sightings.listPublic(publicationId, limit, offset));
   }
 
   @GetMapping("/api/publications/{publicationId}/sightings/{sightingId}/evidence/{evidenceId}")
@@ -60,6 +65,26 @@ class MissingPersonSightingController {
         .cacheControl(CacheControl.noStore())
         .body(sightings.create(publicationId, citizen.getUsername(), request, files));
   }
+
+  /** Control minimo administrativo sujeto a ROLE_OPERATOR persistente y CSRF. */
+  @PostMapping("/api/operator/sightings/{sightingId}/hide")
+  ResponseEntity<Void> hide(
+      @PathVariable long sightingId,
+      @AuthenticationPrincipal UserDetails operator,
+      @RequestBody HideRequest request) {
+    sightings.hide(sightingId, operator.getUsername(), request.reason());
+    return ResponseEntity.noContent().cacheControl(CacheControl.noStore()).build();
+  }
+
+  @GetMapping("/api/operator/sightings/{sightingId}/history")
+  ResponseEntity<List<MissingPersonSightingService.ModerationEvent>> history(
+      @PathVariable long sightingId, @AuthenticationPrincipal UserDetails operator) {
+    return ResponseEntity.ok()
+        .cacheControl(CacheControl.noStore())
+        .body(sightings.moderationHistory(sightingId, operator.getUsername()));
+  }
+
+  record HideRequest(String reason) {}
 
   @ExceptionHandler(ResponseStatusException.class)
   ResponseEntity<Map<String, String>> knownError(ResponseStatusException error) {

@@ -5,7 +5,7 @@
  * No almacena borradores, operaciones de escritura, bibliotecas CDN ni cartografía externa.
  */
 // RA-10/13 renuevan recursos públicos; contacto, fotos e historiales siguen fuera de caché.
-const CACHE = "redauxilio-demo-v25";
+const CACHE = "redauxilio-demo-v26";
 const SHELL = [
   "/",
   "/app.css",

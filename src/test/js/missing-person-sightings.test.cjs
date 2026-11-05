@@ -30,6 +30,9 @@ function node(tag) {
       this.listeners[name] = listener;
     },
     reset() {},
+    remove() {
+      this.removed = true;
+    },
     click() {
       this.clicked = true;
     },
@@ -151,4 +154,61 @@ test("caso encontrado no ofrece un formulario para nuevos avistamientos", () => 
     find(second, (child) => child.tag === "form"),
     null,
   );
+});
+
+// Una pagina adicional se pide solo al activar el control y conserva lo anterior.
+test("historial solicita paginas acotadas y permite cargar mas", async () => {
+  const ui = harness();
+  await new Promise(setImmediate);
+  let calls = [];
+  ui.context.fetch = async (url) => {
+    calls.push(url);
+    return {
+      ok: true,
+      json: async () =>
+        Array.from({ length: url.includes("offset=20") ? 1 : 20 }, (_, i) => ({
+          id: url.includes("offset=20") ? 1 : 21 - i,
+          observedAt: "2026-11-03T11:30:00Z",
+          location: "Parque",
+          description: "Registro",
+          latitude: 4,
+          longitude: -73,
+          evidence: [],
+        })),
+    };
+  };
+  const target = node("main");
+  ui.context.RedAuxilioSightings.render(
+    { id: 1000020, category: "MISSING_PERSON", operationalStatus: "ENCONTRADA" },
+    target,
+  );
+  await new Promise(setImmediate);
+  const more = find(target, (n) => n.textContent === "Cargar mas avistamientos");
+  assert.ok(more);
+  await more.listeners.click();
+  assert.match(calls[0], /limit=20&offset=0/);
+  assert.match(calls[1], /limit=20&offset=20/);
+  const history = find(target, (n) => n.className === "sighting-list");
+  assert.equal(history.children.filter((n) => n.tag === "article").length, 21);
+});
+
+test("rechazo 429 no anuncia exito ni limpia el formulario", async () => {
+  const ui = harness(true);
+  await new Promise(setImmediate);
+  let reset = false;
+  const form = find(ui.container, (n) => n.tag === "form");
+  form.reset = () => {
+    reset = true;
+  };
+  ui.context.fetch = async (url) =>
+    url === "/csrf"
+      ? { ok: true, json: async () => ({ token: "fresh" }) }
+      : {
+          ok: false,
+          status: 429,
+          json: async () => ({ message: "Limite de cinco avistamientos" }),
+        };
+  await form.listeners.submit({ preventDefault() {} });
+  assert.equal(reset, false);
+  assert.match(find(form, (n) => n.role === "status").textContent, /Limite de cinco/);
 });

@@ -53,6 +53,8 @@ class MissingPersonSightingTests {
 
   @DynamicPropertySource
   static void configureDataSource(DynamicPropertyRegistry properties) {
+    requireIsolatedDatabase(
+        System.getenv("RA10_TEST_DB_URL"), System.getenv("RA10_TEST_DB_USERNAME"));
     properties.add("spring.sql.init.mode", () -> "always");
     properties.add(
         "spring.datasource.url",
@@ -69,23 +71,52 @@ class MissingPersonSightingTests {
         () -> System.getenv().getOrDefault("RA10_TEST_DB_PASSWORD", ""));
   }
 
+  private final java.util.List<String> fixtureEmails = new java.util.ArrayList<>();
+  private final java.util.List<Long> fixtureCases = new java.util.ArrayList<>();
+
+  /** Solo elimina filas pertenecientes a las cuentas y casos creados por esta prueba. */
+  @org.junit.jupiter.api.AfterEach
+  void cleanFixtures() {
+    for (long id : fixtureCases) {
+      jdbc.update(
+          "DELETE FROM missing_person_sighting_moderation WHERE sighting_id IN (SELECT id FROM missing_person_sighting WHERE publication_id=?)",
+          id);
+      jdbc.update(
+          "DELETE FROM missing_person_sighting_evidence WHERE sighting_id IN (SELECT id FROM missing_person_sighting WHERE publication_id=?)",
+          id);
+      jdbc.update("DELETE FROM missing_person_sighting WHERE publication_id=?", id);
+      jdbc.update("DELETE FROM citizen_publication_change WHERE publication_id=?", id);
+      jdbc.update("DELETE FROM citizen_publication WHERE id=?", id);
+    }
+    for (String email : fixtureEmails) {
+      jdbc.update(
+          "DELETE FROM operator_permission WHERE account_id IN (SELECT id FROM citizen_account WHERE email=?)",
+          email);
+      jdbc.update("DELETE FROM citizen_account WHERE email=?", email);
+    }
+  }
+
+  /** Barrera previa al arranque y al DDL: solo cluster local y base desechable identificada. */
+  static void requireIsolatedDatabase(String url, String username) {
+    if (url != null
+        && (!url.matches("jdbc:postgresql://127\\.0\\.0\\.1:[0-9]+/ra10_test_[a-f0-9]{12}")
+            || !"ra10_test".equals(username)))
+      throw new IllegalArgumentException(
+          "RA10 requiere una base local desechable ra10_test_<12 hex> y usuario ra10_test");
+  }
+
+  @Test
+  void rejectsUnsafeDatabaseBeforeInitialization() {
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> requireIsolatedDatabase("jdbc:postgresql://localhost:5432/production", "postgres"));
+    assertThrows(
+        IllegalArgumentException.class, () -> requireIsolatedDatabase("jdbc:h2:file:real", "sa"));
+    requireIsolatedDatabase("jdbc:postgresql://127.0.0.1:5432/ra10_test_012345abcdef", "ra10_test");
+  }
+
   @BeforeEach
   void resetData() {
-    for (String table :
-        List.of(
-            "missing_person_sighting_evidence",
-            "missing_person_sighting",
-            "publication_authorized_contact",
-            "publication_moderation_action",
-            "publication_confirmation_invalidation",
-            "publication_confirmation",
-            "publication_content_report",
-            "publication_evidence",
-            "citizen_publication_change",
-            "citizen_publication",
-            "operator_permission_audit",
-            "operator_permission",
-            "citizen_account")) jdbc.update("DELETE FROM " + table);
     clock.now = START;
     author = account("Autor del caso");
     observer = account("Observador ciudadano");
@@ -106,7 +137,6 @@ class MissingPersonSightingTests {
         .andExpect(jsonPath("$.location").value("Parque público ficticio"))
         .andExpect(jsonPath("$.latitude").value(4.151))
         .andExpect(jsonPath("$.evidence[0].contentType").value("image/png"));
-
     String history =
         mvc.perform(get("/api/publications/{id}/sightings", caseId))
             .andExpect(status().isOk())
@@ -161,7 +191,10 @@ class MissingPersonSightingTests {
                     caseId,
                     sightingRequest(),
                     new MockMultipartFile(
-                        "files", "fake.png", "image/png", "not an image".getBytes()))
+                        "files",
+                        "fake.png",
+                        "image/png",
+                        "not an image".getBytes(java.nio.charset.StandardCharsets.UTF_8)))
                 .with(user(observer))
                 .with(csrf()))
         .andExpect(status().isBadRequest());
@@ -169,8 +202,9 @@ class MissingPersonSightingTests {
     assertEquals(
         0,
         jdbc.queryForObject(
-            "SELECT COUNT(*) FROM missing_person_sighting_evidence", Integer.class));
-
+            "SELECT COUNT(*) FROM missing_person_sighting_evidence WHERE sighting_id IN (SELECT id FROM missing_person_sighting WHERE publication_id=?)",
+            Integer.class,
+            caseId));
     jdbc.update(
         "UPDATE citizen_publication SET operational_status='ENCONTRADA' WHERE id=?", caseId);
     mvc.perform(upload(caseId, sightingRequest()).with(user(observer)).with(csrf()))
@@ -193,7 +227,9 @@ class MissingPersonSightingTests {
       assertEquals(
           0,
           jdbc.queryForObject(
-              "SELECT COUNT(*) FROM missing_person_sighting_evidence", Integer.class));
+              "SELECT COUNT(*) FROM missing_person_sighting_evidence WHERE sighting_id IN (SELECT id FROM missing_person_sighting WHERE publication_id=?)",
+              Integer.class,
+              caseId));
     } finally {
       jdbc.execute(
           "ALTER TABLE missing_person_sighting_evidence DROP CONSTRAINT ra10_test_reject_image");
@@ -217,13 +253,194 @@ class MissingPersonSightingTests {
     assertEquals(0, sightingCount(caseId));
   }
 
+  /** La sexta alta debe rechazarse sin insertar observación ni foto. */
+  @Test
+  void quotaRejectsSixthAndExpiresAtOneHour() throws Exception {
+    long id = createCase();
+    for (int i = 0; i < 5; i++)
+      mvc.perform(upload(id, sightingRequest()).with(user(observer)).with(csrf()))
+          .andExpect(status().isCreated());
+    mvc.perform(upload(id, sightingRequest(), png()).with(user(observer)).with(csrf()))
+        .andExpect(status().isTooManyRequests());
+    assertEquals(5, sightingCount(id));
+    clock.now = START.plusSeconds(3600);
+    mvc.perform(upload(id, sightingRequest()).with(user(observer)).with(csrf()))
+        .andExpect(status().isCreated());
+  }
+
+  /** Las páginas mantienen el orden y rechazan límites fuera de contrato. */
+  @Test
+  void pagesDoNotRepeatOrOmitSightings() throws Exception {
+    long id = createCase();
+    for (int i = 0; i < 3; i++)
+      mvc.perform(upload(id, sightingRequest()).with(user(observer)).with(csrf()))
+          .andExpect(status().isCreated());
+    JsonNode first =
+        json.readTree(
+            mvc.perform(get("/api/publications/{id}/sightings?limit=2&offset=0", id))
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString());
+    JsonNode next =
+        json.readTree(
+            mvc.perform(get("/api/publications/{id}/sightings?limit=2&offset=2", id))
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString());
+    assertEquals(2, first.size());
+    assertEquals(1, next.size());
+    org.junit.jupiter.api.Assertions.assertTrue(
+        first.get(0).get("id").asLong() > first.get(1).get("id").asLong());
+    org.junit.jupiter.api.Assertions.assertTrue(
+        first.get(1).get("id").asLong() > next.get(0).get("id").asLong());
+    mvc.perform(get("/api/publications/{id}/sightings?limit=21", id))
+        .andExpect(status().isBadRequest());
+    mvc.perform(get("/api/publications/{id}/sightings?offset=-1", id))
+        .andExpect(status().isBadRequest());
+  }
+
+  /** El permiso persistente, CSRF y la auditoria protegen el ocultamiento sin alterar el caso. */
+  @Test
+  void hidesIndividualAndImageWithAuditAndRollback() throws Exception {
+    long id = createCase();
+    JsonNode created =
+        json.readTree(
+            mvc.perform(upload(id, sightingRequest(), png()).with(user(observer)).with(csrf()))
+                .andExpect(status().isCreated())
+                .andReturn()
+                .getResponse()
+                .getContentAsString());
+    long sightingId = created.get("id").asLong();
+    String image = created.get("evidence").get(0).get("url").asText();
+    String route = "/api/operator/sightings/" + sightingId + "/hide";
+    String body = "{\"reason\":\"Contenido ficticio perjudicial\"}";
+    mvc.perform(post(route).contentType(MediaType.APPLICATION_JSON).content(body).with(csrf()))
+        .andExpect(status().isUnauthorized());
+    mvc.perform(
+            post(route)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(body)
+                .with(user(observer))
+                .with(csrf()))
+        .andExpect(status().isForbidden());
+    jdbc.update(
+        "INSERT INTO operator_permission(account_id,role,granted_at) SELECT id,'ROLE_OPERATOR',? FROM citizen_account WHERE email=?",
+        Timestamp.from(START),
+        author);
+    mvc.perform(
+            post(route)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(body)
+                .with(user(author).roles("OPERATOR")))
+        .andExpect(status().isForbidden());
+    mvc.perform(
+            post(route)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"reason\":\" \"}")
+                .with(user(author).roles("OPERATOR"))
+                .with(csrf()))
+        .andExpect(status().isBadRequest());
+    jdbc.execute(
+        "ALTER TABLE missing_person_sighting_moderation ADD CONSTRAINT ra10_test_reject_audit CHECK (actor_id < 0)");
+    try {
+      assertThrows(
+          ServletException.class,
+          () ->
+              mvc.perform(
+                  post(route)
+                      .contentType(MediaType.APPLICATION_JSON)
+                      .content(body)
+                      .with(user(author).roles("OPERATOR"))
+                      .with(csrf())));
+      mvc.perform(get(image)).andExpect(status().isOk());
+    } finally {
+      jdbc.execute(
+          "ALTER TABLE missing_person_sighting_moderation DROP CONSTRAINT ra10_test_reject_audit");
+    }
+    mvc.perform(
+            post(route)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(body)
+                .with(user(author).roles("OPERATOR"))
+                .with(csrf()))
+        .andExpect(status().isNoContent());
+    mvc.perform(
+            post(route)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(body)
+                .with(user(author).roles("OPERATOR"))
+                .with(csrf()))
+        .andExpect(status().isConflict());
+    mvc.perform(get(image)).andExpect(status().isNotFound());
+    mvc.perform(get("/api/publications/{id}/sightings", id)).andExpect(jsonPath("$").isEmpty());
+    mvc.perform(get("/api/operator/sightings/{id}/history", sightingId).with(user(observer)))
+        .andExpect(status().isForbidden());
+    mvc.perform(
+            get("/api/operator/sightings/{id}/history", sightingId)
+                .with(user(author).roles("OPERATOR")))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.length()").value(1))
+        .andExpect(jsonPath("$[0].action").value("HIDE"));
+    assertEquals(1, sightingCount(id));
+    assertEquals(
+        true,
+        jdbc.queryForObject(
+            "SELECT visible FROM citizen_publication WHERE id=?", Boolean.class, id));
+    jdbc.update(
+        "DELETE FROM operator_permission WHERE account_id IN (SELECT id FROM citizen_account WHERE email=?)",
+        author);
+    mvc.perform(
+            get("/api/operator/sightings/{id}/history", sightingId)
+                .with(user(author).roles("OPERATOR")))
+        .andExpect(status().isForbidden());
+  }
+
+  /** Dos solicitudes concurrentes para casos distintos comparten la cuota de cuenta. */
+  @Test
+  void concurrentRequestsCannotExceedAccountQuota() throws Exception {
+    long first = createCase(), second = createCase();
+    for (int i = 0; i < 4; i++)
+      mvc.perform(upload(first, sightingRequest()).with(user(observer)).with(csrf()))
+          .andExpect(status().isCreated());
+    var pool = java.util.concurrent.Executors.newFixedThreadPool(2);
+    var gate = new java.util.concurrent.CountDownLatch(1);
+    try {
+      java.util.List<java.util.concurrent.Future<Integer>> results = new java.util.ArrayList<>();
+      for (long id : List.of(first, second))
+        results.add(
+            pool.submit(
+                () -> {
+                  gate.await();
+                  return mvc.perform(
+                          upload(id, sightingRequest(), png()).with(user(observer)).with(csrf()))
+                      .andReturn()
+                      .getResponse()
+                      .getStatus();
+                }));
+      gate.countDown();
+      var statuses = new java.util.ArrayList<Integer>();
+      for (var result : results)
+        statuses.add(result.get(15, java.util.concurrent.TimeUnit.SECONDS));
+      statuses.sort(Integer::compareTo);
+      assertEquals(List.of(201, 429), statuses);
+      assertEquals(5, sightingCount(first) + sightingCount(second));
+    } finally {
+      pool.shutdownNow();
+    }
+  }
+
   private MockMultipartHttpServletRequestBuilder upload(
       long id, String request, MockMultipartFile... files) throws Exception {
     MockMultipartHttpServletRequestBuilder builder =
         multipart("/api/my/publications/{id}/sightings", id)
             .file(
                 new MockMultipartFile(
-                    "sighting", "", MediaType.APPLICATION_JSON_VALUE, request.getBytes()));
+                    "sighting",
+                    "",
+                    MediaType.APPLICATION_JSON_VALUE,
+                    request.getBytes(java.nio.charset.StandardCharsets.UTF_8)));
     for (MockMultipartFile file : files) builder.file(file);
     return builder;
   }
@@ -240,7 +457,9 @@ class MissingPersonSightingTests {
             .andReturn()
             .getResponse()
             .getContentAsString();
-    return json.readTree(response).get("id").asLong();
+    long id = json.readTree(response).get("id").asLong();
+    fixtureCases.add(id);
+    return id;
   }
 
   private Map<String, Object> publicationRequest() {
@@ -279,6 +498,7 @@ class MissingPersonSightingTests {
         email,
         name,
         Timestamp.from(START));
+    fixtureEmails.add(email);
     return email;
   }
 

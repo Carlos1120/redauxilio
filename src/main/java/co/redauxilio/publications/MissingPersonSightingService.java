@@ -20,19 +20,31 @@ import org.springframework.web.server.ResponseStatusException;
 class MissingPersonSightingService {
   private final JdbcTemplate jdbc;
   private final Clock clock;
+  private final co.redauxilio.identity.OperatorPermissions operators;
+  static final int HOURLY_LIMIT = 5;
+  static final int MAX_PAGE_SIZE = 20;
 
-  MissingPersonSightingService(JdbcTemplate jdbc, Clock clock) {
+  MissingPersonSightingService(
+      JdbcTemplate jdbc, Clock clock, co.redauxilio.identity.OperatorPermissions operators) {
     this.jdbc = jdbc;
     this.clock = clock;
+    this.operators = operators;
   }
 
   /** Devuelve el historial de un caso visible sin exponer identidad interna de sus autores. */
   @Transactional(readOnly = true)
-  List<MissingPersonSighting> listPublic(long publicationId) {
+  List<MissingPersonSighting> listPublic(long publicationId, int limit, int offset) {
+    if (limit < 1 || limit > MAX_PAGE_SIZE || offset < 0)
+      throw invalid("Pagina no valida (1-20 registros).");
+    return readPage(publicationId, limit, offset, 0);
+  }
+
+  private List<MissingPersonSighting> readPage(
+      long publicationId, int limit, int offset, long onlyId) {
     requireVisibleCase(publicationId);
     List<SightingRow> sightings =
         jdbc.query(
-            "SELECT id, observed_at, location, latitude, longitude, description, created_at FROM missing_person_sighting WHERE publication_id = ? ORDER BY observed_at DESC, id DESC",
+            "SELECT id, observed_at, location, latitude, longitude, description, created_at FROM missing_person_sighting WHERE publication_id = ? AND visible = TRUE AND (? = 0 OR id = ?) ORDER BY observed_at DESC, id DESC LIMIT ? OFFSET ?",
             (row, index) ->
                 new SightingRow(
                     row.getLong(1),
@@ -42,7 +54,11 @@ class MissingPersonSightingService {
                     row.getDouble(5),
                     row.getString(6),
                     row.getTimestamp(7).toInstant().toString()),
-            publicationId);
+            publicationId,
+            onlyId,
+            onlyId,
+            limit,
+            offset);
     if (sightings.isEmpty()) return List.of();
 
     String placeholders = String.join(",", java.util.Collections.nCopies(sightings.size(), "?"));
@@ -94,8 +110,19 @@ class MissingPersonSightingService {
     List<PublicationEvidenceService.ValidatedImage> images =
         uploads.stream().map(PublicationEvidenceService::validate).toList();
 
-    requireActiveCaseForUpdate(publicationId);
+    // El bloqueo de cuenta serializa cuotas incluso cuando los casos son distintos.
     long authorId = accountId(email);
+    long recent =
+        jdbc.queryForObject(
+            "SELECT COUNT(*) FROM missing_person_sighting WHERE author_id=? AND created_at > ?",
+            Long.class,
+            authorId,
+            Timestamp.from(clock.instant().minusSeconds(3600)));
+    if (recent >= HOURLY_LIMIT)
+      throw new ResponseStatusException(
+          HttpStatus.TOO_MANY_REQUESTS,
+          "Limite de cinco avistamientos por hora. Intenta mas tarde.");
+    requireActiveCaseForUpdate(publicationId);
     var keys = new GeneratedKeyHolder();
     jdbc.update(
         connection -> {
@@ -126,7 +153,7 @@ class MissingPersonSightingService {
           image.contentType(),
           image.bytes(),
           Timestamp.from(clock.instant()));
-    return listPublic(publicationId).stream()
+    return readPage(publicationId, 1, 0, sightingId).stream()
         .filter(sighting -> sighting.id() == sightingId)
         .findFirst()
         .orElseThrow(() -> new IllegalStateException("No se pudo leer el avistamiento creado."));
@@ -137,7 +164,7 @@ class MissingPersonSightingService {
   PublicationEvidenceService.Image image(long publicationId, long sightingId, long evidenceId) {
     return jdbc
         .query(
-            "SELECT e.content_type, e.image_bytes FROM missing_person_sighting_evidence e JOIN missing_person_sighting s ON s.id = e.sighting_id JOIN citizen_publication p ON p.id = s.publication_id WHERE p.visible = TRUE AND p.category = 'MISSING_PERSON' AND p.id = ? AND s.id = ? AND e.id = ?",
+            "SELECT e.content_type, e.image_bytes FROM missing_person_sighting_evidence e JOIN missing_person_sighting s ON s.id = e.sighting_id JOIN citizen_publication p ON p.id = s.publication_id WHERE s.visible = TRUE AND p.visible = TRUE AND p.category = 'MISSING_PERSON' AND p.id = ? AND s.id = ? AND e.id = ?",
             (row, index) -> new PublicationEvidenceService.Image(row.getString(1), row.getBytes(2)),
             publicationId,
             sightingId,
@@ -146,6 +173,55 @@ class MissingPersonSightingService {
         .findFirst()
         .orElseThrow(MissingPersonSightingService::notFound);
   }
+
+  /** Oculta solo el anexo y conserva sus datos; auditoria y visibilidad se confirman juntas. */
+  @Transactional
+  void hide(long sightingId, String email, String reason) {
+    if (!operators.isOperator(email)) throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+    if (sightingId <= 0 || reason == null || reason.isBlank() || reason.strip().length() > 500)
+      throw invalid("Indica un ID positivo y un motivo de 1 a 500 caracteres.");
+    long actorId = accountId(email);
+    var visible =
+        jdbc.query(
+            "SELECT visible FROM missing_person_sighting WHERE id=? FOR UPDATE",
+            (row, index) -> row.getBoolean(1),
+            sightingId);
+    if (visible.isEmpty()) throw notFound();
+    if (!visible.get(0))
+      throw new ResponseStatusException(HttpStatus.CONFLICT, "El avistamiento ya esta oculto.");
+    jdbc.update("UPDATE missing_person_sighting SET visible=FALSE WHERE id=?", sightingId);
+    jdbc.update(
+        "INSERT INTO missing_person_sighting_moderation (sighting_id,actor_id,reason,changed_at) VALUES (?,?,?,?)",
+        sightingId,
+        actorId,
+        reason.strip(),
+        Timestamp.from(clock.instant()));
+  }
+
+  /** Historial privado acotado; preserva actor, motivo y transicion visible a oculto. */
+  @Transactional(readOnly = true)
+  List<ModerationEvent> moderationHistory(long sightingId, String email) {
+    if (!operators.isOperator(email)) throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+    return jdbc.query(
+        "SELECT actor_id,reason,changed_at FROM missing_person_sighting_moderation WHERE sighting_id=? ORDER BY id DESC LIMIT 20",
+        (row, index) ->
+            new ModerationEvent(
+                row.getLong(1),
+                row.getString(2),
+                row.getTimestamp(3).toInstant().toString(),
+                "HIDE",
+                true,
+                false),
+        sightingId);
+  }
+
+  record ModerationEvent(
+      long actorId,
+      String reason,
+      String changedAt,
+      String action,
+      boolean beforeVisible,
+      boolean afterVisible) {}
 
   private void requireVisibleCase(long publicationId) {
     if (jdbc.query(
@@ -171,7 +247,7 @@ class MissingPersonSightingService {
   private long accountId(String email) {
     List<Long> ids =
         jdbc.query(
-            "SELECT id FROM citizen_account WHERE email = ?",
+            "SELECT id FROM citizen_account WHERE email = ? FOR UPDATE",
             (row, index) -> row.getLong(1),
             email);
     if (ids.isEmpty()) throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);

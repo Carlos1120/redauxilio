@@ -71,6 +71,23 @@ test("el shell precarga el script que mantiene el indicador de sesión y conexi�
   assert.ok(worker.precached.includes("/freshness.js"));
 });
 
+test("PWA precarga avistamientos sin interceptar su historial o fotografías", async () => {
+  const worker = loadWorker();
+  let installation;
+  worker.listeners.get("install")({ waitUntil: (promise) => (installation = promise) });
+  await installation;
+
+  assert.ok(worker.precached.includes("/missing-person-sightings.js"));
+  assert.equal(
+    fetchEvent(worker, "http://localhost:8081/api/publications/1000001/sightings"),
+    undefined,
+  );
+  assert.equal(
+    fetchEvent(worker, "http://localhost:8081/api/publications/1000001/sightings/8/evidence/2"),
+    undefined,
+  );
+});
+
 test("el service worker no intercepta rutas de acceso independientes ni escrituras", () => {
   const worker = loadWorker();
   assert.equal(fetchEvent(worker, "http://localhost:8081/register"), undefined);
@@ -78,7 +95,10 @@ test("el service worker no intercepta rutas de acceso independientes ni escritur
   assert.equal(fetchEvent(worker, "http://localhost:8081/logout", "POST"), undefined);
   assert.equal(fetchEvent(worker, "http://localhost:8081/csrf"), undefined);
   assert.equal(fetchEvent(worker, "http://localhost:8081/api/publications/7/evidence"), undefined);
-  assert.equal(fetchEvent(worker, "http://localhost:8081/api/publications/7/evidence/9"), undefined);
+  assert.equal(
+    fetchEvent(worker, "http://localhost:8081/api/publications/7/evidence/9"),
+    undefined,
+  );
 });
 
 test("una recarga de cuenta sin red usa el shell público saneado y no guarda la vista privada", async () => {

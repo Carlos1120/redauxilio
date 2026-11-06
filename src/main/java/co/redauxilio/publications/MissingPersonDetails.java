@@ -27,9 +27,9 @@ public record MissingPersonDetails(
   /** Normaliza límites/catálogos y exige fecha no futura con el mismo Clock del dominio. */
   static MissingPersonDetails validate(MissingPersonDetails input, Clock clock) {
     if (input == null) throw invalid("Faltan los datos de la persona desaparecida");
-    String name = safe(input.referenceName(), 120, "Nombre o referencia");
-    String description = safe(input.physicalDescription(), 500, "Descripción física");
-    String place = safe(input.lastSeenPlace(), 160, "Último sector conocido");
+    String name = validatePublicText(input.referenceName(), 120, "Nombre o referencia");
+    String description = validatePublicText(input.physicalDescription(), 500, "Descripción física");
+    String place = validatePublicText(input.lastSeenPlace(), 160, "Último sector conocido");
     String age =
         input.ageRange() == null || input.ageRange().isBlank() ? null : input.ageRange().trim();
     if (age != null && !AGE_RANGES.contains(age)) throw invalid("Rango de edad no permitido");
@@ -48,7 +48,8 @@ public record MissingPersonDetails(
       throw invalid("Evita datos sensibles en el motivo del caso");
   }
 
-  private static String safe(String text, int max, String label) {
+  /** Reutiliza los límites y la detección de datos sensibles de textos visibles del caso. */
+  static String validatePublicText(String text, int max, String label) {
     if (text == null || text.isBlank() || text.trim().length() > max)
       throw invalid(label + " obligatorio o demasiado largo");
     if (SENSITIVE.matcher(text).find())

@@ -30,6 +30,7 @@ let mapQueryTimer;
 let detailTrigger;
 let selectedReportId;
 let currentItems = [];
+let hasValidPublicQuery = false;
 let currentQueryMessage = "";
 let currentSourceMessage = "";
 let suppressFocusReturn = false;
@@ -413,17 +414,18 @@ async function loadPublications() {
     currentSourceMessage = savedAt
       ? `Consulta almacenada el ${new Date(savedAt).toLocaleString("es-CO")}; puede estar desactualizada.`
       : "Datos obtenidos del servidor.";
+    hasValidPublicQuery = true;
     const countLabel = describeReportCount(currentItems);
     currentQueryMessage = `${countLabel} ${currentSourceMessage}`;
     renderSearchResults();
   } catch {
     if (query === latestPublicationQueryId) {
-      currentItems = [];
-      currentSourceMessage = "";
-      renderPublications([]);
+      // Una zona sin copia no invalida la ultima consulta: conservar lista y mapa juntos.
+      // El aviso conserva origen/fecha y advierte tambien si se intentaron filtros nuevos.
       getElement("message").dataset.error = "true";
-      currentQueryMessage =
-        "No se pudo consultar. La categoría podría no tener una consulta guardada. Intenta de nuevo con conexión.";
+      currentQueryMessage = hasValidPublicQuery
+        ? `No se pudo consultar la nueva zona o filtros. Se conservan los resultados de la zona y filtros consultados anteriormente; no corresponden a la nueva consulta. ${currentSourceMessage}`
+        : "No se pudo consultar. No hay una consulta disponible para esta zona y filtros. Intenta de nuevo con conexión.";
       getElement("message").textContent = currentQueryMessage;
     }
   } finally {

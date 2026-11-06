@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="/moderation.css" />
     <script src="/missing-person.js" defer></script>
     <script src="/moderation.js" defer></script>
+    <script src="/account-restrictions.js" defer></script>
   </head>
   <body class="operator-page">
     <a class="skip-link" href="#moderation-workspace">Saltar a moderación</a>
@@ -117,6 +118,42 @@
           <div id="verifier-list" aria-live="polite"></div>
           <h3>Historial de permisos oficiales</h3>
           <div id="verifier-events"></div>
+        </section>
+      </details>
+      <details id="account-restriction-admin" class="operator-permissions">
+        <summary>Bloqueo de cuentas</summary>
+        <section aria-labelledby="account-restriction-title">
+          <h2 id="account-restriction-title">Bloquear o reactivar una cuenta</h2>
+          <p>
+            Una cuenta bloqueada conserva la consulta pública, pero no puede crear, confirmar,
+            denunciar ni verificar. La reactivación restaura sus permisos anteriores.
+          </p>
+          <form id="account-restriction-form" class="verifier-permission-form">
+            <label for="account-restriction-email">Correo exacto de la cuenta</label>
+            <input
+              id="account-restriction-email"
+              type="email"
+              maxlength="254"
+              required
+              autocomplete="off"
+            />
+            <label for="account-restriction-action">Acción</label>
+            <select id="account-restriction-action" required>
+              <option value="" selected disabled>Selecciona una acción</option>
+              <option value="BLOCK">Bloquear cuenta</option>
+              <option value="UNBLOCK">Reactivar cuenta</option>
+            </select>
+            <label for="account-restriction-reason">Motivo (máximo 500 caracteres)</label>
+            <textarea id="account-restriction-reason" maxlength="500" rows="2" required></textarea>
+            <div class="account-restriction-actions">
+              <button id="account-restriction-submit" type="submit">Guardar decisión</button>
+              <button id="account-restriction-inspect" type="button" class="secondary-button">
+                Consultar estado e historial
+              </button>
+            </div>
+          </form>
+          <p id="account-restriction-message" role="status" aria-live="polite"></p>
+          <div id="account-restriction-result" aria-live="polite"></div>
         </section>
       </details>
       <details class="operator-permissions">

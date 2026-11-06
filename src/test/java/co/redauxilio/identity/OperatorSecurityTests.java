@@ -25,14 +25,12 @@ import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 
-/**
- * Roles reales, concurrencia y rollback en H2 aislada; no aprovisiona cuentas ni permisos del
- * usuario.
- */
+/** Permisos de operador y restricciones de cuenta en H2 aislada; no modifica cuentas reales. */
 @SpringBootTest
 @AutoConfigureMockMvc
 class OperatorSecurityTests {
   @Autowired private OperatorPermissions operators;
+  @Autowired private AccountRestrictionService restrictions;
   @Autowired private CitizenUserDetailsService details;
   @Autowired private JdbcTemplate jdbc;
   @Autowired private MockMvc mvc;
@@ -44,6 +42,13 @@ class OperatorSecurityTests {
   void cleanup() {
     for (String email : emails) {
       long id = id(email);
+      jdbc.update(
+          "DELETE FROM account_restriction_audit WHERE account_id = ? OR actor_id = ?", id, id);
+      jdbc.update("DELETE FROM account_restriction WHERE account_id = ? OR blocked_by = ?", id, id);
+      jdbc.update(
+          "DELETE FROM verification_permission_audit WHERE account_id = ? OR actor_id = ?", id, id);
+      jdbc.update(
+          "DELETE FROM verification_permission WHERE account_id = ? OR granted_by = ?", id, id);
       jdbc.update("DELETE FROM operator_permission_audit WHERE account_id = ?", id);
       jdbc.update("DELETE FROM operator_permission WHERE account_id = ?", id);
       jdbc.update("DELETE FROM citizen_account WHERE id = ?", id);
@@ -251,6 +256,236 @@ class OperatorSecurityTests {
         operators.allows(
             new AnonymousAuthenticationToken(
                 "test", "anonymousUser", AuthorityUtils.createAuthorityList("ROLE_ANONYMOUS"))));
+  }
+
+  @Test
+  void blockAndReactivationAreAuditedAndAffectExistingSessionsWithoutHidingPublicReads()
+      throws Exception {
+    String operator = account();
+    String citizen = account();
+    provision(operator, "GRANT", "Operador de prueba", UUID.randomUUID().toString());
+    provision(
+        citizen, "GRANT", "Permiso previo a la persona objetivo", UUID.randomUUID().toString());
+    jdbc.update(
+        "INSERT INTO verification_permission (account_id, granted_by, granted_at) VALUES (?, ?, ?)",
+        id(citizen),
+        id(operator),
+        Timestamp.from(Instant.now()));
+    var actor = user(operator).roles("OPERATOR");
+
+    mvc.perform(get("/operator").with(actor))
+        .andExpect(status().isOk())
+        .andExpect(
+            header().string("Cache-Control", org.hamcrest.Matchers.containsString("no-store")))
+        .andExpect(
+            content()
+                .string(org.hamcrest.Matchers.containsString("Bloquear o reactivar una cuenta")))
+        .andExpect(
+            content().string(org.hamcrest.Matchers.containsString("account-restrictions.js")));
+
+    mvc.perform(
+            get("/api/operator/accounts/restriction").param("email", citizen).with(user(citizen)))
+        .andExpect(status().isForbidden());
+    mvc.perform(
+            post("/api/operator/accounts/restriction")
+                .with(actor)
+                .contentType("application/json")
+                .content("{}"))
+        .andExpect(status().isForbidden());
+
+    mvc.perform(
+            post("/api/operator/accounts/restriction")
+                .with(actor)
+                .with(csrf())
+                .contentType("application/json")
+                .content(
+                    "{\"email\":\""
+                        + citizen
+                        + "\",\"action\":\"BLOCK\",\"reason\":\"Abuso confirmado\"}"))
+        .andExpect(status().isOk())
+        .andExpect(
+            header().string("Cache-Control", org.hamcrest.Matchers.containsString("no-store")))
+        .andExpect(jsonPath("$.blocked").value(true))
+        .andExpect(jsonPath("$.currentReason").value("Abuso confirmado"))
+        .andExpect(jsonPath("$.history[0].actorId").value(id(operator)))
+        .andExpect(jsonPath("$.history[0].actorDisplayName").value("Prueba RA08"))
+        .andExpect(jsonPath("$.history[0].afterBlocked").value(true));
+
+    mvc.perform(get("/api/publications").with(user(citizen))).andExpect(status().isOk());
+    mvc.perform(get("/api/operator/publications").with(user(citizen).roles("OPERATOR")))
+        .andExpect(status().isForbidden());
+    mvc.perform(get("/api/my/verification-permission").with(user(citizen)))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.canVerify").value(false));
+    mvc.perform(
+            post("/api/publications")
+                .with(user(citizen))
+                .with(csrf())
+                .contentType("application/json")
+                .content("{}"))
+        .andExpect(status().isForbidden());
+    mvc.perform(
+            post("/api/publications/1000000/confirmations")
+                .with(user(citizen))
+                .with(csrf())
+                .contentType("application/json")
+                .content("{\"version\":1}"))
+        .andExpect(status().isForbidden());
+    mvc.perform(
+            post("/api/publications/1000000/content-reports")
+                .with(user(citizen))
+                .with(csrf())
+                .contentType("application/json")
+                .content("{\"reason\":\"Prueba\"}"))
+        .andExpect(status().isForbidden());
+    mvc.perform(
+            post("/api/my/publications/1000000/official-verifications")
+                .with(user(citizen))
+                .with(csrf())
+                .contentType("application/json")
+                .content("{\"note\":\"Prueba\"}"))
+        .andExpect(status().isForbidden());
+
+    mvc.perform(
+            post("/api/operator/accounts/restriction")
+                .with(actor)
+                .with(csrf())
+                .contentType("application/json")
+                .content(
+                    "{\"email\":\""
+                        + citizen
+                        + "\",\"action\":\"UNBLOCK\",\"reason\":\"Revisión completada\"}"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.blocked").value(false))
+        .andExpect(jsonPath("$.currentReason").value(org.hamcrest.Matchers.nullValue()))
+        .andExpect(jsonPath("$.history", org.hamcrest.Matchers.hasSize(2)))
+        .andExpect(jsonPath("$.history[0].action").value("UNBLOCK"))
+        .andExpect(jsonPath("$.history[0].beforeBlocked").value(true))
+        .andExpect(jsonPath("$.history[0].afterBlocked").value(false));
+
+    mvc.perform(
+            post("/api/publications")
+                .with(user(citizen))
+                .with(csrf())
+                .contentType("application/json")
+                .content("{}"))
+        .andExpect(status().isBadRequest());
+    mvc.perform(get("/api/operator/publications").with(user(citizen).roles("OPERATOR")))
+        .andExpect(status().isOk());
+    mvc.perform(get("/api/my/verification-permission").with(user(citizen)))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.canVerify").value(true));
+  }
+
+  @Test
+  void accountRestrictionRejectsSelfBlockDuplicateActionsAndRollsBackOnAuditFailure()
+      throws Exception {
+    String operator = account();
+    String citizen = account();
+    provision(operator, "GRANT", "Operador de prueba", UUID.randomUUID().toString());
+    var actor = user(operator).roles("OPERATOR");
+
+    mvc.perform(
+            post("/api/operator/accounts/restriction")
+                .with(actor)
+                .with(csrf())
+                .contentType("application/json")
+                .content(
+                    "{\"email\":\""
+                        + operator
+                        + "\",\"action\":\"BLOCK\",\"reason\":\"No bloquear actor\"}"))
+        .andExpect(status().isConflict());
+
+    jdbc.execute(
+        "ALTER TABLE account_restriction_audit ADD CONSTRAINT ra16_audit_failure CHECK (reason <> 'FALLO')");
+    try {
+      mvc.perform(
+              post("/api/operator/accounts/restriction")
+                  .with(actor)
+                  .with(csrf())
+                  .contentType("application/json")
+                  .content(
+                      "{\"email\":\"" + citizen + "\",\"action\":\"BLOCK\",\"reason\":\"FALLO\"}"))
+          .andExpect(status().isInternalServerError());
+      assertEquals(
+          0,
+          jdbc.queryForObject(
+              "SELECT COUNT(*) FROM account_restriction WHERE account_id = ?",
+              Integer.class,
+              id(citizen)));
+      assertEquals(
+          0,
+          jdbc.queryForObject(
+              "SELECT COUNT(*) FROM account_restriction_audit WHERE account_id = ?",
+              Integer.class,
+              id(citizen)));
+    } finally {
+      jdbc.execute("ALTER TABLE account_restriction_audit DROP CONSTRAINT ra16_audit_failure");
+    }
+
+    mvc.perform(
+            post("/api/operator/accounts/restriction")
+                .with(actor)
+                .with(csrf())
+                .contentType("application/json")
+                .content(
+                    "{\"email\":\""
+                        + citizen
+                        + "\",\"action\":\"BLOCK\",\"reason\":\"Motivo inicial\"}"))
+        .andExpect(status().isOk());
+    mvc.perform(
+            post("/api/operator/accounts/restriction")
+                .with(actor)
+                .with(csrf())
+                .contentType("application/json")
+                .content(
+                    "{\"email\":\""
+                        + citizen
+                        + "\",\"action\":\"BLOCK\",\"reason\":\"Repetición\"}"))
+        .andExpect(status().isConflict());
+  }
+
+  @Test
+  void blockedOperatorImmediatelyLosesOperatorRoutesButCanReadPublicData() throws Exception {
+    String email = account();
+    provision(email, "GRANT", "Operador de prueba", UUID.randomUUID().toString());
+    jdbc.update(
+        "INSERT INTO account_restriction (account_id, blocked_by, reason, blocked_at)"
+            + " VALUES (?, ?, ?, ?)",
+        id(email),
+        id(email),
+        "Bloqueo de fixture",
+        Timestamp.from(Instant.now()));
+
+    mvc.perform(get("/operator").with(user(email).roles("OPERATOR")))
+        .andExpect(status().isForbidden());
+    mvc.perform(get("/api/operator/publications").with(user(email).roles("OPERATOR")))
+        .andExpect(status().isForbidden());
+    mvc.perform(get("/api/publications").with(user(email))).andExpect(status().isOk());
+  }
+
+  @Test
+  void accountRestrictionAuditUsesAStableCursorAndExposesOlderEvents() {
+    String operator = account();
+    String citizen = account();
+    provision(operator, "GRANT", "Operador de prueba", UUID.randomUUID().toString());
+    for (int index = 0; index < 26; index++) {
+      restrictions.change(citizen, operator, "BLOCK", "Motivo de bloqueo " + index);
+      restrictions.change(citizen, operator, "UNBLOCK", "Revisión " + index);
+    }
+
+    var latest = restrictions.inspect(citizen);
+    assertFalse(latest.blocked());
+    assertEquals(50, latest.history().size());
+    assertTrue(latest.historyHasOlder());
+    long cursor = latest.history().get(latest.history().size() - 1).id();
+    var previous = restrictions.olderHistory(citizen, cursor, 50);
+    assertEquals(2, previous.events().size());
+    assertFalse(previous.hasOlder());
+    assertTrue(
+        latest.history().stream()
+            .noneMatch(
+                event -> previous.events().stream().anyMatch(old -> old.id() == event.id())));
   }
 
   private String account() {

@@ -28,7 +28,7 @@ class OfficialVerificationService {
   boolean canVerify(String email) {
     if (email == null || email.isBlank()) return false;
     return jdbc.queryForObject(
-            "SELECT COUNT(*) FROM verification_permission v JOIN citizen_account a ON a.id = v.account_id WHERE a.email = ? AND (a.locked_until IS NULL OR a.locked_until <= ?)",
+            "SELECT COUNT(*) FROM verification_permission v JOIN citizen_account a ON a.id = v.account_id WHERE a.email = ? AND (a.locked_until IS NULL OR a.locked_until <= ?) AND NOT EXISTS (SELECT 1 FROM account_restriction r WHERE r.account_id = a.id)",
             Integer.class,
             email.trim().toLowerCase(Locale.ROOT),
             Timestamp.from(clock.instant()))

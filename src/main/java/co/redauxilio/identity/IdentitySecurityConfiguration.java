@@ -56,6 +56,7 @@ class IdentitySecurityConfiguration {
       AuthenticationFailureHandler loginFailureHandler,
       SessionLifetimeFilter sessionLifetimeFilter,
       OperatorPermissions operators,
+      AccountRestrictionService restrictions,
       @Value("${redauxilio.security.force-https:false}") boolean forceHttps)
       throws Exception {
     http.authorizeHttpRequests(
@@ -67,6 +68,28 @@ class IdentitySecurityConfiguration {
                     .access(
                         (authentication, context) ->
                             new AuthorizationDecision(operators.allows(authentication.get())))
+                    // Una cuenta bloqueada conserva las consultas GET, pero pierde toda mutación
+                    // colaborativa de API sin depender del estado almacenado en su sesión.
+                    .requestMatchers(HttpMethod.POST, "/api/**")
+                    .access(
+                        (authentication, context) ->
+                            new AuthorizationDecision(
+                                restrictions.allowsCollaboration(authentication.get())))
+                    .requestMatchers(HttpMethod.PUT, "/api/**")
+                    .access(
+                        (authentication, context) ->
+                            new AuthorizationDecision(
+                                restrictions.allowsCollaboration(authentication.get())))
+                    .requestMatchers(HttpMethod.PATCH, "/api/**")
+                    .access(
+                        (authentication, context) ->
+                            new AuthorizationDecision(
+                                restrictions.allowsCollaboration(authentication.get())))
+                    .requestMatchers(HttpMethod.DELETE, "/api/**")
+                    .access(
+                        (authentication, context) ->
+                            new AuthorizationDecision(
+                                restrictions.allowsCollaboration(authentication.get())))
                     .requestMatchers(
                         HttpMethod.GET,
                         "/",
@@ -110,6 +133,10 @@ class IdentitySecurityConfiguration {
                     .defaultAuthenticationEntryPointFor(
                         new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED),
                         new OrRequestMatcher(
+                            new AntPathRequestMatcher("/api/**", HttpMethod.POST.name()),
+                            new AntPathRequestMatcher("/api/**", HttpMethod.PUT.name()),
+                            new AntPathRequestMatcher("/api/**", HttpMethod.PATCH.name()),
+                            new AntPathRequestMatcher("/api/**", HttpMethod.DELETE.name()),
                             new AntPathRequestMatcher("/api/places"),
                             new AntPathRequestMatcher("/api/operator/**"),
                             new AntPathRequestMatcher("/operator"),

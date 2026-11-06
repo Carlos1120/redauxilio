@@ -8,7 +8,7 @@ PR [#30](https://github.com/Carlos1120/redauxilio/pull/30) recibió correcciones
 
 ## RA-16 — bloqueo y reactivación
 
-Tarjeta [RA-16](https://trello.com/c/148zjrzQ) en En progreso; estimación/fecha pendientes. Commit funcional `1a1975e3a901cfb3bbbbad85f552ecb83b2e8ec9`, PR Draft [#31](https://github.com/Carlos1120/redauxilio/pull/31). Merge normal de develop `a43f335` en `b3d668e274ea5a7ffe6403549f4d7510c74ebafa`; compatibilidad local verificada. Este merge aún debe publicarse y CI debe confirmar el nuevo SHA.
+Tarjeta [RA-16](https://trello.com/c/148zjrzQ) en En progreso; estimación/fecha pendientes. Commit funcional `1a1975e3a901cfb3bbbbad85f552ecb83b2e8ec9`, PR Draft [#31](https://github.com/Carlos1120/redauxilio/pull/31). Merge normal de develop `a43f335` en `b3d668e274ea5a7ffe6403549f4d7510c74ebafa`; compatibilidad local verificada. El merge y el commit docs `8577558` están publicados. CI `verify` SUCCESS en `85775580493cbc8c8650837362566c9a69ce47fb` (run `42241749597`); si se publica otra actualización de documentos, comprobar CI del nuevo HEAD.
 
 La restricción persistente se separa del bloqueo temporal RA-01. Bloquear rechaza mutaciones API incluso con sesión vigente y mantiene lectura pública GET. No elimina permisos de operador/verificador; reactivar restaura su uso. Acciones requieren motivo y generan auditoría transaccional inmutable; historial privado paginado. El panel busca por correo exacto, pagina auditoría en grupos de 50 y borra datos al salir, ocultar página o desconectarse; las respuestas privadas usan no-store.
 

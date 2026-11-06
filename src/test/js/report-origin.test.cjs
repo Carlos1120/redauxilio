@@ -442,3 +442,25 @@ test("detalle desaparecido muestra datos estructurados y omite contacto incluido
   assert.match(visible, /18–29/);
   assert.doesNotMatch(visible, /secreto@example.invalid/);
 });
+
+test("movimiento sin copia conserva consulta previa y online vuelve a consultar limites", async () => {
+  const ui = await loadReportView([report(1000000)], "2026-11-01T12:00:00Z", { captureMap: true });
+  ui.context.fetch = async () => {
+    throw new Error("Zona no almacenada");
+  };
+  await vm.runInContext("loadPublications()", ui.context);
+  assert.equal(ui.getMapItems().length, 1);
+  assert.match(ui.element("message").textContent, /zona.*anterior/i);
+  assert.match(ui.element("message").textContent, /almacenada/i);
+  let requested;
+  vm.runInContext("reportMap.bounds = () => ({south:4,west:-74,north:5,east:-73})", ui.context);
+  ui.context.fetch = async (url) => {
+    if (url.startsWith("/api/publications?")) requested = url;
+    return { ok: true, json: async () => [report(1000001)], headers: { get: () => null } };
+  };
+  await vm.runInContext("loadPublications()", ui.context);
+  assert.match(requested, /south=4/);
+  assert.match(requested, /west=-74/);
+  assert.equal(ui.getMapItems()[0].id, 1000001);
+  assert.doesNotMatch(ui.element("message").textContent, /zona.*anterior/i);
+});

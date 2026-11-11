@@ -14,7 +14,7 @@ const response = (data, status = 200) => ({
   json: async () => data,
 });
 /** Formulario real con DOM mínimo y servidor controlado; sin escribir datos reales. */
-function setup(status = 201, candidates = []) {
+function setup(status = 201, candidates = [], precheckGate = null) {
   const nodes = new Map(),
     requests = [],
     stats = { saved: 0, cleared: 0 };
@@ -76,6 +76,12 @@ function setup(status = 201, candidates = []) {
   }))
     get(id).value = value;
   const ui = {
+    reportMap: {
+      focusOn() {},
+      selectLocation(callback) {
+        stats.selectLocation = callback;
+      },
+    },
     saveDraft: async () => stats.saved++,
     clearDraft: async () => stats.cleared++,
     loadPublications: async () => {},
@@ -93,6 +99,7 @@ function setup(status = 201, candidates = []) {
     navigator: {},
     fetch: async (url, options) => {
       requests.push({ url, options });
+      if (url === "/api/my/publications/possible-duplicates" && precheckGate) await precheckGate;
       return response(
         url === "/api/my/publications/possible-duplicates"
           ? candidates
@@ -212,4 +219,38 @@ test("duplicado advierte, exige motivo, invalida cambios y conserva borrador", a
   changed.get("draft-form").listeners.input({ target: { id: "latitude" } });
   assert.equal(changed.get("duplicate-justification").value, "");
   assert.equal(changed.get("duplicate-warning").hidden, true);
+});
+
+test("seleccion en mapa invalida advertencia y motivo anteriores", async () => {
+  const h = setup(201, [{ id: 1000001, title: "Caso", location: "Sector" }]);
+  await h.get("publish-report").listeners.click();
+  h.get("duplicate-justification").value = "Motivo anterior";
+  h.get("select-location").listeners.click();
+  h.stats.selectLocation(4.2, -73.7);
+  assert.equal(h.get("duplicate-warning").hidden, true);
+  assert.equal(h.get("duplicate-justification").value, "");
+  assert.equal(h.stats.cleared, 0);
+});
+
+test("cambio programatico pendiente impide POST con coordenadas antiguas", async () => {
+  let release;
+  const gate = new Promise((resolve) => {
+    release = resolve;
+  });
+  const h = setup(201, [], gate);
+  const pending = h.get("publish-report").listeners.click();
+  await new Promise(setImmediate);
+  h.get("select-location").listeners.click();
+  h.stats.selectLocation(4.25, -73.75);
+  release();
+  await pending;
+  assert.equal(
+    h.requests.some(
+      (r) => r.url === "/api/publications" || r.url === "/api/publications/with-evidence",
+    ),
+    false,
+  );
+  assert.equal(h.get("latitude").value, "4.250000");
+  assert.equal(h.stats.cleared, 0);
+  assert.match(h.get("draft-message").textContent, /datos cambiaron/);
 });

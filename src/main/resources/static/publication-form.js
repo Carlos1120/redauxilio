@@ -13,13 +13,15 @@ const evidenceInput = publicationField("publication-evidence");
 const evidencePreview = publicationField("evidence-preview");
 let duplicateFingerprint = null;
 let duplicateGeneration = 0;
-// Cambiar datos invalida la decisión anterior; el servidor vuelve a comprobar siempre.
-draftForm.addEventListener("input", (event) => {
-  if (event.target.id === "duplicate-justification") return;
+/** Invalida avisos y respuestas pendientes ante cambios manuales o propuestas de ubicacion. */
+function invalidateDuplicateDecision() {
   duplicateGeneration++;
   duplicateFingerprint = null;
   publicationField("duplicate-justification").value = "";
   publicationField("duplicate-warning").hidden = true;
+}
+draftForm.addEventListener("input", (event) => {
+  if (event.target.id !== "duplicate-justification") invalidateDuplicateDecision();
 });
 let evidenceFiles = [];
 let evidenceObjectUrls = [];
@@ -120,6 +122,7 @@ syncPublicationCategory();
 
 /** Actualiza solo la propuesta de ubicación; no publica ni guarda automáticamente. */
 function proposeLocation(latitude, longitude, label) {
+  invalidateDuplicateDecision();
   publicationField("latitude").value = Number(latitude).toFixed(6);
   publicationField("longitude").value = Number(longitude).toFixed(6);
   if (label) publicationField("publication-location").value = label.slice(0, 160);

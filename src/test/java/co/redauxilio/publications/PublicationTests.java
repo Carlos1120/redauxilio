@@ -152,7 +152,7 @@ class PublicationTests {
         .andExpect(
             content()
                 .string(
-                    org.hamcrest.Matchers.containsString("Los reportes iniciales son ficticios")));
+                    org.hamcrest.Matchers.containsString("Los ejemplos iniciales son ficticios")));
   }
 
   @ParameterizedTest

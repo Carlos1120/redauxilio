@@ -1,6 +1,6 @@
-# RedAuxilio — integración y revisión RA-16
+# RedAuxilio — traspaso vigente
 
-Actualización: 11 de noviembre de 2026 (Colombia). Trabajo aislado en `C:/Users/cmps-/RedAuxilio-recovery/ra16-revision`, rama local `codex/ra16-revision-integracion`; destino autorizado: rama existente `codex/ra16-account-blocking`, PR #31. Se integra mediante merge normal el HEAD revisado `1db301441fe7bc26575b3552a8fd12034abd11d1` con `develop` `a014b44e8a64030ac6042a47f1cf5fe5ef4a8d8f`. No modificar otros worktrees, servidores ni respaldos. Sin force push, merge en GitHub, aceptación humana o cambios en Trello.
+Actualización: 11 de noviembre de 2026 (Colombia). RA-16 del PR #31 queda como registro histórico. El trabajo está en `codex/ux-separated-app`, basada en `develop` `31cc5fb`; se prepara PR a develop, sin integrar y con revisión formal pendiente. Mapa, Publicar y Mis reportes son vistas separadas con historial, foco accesible y ajuste de Leaflet al volver. El formulario tiene tarjetas cálidas, mapa de ubicación, ancho completo y controles táctiles grandes. Navegación: botones de 124 px en escritorio y distribuidos en móvil; caché PWA v33. `localhost:8081` sirve esta rama con H2 temporal en memoria. `localhost:8080` permanece en el checkout IntelliJ `C:\Users\Santiago\redauxilio`, rama RA-08 `d6a2348`, con base H2 en archivo; no se modificó. Maven verify: 204 pruebas; Node: 148/148; Spotless/PMD, Prettier y diff check aprobados con JDK 21. Sin integración ni aprobación humana. No tocar la base o el proceso de 8080 durante la publicación.
 
 ## Integración conservada
 

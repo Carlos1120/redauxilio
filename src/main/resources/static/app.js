@@ -4,6 +4,28 @@
  * map.js se ocupa de Leaflet; sw.js decide si una consulta se obtiene de red o de caché.
  */
 const getElement = (id) => document.getElementById(id);
+const appPageNames = new Set(["map", "publish", "own"]);
+/** Muestra una sección principal y conserva la navegación por fragmento para enlaces directos. */
+function setAppPage(page, { updateHistory = false, focus = false } = {}) {
+  const selected = appPageNames.has(page) ? page : "map";
+  getElement("main-content").dataset.activePage = selected;
+  for (const panel of document.querySelectorAll("[data-app-page]")) {
+    panel.hidden = panel.dataset.appPage !== selected;
+  }
+  for (const link of document.querySelectorAll("[data-app-page-link]")) {
+    if (link.dataset.appPageLink === selected) link.setAttribute("aria-current", "page");
+    else link.removeAttribute("aria-current");
+  }
+  getElement("search-query").closest(".header-search").hidden = selected !== "map";
+  if (updateHistory) history.pushState({ appPage: selected }, "", `#page-${selected}`);
+  if (selected === "map") reportMap?.invalidateSize?.();
+  if (selected === "publish") window.RedAuxilioPublicationUI?.refreshLocationPreview?.();
+  if (focus) document.querySelector(`[data-app-page="${selected}"]`)?.focus();
+}
+function appPageFromHash() {
+  const match = window.location.hash.match(/^#page-(map|publish|own)$/);
+  return match ? match[1] : "map";
+}
 const categoryLabels = {
   ASSISTANCE: "Punto de asistencia",
   ROAD: "Vía afectada",
@@ -203,6 +225,16 @@ const reportMap = window.RedAuxilioMap?.create(
   showReportDetail,
   categoryLabels,
 );
+setAppPage(appPageFromHash());
+for (const link of document.querySelectorAll("[data-app-page-link]")) {
+  link.addEventListener("click", (event) => {
+    event.preventDefault();
+    const page = link.dataset.appPageLink;
+    setAppPage(page, { updateHistory: true, focus: true });
+  });
+}
+window.addEventListener("popstate", () => setAppPage(appPageFromHash()));
+window.addEventListener("hashchange", () => setAppPage(appPageFromHash()));
 window.RedAuxilioPublicationUI = {
   reportMap,
   // Un módulo diferido puede incorporarse después de la primera respuesta sin repetir la consulta.
@@ -545,6 +577,10 @@ getElement("discard").addEventListener("click", async () => {
     getElement("draft-message").textContent = "No se pudo descartar el borrador.";
   }
 });
+getElement("open-publication").addEventListener("click", (event) => {
+  event.preventDefault();
+  setAppPage("publish", { updateHistory: true, focus: true });
+});
 executeDraftOperation("readonly", (store) => store.get("current"))
   .then((draft) => {
     if (draft) {
@@ -567,6 +603,8 @@ executeDraftOperation("readonly", (store) => store.get("current"))
       getElement("missing-age").value = draft.missingAge || "";
       getElement("missing-seen").value = draft.missingSeen || "";
       getElement("publication-category").dispatchEvent(new Event("change"));
+      window.RedAuxilioPublicationUI?.refreshLocationPreview?.();
+      window.RedAuxilioPublicationUI?.refreshPublicationProgress?.();
       getElement("draft-message").textContent = "Borrador local recuperado; no está publicado.";
     }
   })

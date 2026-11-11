@@ -47,6 +47,7 @@ async function loadReportView(items, savedAt = null, options = {}) {
       setAttribute() {},
       querySelectorAll: () => [],
       querySelector: () => null,
+      closest: () => element("header-search"),
       focus() {},
       close() {
         this.open = false;
@@ -72,8 +73,10 @@ async function loadReportView(items, savedAt = null, options = {}) {
       getElementById: element,
       createElement: () => element(Symbol()),
       querySelectorAll: () => [],
+      querySelector: () => null,
     },
     window: {
+      location: { hash: "" },
       RedAuxilioMap: options.captureMap
         ? {
             create: () => ({
@@ -90,6 +93,7 @@ async function loadReportView(items, savedAt = null, options = {}) {
         listeners.get(name).push(fn);
       },
     },
+    history: { pushState() {} },
     navigator: {},
     Event: class {
       constructor(type) {
@@ -193,9 +197,17 @@ test("mapa y rótulos estáticos describen una consulta de origen mixto", () => 
     "utf8",
   );
   const map = readFileSync(join(__dirname, "../../main/resources/static/map.js"), "utf8");
-  assert.match(template, /Ejemplos y publicaciones/u);
+  assert.match(template, /Reportes visibles/u);
+  assert.match(template, /<section id="draft-section" class="draft-section"/u);
+  assert.match(template, /id="open-publication" class="header-action" href="#page-publish"/u);
   assert.match(template, /Mapa de ejemplos ficticios y publicaciones comunitarias/u);
   assert.match(map, /Ubicaciones de reportes\. El fondo cartográfico requiere conexión/u);
+});
+
+test("la acción principal selecciona la página de publicación", async () => {
+  const { nodes } = await loadReportView([]);
+  nodes.get("open-publication").listeners.click({ preventDefault() {} });
+  assert.equal(nodes.get("main-content").dataset.activePage, "publish");
 });
 
 test("app e identidad sincronizan una vez sin realimentar el evento de sesión", async () => {

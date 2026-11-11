@@ -118,6 +118,17 @@ los recursos de esta presentación; no modifica almacenamiento de borradores ni 
 - [ ] Si cambia recursos PWA, verifica recarga, instalación y desconexión/reconexión sobre la versión final.
 - [ ] El PR enlaza resultados, versión y responsable real; el compañero revisa antes de integrar.
 
+### Navegación por responsabilidades — 11 de noviembre de 2026
+
+La vista inicial prioriza el mapa, sus filtros y reportes. Publicar y gestionar publicaciones propias
+se muestran en secciones independientes, con enlaces que conservan el historial del navegador y
+funcionan por teclado. La búsqueda global solo aparece en la vista del mapa; al volver, Leaflet
+recalcula su tamaño. Las vistas sin mapa reutilizan Onest, rojo y fondo cálido, con el formulario
+de ancho completo. El formulario usa un flujo vertical de secciones para que ubicación no se monte
+sobre datos del reporte; mantiene tarjetas para datos, descripción y evidencia, y un mapa Leaflet
+compacto que refleja las coordenadas y permite ajustar el punto, con atribución de OpenStreetMap.
+Los botones táctiles tienen mayor altura y se apilan en móvil. No cambian reglas de publicación,
+permisos ni contratos del servidor. Revisión visual y formal del compañero pendiente.
 Cambiar la dirección visual global requiere actualizar esta guía, el CSS compartido y las pantallas afectadas en el mismo PR, con revisión del compañero. No se declara aceptación del equipo únicamente por editar este documento.
 
 ## Panel de operador RA-08

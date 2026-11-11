@@ -175,6 +175,10 @@ if (typeof window !== "undefined") {
         reset() {
           map.setView([4.145, -73.625], 13, { animate: false });
         },
+        /** Recalcula el área del mapa cuando la sección vuelve a mostrarse tras estar oculta. */
+        invalidateSize() {
+          window.requestAnimationFrame(() => map.invalidateSize({ pan: false }));
+        },
         selectLocation(callback) {
           locationSelection = callback;
           map.getContainer().classList.add("map-selecting-location");

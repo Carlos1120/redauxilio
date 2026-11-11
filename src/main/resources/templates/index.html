@@ -150,11 +150,12 @@
           <span class="sr-only">Buscar entre los reportes visibles</span>
           <input id="search-query" type="search" placeholder="Buscar título o lugar…" />
         </label>
-        <nav aria-label="Secciones">
-          <a href="#map-title">Mapa</a><a href="#publications">Reportes</a
-          ><a href="#draft-section">Publicar</a>
+        <nav aria-label="Secciones principales">
+          <a href="#page-map" data-app-page-link="map" aria-current="page">Mapa</a>
+          <a href="#page-publish" data-app-page-link="publish">Publicar</a>
+          <a href="#page-own" data-app-page-link="own">Mis reportes</a>
         </nav>
-        <a class="header-action" href="#draft-section">＋ Nueva publicación</a>
+        <a id="open-publication" class="header-action" href="#page-publish">Publicar un reporte</a>
         <div class="identity-controls">
           <span id="connection-indicator" class="connection-indicator" aria-hidden="true"></span>
           <span id="connection" class="sr-only" role="status" aria-live="polite"></span>
@@ -175,164 +176,182 @@
       </div>
     </header>
     <main id="main-content" tabindex="-1">
-      <div class="page-intro">
-        <p class="eyebrow">RED DE INFORMACIÓN COMUNITARIA</p>
-        <h1>Orientación comunitaria, en un mapa.</h1>
-        <p class="intro">Consulta ubicaciones y reportes compartidos en la demostración.</p>
-      </div>
-      <aside class="notice notice-demo" aria-label="Aviso de demostración">
-        <span class="notice-icon" aria-hidden="true">!</span>
-        <div>
-          <strong>DEMOSTRACIÓN · información comunitaria sin verificar</strong>
-          <p>
-            Los reportes iniciales son ficticios. Las publicaciones de cuentas son comunitarias y no
-            tienen verificación oficial. No la uses para tomar decisiones durante una emergencia.
-          </p>
+      <section
+        id="page-map"
+        class="app-page"
+        data-app-page="map"
+        aria-labelledby="map-welcome-title"
+        tabindex="-1"
+      >
+        <div class="page-intro">
+          <p class="eyebrow">RED DE INFORMACIÓN COMUNITARIA</p>
+          <h1 id="map-welcome-title">Orientación comunitaria, en un mapa.</h1>
+          <p class="intro">Consulta ubicaciones y reportes compartidos en la demostración.</p>
         </div>
-      </aside>
-      <div class="workspace">
-        <section
-          id="search-section"
-          tabindex="-1"
-          class="search-section"
-          aria-labelledby="search-title"
-        >
-          <div class="section-heading">
-            <div>
-              <p class="eyebrow">CONSULTA PÚBLICA</p>
-              <h2 id="search-title">Reportes visibles</h2>
-            </div>
-            <span class="section-caption">Ejemplos y publicaciones</span>
+        <aside class="notice notice-demo" aria-label="Aviso de demostración">
+          <span class="notice-icon" aria-hidden="true">!</span>
+          <div>
+            <strong>DEMOSTRACIÓN · información comunitaria sin verificar</strong>
+            <p>
+              Los ejemplos iniciales son ficticios. Las publicaciones de cuentas son comunitarias y
+              no tienen verificación oficial. No la uses para tomar decisiones durante una
+              emergencia.
+            </p>
           </div>
-          <div class="quick-filters" role="group" aria-label="Filtrar por tipo de reporte">
-            <button type="button" data-category="" aria-pressed="true">Todo</button>
-            <button type="button" data-category="ASSISTANCE" aria-pressed="false">
-              Asistencia
-            </button>
-            <button type="button" data-category="ROAD" aria-pressed="false">Vías</button>
-            <button type="button" data-category="MISSING_PERSON" aria-pressed="false">
-              Personas
-            </button>
-            <button type="button" data-category="HELP_REQUEST" aria-pressed="false">Ayuda</button>
-          </div>
-          <details class="filter-drawer">
-            <summary>Filtros avanzados</summary>
-            <form id="query-form" class="query-controls" aria-label="Filtros de consulta">
-              <div class="field">
-                <label for="category">Tipo de reporte</label
-                ><select id="category">
-                  <option value="">Todas las categorías</option>
-                  <option value="ASSISTANCE">Puntos de asistencia</option>
-                  <option value="ROAD">Vías afectadas</option>
-                  <option value="MISSING_PERSON">Personas desaparecidas</option>
-                  <option value="HELP_REQUEST">Solicitudes de ayuda</option>
-                </select>
-              </div>
-              <div class="field">
-                <label for="operational-status">Estado operativo</label>
-                <select id="operational-status">
-                  <option value="">Todos los estados</option>
-                  <option>Disponible</option>
-                  <option>Capacidad limitada</option>
-                  <option>Lleno</option>
-                  <option>Cerrado</option>
-                  <option>Bloqueada</option>
-                  <option>Parcialmente habilitada</option>
-                  <option>Habilitada</option>
-                  <option>Sin localizar</option>
-                  <option>Desaparecida</option>
-                  <option>Caso cerrado</option>
-                  <option>Encontrada</option>
-                  <option>Abierta</option>
-                  <option>En atención</option>
-                  <option>Satisfecha</option>
-                </select>
-              </div>
-              <div class="field">
-                <label for="confidence-level">Confianza</label>
-                <select id="confidence-level">
-                  <option value="">Todos los niveles</option>
-                  <option value="REPORTADA">Reportada · sin verificar</option>
-                  <option value="CONFIRMADA">Confirmada por la comunidad</option>
-                  <option value="VERIFICADA">Verificada oficialmente</option>
-                </select>
-              </div>
-              <div class="field">
-                <label for="freshness-status">Vigencia</label>
-                <select id="freshness-status">
-                  <option value="">Cualquier vigencia</option>
-                  <option value="VIGENTE">Vigente</option>
-                  <option value="DESACTUALIZADA">Desactualizada</option>
-                </select>
-              </div>
-              <div class="field">
-                <label for="review-status">Revisión de contenido</label>
-                <select id="review-status">
-                  <option value="">Cualquier estado de revisión</option>
-                  <option value="SIN_REVISION">Sin alerta de revisión</option>
-                  <option value="EN_REVISION">En revisión</option>
-                </select>
-              </div>
-              <label class="closed-filter"
-                ><input type="checkbox" id="include-closed" /> Incluir casos cerrados</label
-              >
-              <button id="clear-filters" type="button" class="secondary-button">
-                Limpiar filtros
-              </button>
-              <button id="refresh" type="submit">
-                Actualizar consulta <span aria-hidden="true">↻</span>
-              </button>
-            </form>
-          </details>
-          <p id="message" class="query-message" role="status" aria-live="polite">
-            Preparando consulta…
-          </p>
-          <section class="map-section" aria-labelledby="map-title">
+        </aside>
+        <div class="workspace">
+          <section
+            id="search-section"
+            tabindex="-1"
+            class="search-section"
+            aria-labelledby="search-title"
+          >
             <div class="section-heading">
-              <h3 id="map-title">Mapa de reportes</h3>
-              <button id="reset-map" type="button" class="secondary-button">
-                Volver al área inicial
-              </button>
+              <div>
+                <p class="eyebrow">CONSULTA PÚBLICA</p>
+                <h2 id="search-title">Reportes visibles</h2>
+              </div>
+              <span class="section-caption">Ejemplos y publicaciones</span>
             </div>
-            <p id="map-status" class="query-help" role="status">
-              Preparando mapa. La lista permite consultar sin fondo cartográfico.
+            <div class="quick-filters" role="group" aria-label="Filtrar por tipo de reporte">
+              <button type="button" data-category="" aria-pressed="true">Todo</button>
+              <button type="button" data-category="ASSISTANCE" aria-pressed="false">
+                Asistencia
+              </button>
+              <button type="button" data-category="ROAD" aria-pressed="false">Vías</button>
+              <button type="button" data-category="MISSING_PERSON" aria-pressed="false">
+                Personas
+              </button>
+              <button type="button" data-category="HELP_REQUEST" aria-pressed="false">Ayuda</button>
+            </div>
+            <details class="filter-drawer">
+              <summary>Filtros avanzados</summary>
+              <form id="query-form" class="query-controls" aria-label="Filtros de consulta">
+                <div class="field">
+                  <label for="category">Tipo de reporte</label
+                  ><select id="category">
+                    <option value="">Todas las categorías</option>
+                    <option value="ASSISTANCE">Puntos de asistencia</option>
+                    <option value="ROAD">Vías afectadas</option>
+                    <option value="MISSING_PERSON">Personas desaparecidas</option>
+                    <option value="HELP_REQUEST">Solicitudes de ayuda</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="operational-status">Estado operativo</label>
+                  <select id="operational-status">
+                    <option value="">Todos los estados</option>
+                    <option>Disponible</option>
+                    <option>Capacidad limitada</option>
+                    <option>Lleno</option>
+                    <option>Cerrado</option>
+                    <option>Bloqueada</option>
+                    <option>Parcialmente habilitada</option>
+                    <option>Habilitada</option>
+                    <option>Sin localizar</option>
+                    <option>Desaparecida</option>
+                    <option>Caso cerrado</option>
+                    <option>Encontrada</option>
+                    <option>Abierta</option>
+                    <option>En atención</option>
+                    <option>Satisfecha</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="confidence-level">Confianza</label>
+                  <select id="confidence-level">
+                    <option value="">Todos los niveles</option>
+                    <option value="REPORTADA">Reportada · sin verificar</option>
+                    <option value="CONFIRMADA">Confirmada por la comunidad</option>
+                    <option value="VERIFICADA">Verificada oficialmente</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="freshness-status">Vigencia</label>
+                  <select id="freshness-status">
+                    <option value="">Cualquier vigencia</option>
+                    <option value="VIGENTE">Vigente</option>
+                    <option value="DESACTUALIZADA">Desactualizada</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="review-status">Revisión de contenido</label>
+                  <select id="review-status">
+                    <option value="">Cualquier estado de revisión</option>
+                    <option value="SIN_REVISION">Sin alerta de revisión</option>
+                    <option value="EN_REVISION">En revisión</option>
+                  </select>
+                </div>
+                <label class="closed-filter"
+                  ><input type="checkbox" id="include-closed" /> Incluir casos cerrados</label
+                >
+                <button id="clear-filters" type="button" class="secondary-button">
+                  Limpiar filtros
+                </button>
+                <button id="refresh" type="submit">
+                  Actualizar consulta <span aria-hidden="true">↻</span>
+                </button>
+              </form>
+            </details>
+            <p id="message" class="query-message" role="status" aria-live="polite">
+              Preparando consulta…
             </p>
-            <div
-              id="report-map"
-              aria-label="Mapa de ejemplos ficticios y publicaciones comunitarias"
-            ></div>
-            <ul class="map-legend" aria-label="Leyenda del mapa">
-              <li>⌂ Punto de asistencia</li>
-              <li>↔ Vía afectada</li>
-              <li>? Persona desaparecida</li>
-              <li>! Solicitud de ayuda</li>
-            </ul>
+            <section class="map-section" aria-labelledby="map-title">
+              <div class="section-heading">
+                <h3 id="map-title">Mapa de reportes</h3>
+                <button id="reset-map" type="button" class="secondary-button">
+                  Volver al área inicial
+                </button>
+              </div>
+              <p id="map-status" class="query-help" role="status">
+                Preparando mapa. La lista permite consultar sin fondo cartográfico.
+              </p>
+              <div
+                id="report-map"
+                aria-label="Mapa de ejemplos ficticios y publicaciones comunitarias"
+              ></div>
+              <ul class="map-legend" aria-label="Leyenda del mapa">
+                <li>⌂ Punto de asistencia</li>
+                <li>↔ Vía afectada</li>
+                <li>? Persona desaparecida</li>
+                <li>! Solicitud de ayuda</li>
+              </ul>
+              <p class="query-help">
+                Un número agrupa reportes cercanos. Selecciónalo para consultar sus detalles. Los
+                filtros se aplican al área visible.
+              </p>
+            </section>
+            <div id="publications" class="report-grid" aria-busy="true"></div>
             <p class="query-help">
-              Un número agrupa reportes cercanos. Selecciónalo para consultar sus detalles. Los
-              filtros se aplican al área visible.
+              Un reporte comunitario no equivale a una verificación oficial. Revisa siempre su
+              confianza y fecha.
             </p>
+            <dialog id="report-detail" aria-labelledby="detail-title">
+              <div class="detail-top">
+                <p id="detail-kicker" class="eyebrow">REPORTE FICTICIO</p>
+                <button
+                  id="close-detail"
+                  type="button"
+                  class="secondary-button"
+                  aria-label="Cerrar detalle"
+                >
+                  ×
+                </button>
+              </div>
+              <h2 id="detail-title"></h2>
+              <div id="detail-content"></div>
+            </dialog>
           </section>
-          <div id="publications" class="report-grid" aria-busy="true"></div>
-          <p class="query-help">
-            Un reporte comunitario no equivale a una verificación oficial. Revisa siempre su
-            confianza y fecha.
-          </p>
-          <dialog id="report-detail" aria-labelledby="detail-title">
-            <div class="detail-top">
-              <p id="detail-kicker" class="eyebrow">REPORTE FICTICIO</p>
-              <button
-                id="close-detail"
-                type="button"
-                class="secondary-button"
-                aria-label="Cerrar detalle"
-              >
-                ×
-              </button>
-            </div>
-            <h2 id="detail-title"></h2>
-            <div id="detail-content"></div>
-          </dialog>
-        </section>
+        </div>
+      </section>
+      <section
+        id="page-publish"
+        class="app-page"
+        data-app-page="publish"
+        aria-labelledby="draft-title"
+        tabindex="-1"
+        hidden
+      >
         <section id="draft-section" class="draft-section" aria-labelledby="draft-title">
           <p class="eyebrow">PUBLICACIÓN CIUDADANA</p>
           <h2 id="draft-title">Prepara una publicación</h2>
@@ -341,7 +360,7 @@
             documentos personales, historias médicas, domicilios privados ni datos de contacto.
           </p>
           <form id="draft-form" aria-describedby="draft-help">
-            <div class="publication-fields">
+            <div class="publication-fields publication-group">
               <div class="field">
                 <label for="publication-category">Tipo de publicación</label>
                 <select id="publication-category">
@@ -393,7 +412,7 @@
                 </div>
               </div>
             </div>
-            <fieldset id="help-fields" class="publication-specific" hidden>
+            <fieldset id="help-fields" class="publication-specific publication-group" hidden>
               <legend>Datos de la solicitud de ayuda</legend>
               <p>
                 Urgencia declarada, no clasificación oficial ni garantía de atención. Usa un alias o
@@ -429,7 +448,7 @@
                 ><input id="help-requester" required maxlength="120" autocomplete="off" />
               </div>
             </fieldset>
-            <fieldset id="missing-fields" class="publication-specific" hidden>
+            <fieldset id="missing-fields" class="publication-specific publication-group" hidden>
               <legend>Datos de la persona desaparecida</legend>
               <p>
                 Usa nombre o alias, descripción física y último sector aproximado. No incluyas
@@ -454,7 +473,7 @@
                 ><input id="missing-seen" type="datetime-local" step="0.001" required />
               </div>
             </fieldset>
-            <fieldset class="description-fields">
+            <fieldset class="description-fields publication-group">
               <legend>Descripción de la publicación</legend>
               <div class="field">
                 <label for="draft-text">¿Qué quieres reportar?</label
@@ -469,7 +488,7 @@
                 >
               </div>
             </fieldset>
-            <fieldset>
+            <fieldset class="publication-group location-fields">
               <legend>Ubicación de la publicación</legend>
               <div class="field">
                 <label for="publication-location">Sector o lugar público</label>
@@ -498,6 +517,22 @@
               <p id="location-message" role="status" aria-live="polite">
                 Puedes escribir coordenadas o elegir un punto en el mapa.
               </p>
+              <div class="publication-location-preview">
+                <div
+                  id="publication-location-map"
+                  class="publication-location-map"
+                  aria-label="Vista previa de la ubicación de la publicación"
+                ></div>
+                <p
+                  id="publication-location-status"
+                  class="query-help"
+                  data-state="pending"
+                  role="status"
+                  aria-live="polite"
+                >
+                  Ubicación pendiente · elige un punto o escribe coordenadas.
+                </p>
+              </div>
               <div class="coordinate-fields">
                 <div class="field">
                   <label for="latitude">Latitud</label
@@ -523,7 +558,11 @@
                 </div>
               </div>
             </fieldset>
-            <fieldset id="evidence-fields" aria-describedby="evidence-help">
+            <fieldset
+              id="evidence-fields"
+              class="publication-group"
+              aria-describedby="evidence-help"
+            >
               <legend>Fotografías de evidencia (opcional)</legend>
               <label for="publication-evidence"
                 >Hasta 3 imágenes JPEG, PNG o WebP; máximo 5 MB cada una</label
@@ -564,6 +603,15 @@
             Guardar borrador no lo publica. La publicación necesita respuesta del servidor.
           </p>
         </section>
+      </section>
+      <section
+        id="page-own"
+        class="app-page"
+        data-app-page="own"
+        aria-labelledby="own-title"
+        tabindex="-1"
+        hidden
+      >
         <section id="own-section" class="draft-section" aria-labelledby="own-title">
           <div class="section-heading">
             <p class="eyebrow">GESTIÓN DEL AUTOR</p>
@@ -738,7 +786,7 @@
             </div>
           </div>
         </section>
-      </div>
+      </section>
     </main>
     <footer>
       <span>RedAuxilio · Proyecto académico · Equipo 4</span

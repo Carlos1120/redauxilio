@@ -1,6 +1,6 @@
-# RedAuxilio — integración y revisión RA-16
+# RedAuxilio — traspaso vigente
 
-Actualización: 11 de noviembre de 2026 (Colombia). Trabajo aislado en `C:/Users/cmps-/RedAuxilio-recovery/ra16-revision`, rama local `codex/ra16-revision-integracion`; destino autorizado: rama existente `codex/ra16-account-blocking`, PR #31. Se integra mediante merge normal el HEAD revisado `1db301441fe7bc26575b3552a8fd12034abd11d1` con `develop` `a014b44e8a64030ac6042a47f1cf5fe5ef4a8d8f`. No modificar otros worktrees, servidores ni respaldos. Sin force push, merge en GitHub, aceptación humana o cambios en Trello.
+Actualización: 11 de noviembre de 2026 (Colombia). RA-16 del PR #31 queda como registro histórico. La rama `codex/ux-separated-app` parte de `develop` `31cc5fb`; PR #34 abierto hacia develop, head `f8d2005`, Carlos solicitado como revisor formal; sin aprobación ni integración. Mapa, Publicar y Mis reportes son vistas separadas con historial, foco accesible y ajuste de Leaflet al volver. El formulario tiene tarjetas cálidas, mapa de ubicación, ancho completo y controles táctiles grandes. Navegación: botones de 124 px en escritorio y distribuidos en móvil; caché PWA v33. `localhost:8080` ahora sirve esta rama mediante Maven y el formulario de fotos responde HTTP 200. Reutiliza `C:\Users\Santiago\redauxilio\data\redauxilio.mv.db`; copia previa guardada en `C:\Users\Santiago\AppData\Local\Temp\redauxilio-backup-8080-20261111`. El proceso IntelliJ antiguo se detuvo; su checkout y cambios siguen intactos. El puerto 8081 quedó libre. Maven verify: 204 pruebas; Node: 148/148; Spotless/PMD, Prettier y diff check aprobados con JDK 21. CI y revisión formal pendientes; no fusionar hasta aprobación.
 
 ## Integración conservada
 

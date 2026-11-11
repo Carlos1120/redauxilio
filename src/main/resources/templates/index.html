@@ -548,6 +548,18 @@
               </button>
             </div>
           </form>
+          <section id="duplicate-warning" hidden aria-label="Posibles publicaciones duplicadas">
+            <p role="status">Hay posibles duplicados. Consulta los casos antes de continuar.</p>
+            <ul id="duplicate-candidates"></ul>
+            <label for="duplicate-justification"
+              >Justificación para publicar otro reporte (máximo 500 caracteres)</label
+            >
+            <textarea id="duplicate-justification" maxlength="500" rows="3"></textarea>
+            <p>
+              Completa el motivo y vuelve a pulsar Publicar con mi cuenta. Cancelar conserva el
+              borrador.
+            </p>
+          </section>
           <p id="draft-message" class="draft-message" role="status" aria-live="polite">
             Guardar borrador no lo publica. La publicación necesita respuesta del servidor.
           </p>

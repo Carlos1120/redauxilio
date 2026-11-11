@@ -464,10 +464,11 @@ class MissingPersonSightingTests {
 
   private Map<String, Object> publicationRequest() {
     var missing = new LinkedHashMap<String, Object>();
-    missing.put("referenceName", "Caso ficticio");
+    String fixtureSuffix = " caso " + fixtureCases.size();
+    missing.put("referenceName", "Caso ficticio" + fixtureSuffix);
     missing.put("ageRange", "18–29");
     missing.put("physicalDescription", "Chaqueta gris");
-    missing.put("lastSeenPlace", "Parque ficticio");
+    missing.put("lastSeenPlace", "Parque ficticio" + fixtureSuffix);
     missing.put("lastSeenAt", START.minusSeconds(3600).toString());
     return Map.of(
         "category",

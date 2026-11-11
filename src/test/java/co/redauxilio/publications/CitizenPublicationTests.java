@@ -110,7 +110,7 @@ class CitizenPublicationTests {
                 .with(user(account))
                 .with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(point().replace("SHELTER", "UNKNOWN")))
+                .content(quotaPoint().replace("SHELTER", "UNKNOWN")))
         .andExpect(status().isBadRequest());
     mvc.perform(
             post("/api/publications")
@@ -120,13 +120,13 @@ class CitizenPublicationTests {
                 .content(road().replace("Tramo hacia Restrepo", "")))
         .andExpect(status().isBadRequest());
     assertEquals(0L, count(account));
-    for (int index = 0; index < 5; index++) publish(account, point());
+    for (int index = 0; index < 5; index++) publish(account, quotaPoint());
     mvc.perform(
             post("/api/publications")
                 .with(user(account))
                 .with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(point()))
+                .content(quotaPoint()))
         .andExpect(status().isTooManyRequests());
     assertEquals(5L, count(account));
     assertEquals("ROAD", publish(createAccount(), road()).path("category").asText());
@@ -135,7 +135,7 @@ class CitizenPublicationTests {
   @Test
   void simultaneousSubmissionsCannotExceedAccountQuota() throws Exception {
     String account = createAccount();
-    for (int index = 0; index < 4; index++) publish(account, point());
+    for (int index = 0; index < 4; index++) publish(account, quotaPoint());
     CountDownLatch start = new CountDownLatch(1);
     var workers = Executors.newFixedThreadPool(2);
     try {
@@ -159,7 +159,7 @@ class CitizenPublicationTests {
                 .with(user(account))
                 .with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(point()))
+                .content(quotaPoint()))
         .andReturn()
         .getResponse()
         .getStatus();
@@ -197,6 +197,16 @@ class CitizenPublicationTests {
         "SELECT COUNT(*) FROM citizen_publication p JOIN citizen_account a ON a.id = p.author_id WHERE a.email = ?",
         Long.class,
         email);
+  }
+
+  private static final java.util.concurrent.atomic.AtomicInteger quotaLocation =
+      new java.util.concurrent.atomic.AtomicInteger();
+
+  /** Casos de cuota independientes: mas de 1km entre altas, sin justificaciones artificiales. */
+  private static String quotaPoint() {
+    return point()
+        .replace(
+            "\"latitude\":4.15", "\"latitude\":" + (20 + quotaLocation.incrementAndGet() * 0.02));
   }
 
   private static String point() {

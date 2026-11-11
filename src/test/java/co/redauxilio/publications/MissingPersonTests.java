@@ -207,7 +207,20 @@ class MissingPersonTests {
                 .content(json.writeValueAsString(b)))
         .andExpect(status().isBadRequest());
     assertEquals(0, jdbc.queryForObject("SELECT COUNT(*) FROM citizen_publication", Integer.class));
-    for (int i = 0; i < 5; i++) create();
+    for (int i = 0; i < 5; i++) {
+      var separated = body();
+      var person = person();
+      person.put("referenceName", "Persona cuota " + i);
+      person.put("lastSeenPlace", "Sector cuota " + i);
+      separated.put("missingPerson", person);
+      mvc.perform(
+              post("/api/publications")
+                  .with(user(author))
+                  .with(csrf())
+                  .contentType(MediaType.APPLICATION_JSON)
+                  .content(json.writeValueAsString(separated)))
+          .andExpect(status().isCreated());
+    }
     mvc.perform(
             post("/api/publications")
                 .with(user(author))

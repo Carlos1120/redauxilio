@@ -218,7 +218,9 @@ class PublicationGeneratedKeyTests {
           body.put(
               "missingPerson",
               Map.of(
-                  "referenceName", "Referencia ficticia",
+                  "referenceName",
+                      "Referencia ficticia "
+                          + UUID.randomUUID().toString().replaceAll("[0-9]", "x"),
                   "physicalDescription", "Chaqueta gris de prueba",
                   "lastSeenPlace", "Parque público ficticio",
                   "lastSeenAt", "2026-11-02T12:30:00Z"));

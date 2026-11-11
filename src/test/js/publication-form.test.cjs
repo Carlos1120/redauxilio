@@ -14,7 +14,7 @@ const response = (data, status = 200) => ({
   json: async () => data,
 });
 /** Formulario real con DOM mínimo y servidor controlado; sin escribir datos reales. */
-function setup(status = 201) {
+function setup(status = 201, candidates = []) {
   const nodes = new Map(),
     requests = [],
     stats = { saved: 0, cleared: 0 };
@@ -94,10 +94,12 @@ function setup(status = 201) {
     fetch: async (url, options) => {
       requests.push({ url, options });
       return response(
-        url === "/csrf"
-          ? { token: "t" }
-          : { id: 1000000, latitude: 4.15, longitude: -73.63, message: "Rechazo de prueba" },
-        url === "/csrf" ? 200 : status,
+        url === "/api/my/publications/possible-duplicates"
+          ? candidates
+          : url === "/csrf"
+            ? { token: "t" }
+            : { id: 1000000, latitude: 4.15, longitude: -73.63, message: "Rechazo de prueba" },
+        url === "/csrf" || url === "/api/my/publications/possible-duplicates" ? 200 : status,
       );
     },
   };
@@ -113,7 +115,9 @@ test("HELP_REQUEST envía datos propios, ABIERTA y CSRF; cambiar tipo desactiva 
   assert.equal(h.get("help-fields").hidden, false);
   assert.equal(h.get("assistance-subtype").disabled, true);
   await h.get("publish-report").listeners.click();
-  const post = h.requests.find((r) => r.options.method === "POST"),
+  const post = h.requests.find(
+      (r) => r.options.method === "POST" && r.url !== "/api/my/publications/possible-duplicates",
+    ),
     body = JSON.parse(post.options.body);
   assert.equal(body.category, "HELP_REQUEST");
   assert.equal(body.operationalStatus, "ABIERTA");
@@ -148,7 +152,11 @@ test("evidencia válida se envía como multipart atómico y conserva JSON tipado
   h.get("publication-evidence").files = [photo];
   h.get("publication-evidence").listeners.change();
   await h.get("publish-report").listeners.click();
-  const post = h.requests.find((request) => request.options.method === "POST");
+  const post = h.requests.find(
+    (request) =>
+      request.options.method === "POST" &&
+      request.url !== "/api/my/publications/possible-duplicates",
+  );
   assert.equal(post.url, "/api/publications/with-evidence");
   assert.equal(post.options.headers["Content-Type"], undefined);
   assert.equal(post.options.body.getAll("files").length, 1);
@@ -166,7 +174,9 @@ test("MISSING_PERSON envía fecha y datos estructurados sin contacto ni campos d
   h.get("missing-age").value = "18–29";
   h.get("missing-seen").value = "2026-11-03T08:30";
   await h.get("publish-report").listeners.click();
-  const post = h.requests.find((x) => x.options.method === "POST"),
+  const post = h.requests.find(
+      (x) => x.options.method === "POST" && x.url !== "/api/my/publications/possible-duplicates",
+    ),
     body = JSON.parse(post.options.body);
   assert.equal(body.operationalStatus, "DESAPARECIDA");
   assert.equal(body.assistanceSubtype, null);
@@ -177,4 +187,29 @@ test("MISSING_PERSON envía fecha y datos estructurados sin contacto ni campos d
   assert.equal(body.needType, undefined);
   assert.equal(body.contact, undefined);
   assert.equal(h.get("help-need-type").disabled, true);
+});
+
+test("duplicado advierte, exige motivo, invalida cambios y conserva borrador", async () => {
+  const h = setup(201, [{ id: 1000001, title: "Caso publico", location: "Sector" }]);
+  await h.get("publish-report").listeners.click();
+  assert.equal(h.stats.cleared, 0);
+  assert.equal(h.get("duplicate-warning").hidden, false);
+  assert.equal(
+    h.requests.some((r) => r.url === "/api/publications"),
+    false,
+  );
+  h.get("duplicate-justification").value = "Necesidad distinta en la misma zona";
+  await h.get("publish-report").listeners.click();
+  const post = h.requests.find((r) => r.url === "/api/publications");
+  assert.equal(
+    JSON.parse(post.options.body).duplicateJustification,
+    "Necesidad distinta en la misma zona",
+  );
+  assert.equal(h.stats.cleared, 1);
+  const changed = setup(201, [{ id: 1000001, title: "Caso", location: "Sector" }]);
+  await changed.get("publish-report").listeners.click();
+  changed.get("duplicate-justification").value = "Motivo anterior";
+  changed.get("draft-form").listeners.input({ target: { id: "latitude" } });
+  assert.equal(changed.get("duplicate-justification").value, "");
+  assert.equal(changed.get("duplicate-warning").hidden, true);
 });

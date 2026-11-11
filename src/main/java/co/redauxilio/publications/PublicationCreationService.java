@@ -25,10 +25,15 @@ class PublicationCreationService {
 
   private final CitizenPublicationRepository repository;
   private final Clock clock;
+  private final DuplicatePublicationService duplicates;
 
-  PublicationCreationService(CitizenPublicationRepository repository, Clock clock) {
+  PublicationCreationService(
+      CitizenPublicationRepository repository,
+      Clock clock,
+      DuplicatePublicationService duplicates) {
     this.repository = repository;
     this.clock = clock;
+    this.duplicates = duplicates;
   }
 
   /**
@@ -53,7 +58,11 @@ class PublicationCreationService {
       throw new ResponseStatusException(
           HttpStatus.TOO_MANY_REQUESTS, "Máximo cinco publicaciones por cuenta y hora");
     }
-    return repository.insert(authorId, request, now);
+    duplicates.lockCategory(request.category());
+    duplicates.requireJustification(input);
+    long id = repository.insert(authorId, request, now);
+    duplicates.record(id, input.duplicateJustification());
+    return id;
   }
 
   static CreatePublicationRequest validate(CreatePublicationRequest input) {

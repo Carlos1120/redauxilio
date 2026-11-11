@@ -368,6 +368,9 @@ publicationField("publish-report").addEventListener("click", async () => {
     } catch {
       draftWarning = " El borrador local no pudo borrarse; descártalo antes de crear otro.";
     }
+    // Solo el 201 confirmado limpia la decision y los elementos externos al formulario.
+    invalidateDuplicateDecision();
+    publicationField("duplicate-candidates").replaceChildren();
     draftForm.reset();
     window.RedAuxilioEvidenceDraft.clear();
     syncPublicationCategory();

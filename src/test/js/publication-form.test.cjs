@@ -254,3 +254,30 @@ test("cambio programatico pendiente impide POST con coordenadas antiguas", async
   assert.equal(h.stats.cleared, 0);
   assert.match(h.get("draft-message").textContent, /datos cambiaron/);
 });
+
+test("201 limpia advertencia, motivo, candidatos y decision interna", async () => {
+  const h = setup(201, [{ id: 1000001, title: "Caso", location: "Sector" }]);
+  await h.get("publish-report").listeners.click();
+  h.get("duplicate-justification").value = "Recurso independiente";
+  await h.get("publish-report").listeners.click();
+  assert.match(h.get("draft-message").textContent, /Publicación creada/);
+  assert.equal(h.get("duplicate-warning").hidden, true);
+  assert.equal(h.get("duplicate-justification").value, "");
+  assert.equal(h.get("duplicate-candidates").children.length, 0);
+  const posts = h.requests.filter((r) => r.url === "/api/publications").length;
+  h.get("duplicate-justification").value = "Otro intento";
+  await h.get("publish-report").listeners.click();
+  assert.equal(h.requests.filter((r) => r.url === "/api/publications").length, posts);
+});
+
+test("rechazo conserva advertencia, motivo y candidatos para reintentar", async () => {
+  const h = setup(409, [{ id: 1000001, title: "Caso", location: "Sector" }]);
+  await h.get("publish-report").listeners.click();
+  h.get("duplicate-justification").value = "Recurso independiente";
+  await h.get("publish-report").listeners.click();
+  assert.equal(h.get("duplicate-warning").hidden, false);
+  assert.equal(h.get("duplicate-justification").value, "Recurso independiente");
+  assert.equal(h.get("duplicate-candidates").children.length, 1);
+  assert.equal(h.stats.cleared, 0);
+  assert.doesNotMatch(h.get("draft-message").textContent, /Publicación creada/);
+});

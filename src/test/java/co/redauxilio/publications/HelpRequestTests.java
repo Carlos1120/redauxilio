@@ -180,7 +180,17 @@ class HelpRequestTests {
                 .content(json.writeValueAsString(optional)))
         .andExpect(status().isCreated())
         .andExpect(jsonPath("$.approximateQuantity").doesNotExist());
-    for (int i = 0; i < 4; i++) create();
+    for (int i = 0; i < 4; i++) {
+      var separated = body();
+      separated.put("latitude", 20 + i * 0.02);
+      mvc.perform(
+              post("/api/publications")
+                  .with(user(author))
+                  .with(csrf())
+                  .contentType(MediaType.APPLICATION_JSON)
+                  .content(json.writeValueAsString(separated)))
+          .andExpect(status().isCreated());
+    }
     mvc.perform(
             post("/api/publications")
                 .with(user(author))

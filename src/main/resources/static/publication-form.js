@@ -11,6 +11,18 @@ const publicationMessage = publicationField("draft-message");
 const locationMessage = publicationField("location-message");
 const evidenceInput = publicationField("publication-evidence");
 const evidencePreview = publicationField("evidence-preview");
+let duplicateFingerprint = null;
+let duplicateGeneration = 0;
+/** Invalida avisos y respuestas pendientes ante cambios manuales o propuestas de ubicacion. */
+function invalidateDuplicateDecision() {
+  duplicateGeneration++;
+  duplicateFingerprint = null;
+  publicationField("duplicate-justification").value = "";
+  publicationField("duplicate-warning").hidden = true;
+}
+draftForm.addEventListener("input", (event) => {
+  if (event.target.id !== "duplicate-justification") invalidateDuplicateDecision();
+});
 let evidenceFiles = [];
 let evidenceObjectUrls = [];
 
@@ -110,6 +122,7 @@ syncPublicationCategory();
 
 /** Actualiza solo la propuesta de ubicación; no publica ni guarda automáticamente. */
 function proposeLocation(latitude, longitude, label) {
+  invalidateDuplicateDecision();
   publicationField("latitude").value = Number(latitude).toFixed(6);
   publicationField("longitude").value = Number(longitude).toFixed(6);
   if (label) publicationField("publication-location").value = label.slice(0, 160);
@@ -267,6 +280,7 @@ publicationField("publish-report").addEventListener("click", async () => {
         }
       : {}),
   };
+  const checkedGeneration = duplicateGeneration;
   button.disabled = true;
   publicationMessage.textContent = "Enviando publicación…";
   let draftSaved = false;
@@ -281,6 +295,47 @@ publicationField("publish-report").addEventListener("click", async () => {
     if (!tokenResponse.ok) throw new Error("No se pudo validar la sesión. Intenta de nuevo.");
     const csrf = await tokenResponse.json();
     const headers = { Accept: "application/json", "X-CSRF-TOKEN": csrf.token };
+    const fingerprint = JSON.stringify(request);
+    const check = await fetch("/api/my/publications/possible-duplicates", {
+      method: "POST",
+      credentials: "same-origin",
+      cache: "no-store",
+      headers: { ...headers, "Content-Type": "application/json" },
+      body: fingerprint,
+    });
+    if (!check.ok)
+      throw new Error(
+        "No se pudieron comprobar posibles duplicados. Intenta de nuevo con conexión.",
+      );
+    const candidates = await check.json();
+    if (checkedGeneration !== duplicateGeneration)
+      throw new Error("Los datos cambiaron. Revisa y vuelve a publicar.");
+    if (!Array.isArray(candidates)) throw new Error("Respuesta de duplicados no válida.");
+    if (candidates.length) {
+      const list = publicationField("duplicate-candidates");
+      list.replaceChildren();
+      for (const candidate of candidates) {
+        const entry = document.createElement("li");
+        const link = document.createElement("a");
+        link.textContent = `${candidate.title} · ${candidate.location}${candidate.lastSeenAt ? " · Última vez vista: " + candidate.lastSeenAt : ""}`;
+        link.href = `/?publication=${Number(candidate.id)}`;
+        link.target = "_blank";
+        link.rel = "noopener";
+        entry.append(link);
+        list.append(entry);
+      }
+      publicationField("duplicate-warning").hidden = false;
+      const reason = publicationField("duplicate-justification").value.trim();
+      if (duplicateFingerprint !== fingerprint || !reason) {
+        duplicateFingerprint = fingerprint;
+        publicationMessage.textContent =
+          "Posibles duplicados encontrados. Consulta los casos y justifica si necesitas publicar otro.";
+        publicationField("duplicate-justification").focus();
+        return;
+      }
+      request.duplicateJustification = reason;
+    }
+
     let endpoint = "/api/publications";
     let body = JSON.stringify(request);
     if (evidenceFiles.length) {
@@ -313,6 +368,9 @@ publicationField("publish-report").addEventListener("click", async () => {
     } catch {
       draftWarning = " El borrador local no pudo borrarse; descártalo antes de crear otro.";
     }
+    // Solo el 201 confirmado limpia la decision y los elementos externos al formulario.
+    invalidateDuplicateDecision();
+    publicationField("duplicate-candidates").replaceChildren();
     draftForm.reset();
     window.RedAuxilioEvidenceDraft.clear();
     syncPublicationCategory();

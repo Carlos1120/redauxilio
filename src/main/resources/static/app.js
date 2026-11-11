@@ -626,3 +626,17 @@ if ("serviceWorker" in navigator)
     getElement("connection").textContent += " · caché offline no disponible";
   });
 loadPublications();
+
+// RA-14: un enlace a coincidencia abre solo el detalle publico vigente, nunca datos internos.
+const linkedPublication = new URLSearchParams(window.location?.search || "").get("publication");
+if (linkedPublication && /^[1-9][0-9]*$/.test(linkedPublication)) {
+  fetch(`/api/publications/${linkedPublication}`, { cache: "no-store" })
+    .then((response) => {
+      if (!response.ok) throw new Error("Caso no disponible");
+      return response.json();
+    })
+    .then((item) => showReportDetail(item, getElement("search-query")))
+    .catch(() => {
+      getElement("message").textContent = "La publicacion enlazada ya no esta disponible.";
+    });
+}

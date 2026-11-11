@@ -218,3 +218,19 @@ CREATE TABLE IF NOT EXISTS publication_authorized_contact (
   contact_value VARCHAR(160) NOT NULL,
   authorized_at TIMESTAMP WITH TIME ZONE NOT NULL
 );
+
+-- RA-14: justificacion privada ligada a la publicacion, fuera de DTO y cache publicos.
+CREATE TABLE IF NOT EXISTS publication_duplicate_justification (
+ publication_id BIGINT PRIMARY KEY REFERENCES citizen_publication(id),
+ reason VARCHAR(500) NOT NULL,
+ created_at TIMESTAMP WITH TIME ZONE NOT NULL
+);
+CREATE INDEX IF NOT EXISTS publication_duplicate_geo ON citizen_publication(category,visible,created_at,latitude);
+CREATE INDEX IF NOT EXISTS publication_duplicate_missing ON citizen_publication(category,visible,closed,id);
+
+-- RA-14: exclusión por categoría, no un bloqueo global de toda la plataforma.
+CREATE TABLE IF NOT EXISTS publication_duplicate_guard (category VARCHAR(20) PRIMARY KEY);
+INSERT INTO publication_duplicate_guard(category) SELECT 'ASSISTANCE' WHERE NOT EXISTS (SELECT 1 FROM publication_duplicate_guard WHERE category='ASSISTANCE');
+INSERT INTO publication_duplicate_guard(category) SELECT 'ROAD' WHERE NOT EXISTS (SELECT 1 FROM publication_duplicate_guard WHERE category='ROAD');
+INSERT INTO publication_duplicate_guard(category) SELECT 'HELP_REQUEST' WHERE NOT EXISTS (SELECT 1 FROM publication_duplicate_guard WHERE category='HELP_REQUEST');
+INSERT INTO publication_duplicate_guard(category) SELECT 'MISSING_PERSON' WHERE NOT EXISTS (SELECT 1 FROM publication_duplicate_guard WHERE category='MISSING_PERSON');

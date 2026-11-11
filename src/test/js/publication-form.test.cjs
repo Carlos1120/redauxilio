@@ -14,7 +14,7 @@ const response = (data, status = 200) => ({
   json: async () => data,
 });
 /** Formulario real con DOM mínimo y servidor controlado; sin escribir datos reales. */
-function setup(status = 201) {
+function setup(status = 201, candidates = [], precheckGate = null) {
   const nodes = new Map(),
     requests = [],
     stats = { saved: 0, cleared: 0 };
@@ -76,6 +76,12 @@ function setup(status = 201) {
   }))
     get(id).value = value;
   const ui = {
+    reportMap: {
+      focusOn() {},
+      selectLocation(callback) {
+        stats.selectLocation = callback;
+      },
+    },
     saveDraft: async () => stats.saved++,
     clearDraft: async () => stats.cleared++,
     loadPublications: async () => {},
@@ -93,11 +99,14 @@ function setup(status = 201) {
     navigator: {},
     fetch: async (url, options) => {
       requests.push({ url, options });
+      if (url === "/api/my/publications/possible-duplicates" && precheckGate) await precheckGate;
       return response(
-        url === "/csrf"
-          ? { token: "t" }
-          : { id: 1000000, latitude: 4.15, longitude: -73.63, message: "Rechazo de prueba" },
-        url === "/csrf" ? 200 : status,
+        url === "/api/my/publications/possible-duplicates"
+          ? candidates
+          : url === "/csrf"
+            ? { token: "t" }
+            : { id: 1000000, latitude: 4.15, longitude: -73.63, message: "Rechazo de prueba" },
+        url === "/csrf" || url === "/api/my/publications/possible-duplicates" ? 200 : status,
       );
     },
   };
@@ -113,7 +122,9 @@ test("HELP_REQUEST envía datos propios, ABIERTA y CSRF; cambiar tipo desactiva 
   assert.equal(h.get("help-fields").hidden, false);
   assert.equal(h.get("assistance-subtype").disabled, true);
   await h.get("publish-report").listeners.click();
-  const post = h.requests.find((r) => r.options.method === "POST"),
+  const post = h.requests.find(
+      (r) => r.options.method === "POST" && r.url !== "/api/my/publications/possible-duplicates",
+    ),
     body = JSON.parse(post.options.body);
   assert.equal(body.category, "HELP_REQUEST");
   assert.equal(body.operationalStatus, "ABIERTA");
@@ -148,7 +159,11 @@ test("evidencia válida se envía como multipart atómico y conserva JSON tipado
   h.get("publication-evidence").files = [photo];
   h.get("publication-evidence").listeners.change();
   await h.get("publish-report").listeners.click();
-  const post = h.requests.find((request) => request.options.method === "POST");
+  const post = h.requests.find(
+    (request) =>
+      request.options.method === "POST" &&
+      request.url !== "/api/my/publications/possible-duplicates",
+  );
   assert.equal(post.url, "/api/publications/with-evidence");
   assert.equal(post.options.headers["Content-Type"], undefined);
   assert.equal(post.options.body.getAll("files").length, 1);
@@ -166,7 +181,9 @@ test("MISSING_PERSON envía fecha y datos estructurados sin contacto ni campos d
   h.get("missing-age").value = "18–29";
   h.get("missing-seen").value = "2026-11-03T08:30";
   await h.get("publish-report").listeners.click();
-  const post = h.requests.find((x) => x.options.method === "POST"),
+  const post = h.requests.find(
+      (x) => x.options.method === "POST" && x.url !== "/api/my/publications/possible-duplicates",
+    ),
     body = JSON.parse(post.options.body);
   assert.equal(body.operationalStatus, "DESAPARECIDA");
   assert.equal(body.assistanceSubtype, null);
@@ -177,4 +194,90 @@ test("MISSING_PERSON envía fecha y datos estructurados sin contacto ni campos d
   assert.equal(body.needType, undefined);
   assert.equal(body.contact, undefined);
   assert.equal(h.get("help-need-type").disabled, true);
+});
+
+test("duplicado advierte, exige motivo, invalida cambios y conserva borrador", async () => {
+  const h = setup(201, [{ id: 1000001, title: "Caso publico", location: "Sector" }]);
+  await h.get("publish-report").listeners.click();
+  assert.equal(h.stats.cleared, 0);
+  assert.equal(h.get("duplicate-warning").hidden, false);
+  assert.equal(
+    h.requests.some((r) => r.url === "/api/publications"),
+    false,
+  );
+  h.get("duplicate-justification").value = "Necesidad distinta en la misma zona";
+  await h.get("publish-report").listeners.click();
+  const post = h.requests.find((r) => r.url === "/api/publications");
+  assert.equal(
+    JSON.parse(post.options.body).duplicateJustification,
+    "Necesidad distinta en la misma zona",
+  );
+  assert.equal(h.stats.cleared, 1);
+  const changed = setup(201, [{ id: 1000001, title: "Caso", location: "Sector" }]);
+  await changed.get("publish-report").listeners.click();
+  changed.get("duplicate-justification").value = "Motivo anterior";
+  changed.get("draft-form").listeners.input({ target: { id: "latitude" } });
+  assert.equal(changed.get("duplicate-justification").value, "");
+  assert.equal(changed.get("duplicate-warning").hidden, true);
+});
+
+test("seleccion en mapa invalida advertencia y motivo anteriores", async () => {
+  const h = setup(201, [{ id: 1000001, title: "Caso", location: "Sector" }]);
+  await h.get("publish-report").listeners.click();
+  h.get("duplicate-justification").value = "Motivo anterior";
+  h.get("select-location").listeners.click();
+  h.stats.selectLocation(4.2, -73.7);
+  assert.equal(h.get("duplicate-warning").hidden, true);
+  assert.equal(h.get("duplicate-justification").value, "");
+  assert.equal(h.stats.cleared, 0);
+});
+
+test("cambio programatico pendiente impide POST con coordenadas antiguas", async () => {
+  let release;
+  const gate = new Promise((resolve) => {
+    release = resolve;
+  });
+  const h = setup(201, [], gate);
+  const pending = h.get("publish-report").listeners.click();
+  await new Promise(setImmediate);
+  h.get("select-location").listeners.click();
+  h.stats.selectLocation(4.25, -73.75);
+  release();
+  await pending;
+  assert.equal(
+    h.requests.some(
+      (r) => r.url === "/api/publications" || r.url === "/api/publications/with-evidence",
+    ),
+    false,
+  );
+  assert.equal(h.get("latitude").value, "4.250000");
+  assert.equal(h.stats.cleared, 0);
+  assert.match(h.get("draft-message").textContent, /datos cambiaron/);
+});
+
+test("201 limpia advertencia, motivo, candidatos y decision interna", async () => {
+  const h = setup(201, [{ id: 1000001, title: "Caso", location: "Sector" }]);
+  await h.get("publish-report").listeners.click();
+  h.get("duplicate-justification").value = "Recurso independiente";
+  await h.get("publish-report").listeners.click();
+  assert.match(h.get("draft-message").textContent, /Publicación creada/);
+  assert.equal(h.get("duplicate-warning").hidden, true);
+  assert.equal(h.get("duplicate-justification").value, "");
+  assert.equal(h.get("duplicate-candidates").children.length, 0);
+  const posts = h.requests.filter((r) => r.url === "/api/publications").length;
+  h.get("duplicate-justification").value = "Otro intento";
+  await h.get("publish-report").listeners.click();
+  assert.equal(h.requests.filter((r) => r.url === "/api/publications").length, posts);
+});
+
+test("rechazo conserva advertencia, motivo y candidatos para reintentar", async () => {
+  const h = setup(409, [{ id: 1000001, title: "Caso", location: "Sector" }]);
+  await h.get("publish-report").listeners.click();
+  h.get("duplicate-justification").value = "Recurso independiente";
+  await h.get("publish-report").listeners.click();
+  assert.equal(h.get("duplicate-warning").hidden, false);
+  assert.equal(h.get("duplicate-justification").value, "Recurso independiente");
+  assert.equal(h.get("duplicate-candidates").children.length, 1);
+  assert.equal(h.stats.cleared, 0);
+  assert.doesNotMatch(h.get("draft-message").textContent, /Publicación creada/);
 });

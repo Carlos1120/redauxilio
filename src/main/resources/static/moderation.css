@@ -450,3 +450,41 @@
 .verifier-permission-form textarea {
   resize: vertical;
 }
+
+.account-restriction-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+#account-restriction-result {
+  margin-top: 16px;
+}
+
+.account-restriction-card {
+  padding: 16px;
+  border: 1px solid var(--color-report-border);
+  border-radius: var(--radius-report);
+  background: #fff;
+}
+
+.account-restriction-card h3 {
+  margin-top: 0;
+}
+
+.account-restriction-card ul {
+  display: grid;
+  gap: 12px;
+  padding-left: 20px;
+}
+
+.account-restriction-card li p {
+  margin: 4px 0;
+}
+
+@media (max-width: 760px) {
+  .account-restriction-actions,
+  .account-restriction-actions button {
+    width: 100%;
+  }
+}

@@ -30,6 +30,7 @@ let mapQueryTimer;
 let detailTrigger;
 let selectedReportId;
 let currentItems = [];
+let hasValidPublicQuery = false;
 let currentQueryMessage = "";
 let currentSourceMessage = "";
 let suppressFocusReturn = false;
@@ -413,17 +414,18 @@ async function loadPublications() {
     currentSourceMessage = savedAt
       ? `Consulta almacenada el ${new Date(savedAt).toLocaleString("es-CO")}; puede estar desactualizada.`
       : "Datos obtenidos del servidor.";
+    hasValidPublicQuery = true;
     const countLabel = describeReportCount(currentItems);
     currentQueryMessage = `${countLabel} ${currentSourceMessage}`;
     renderSearchResults();
   } catch {
     if (query === latestPublicationQueryId) {
-      currentItems = [];
-      currentSourceMessage = "";
-      renderPublications([]);
+      // Una zona sin copia no invalida la ultima consulta: conservar lista y mapa juntos.
+      // El aviso conserva origen/fecha y advierte tambien si se intentaron filtros nuevos.
       getElement("message").dataset.error = "true";
-      currentQueryMessage =
-        "No se pudo consultar. La categoría podría no tener una consulta guardada. Intenta de nuevo con conexión.";
+      currentQueryMessage = hasValidPublicQuery
+        ? `No se pudo consultar la nueva zona o filtros. Se conservan los resultados de la zona y filtros consultados anteriormente; no corresponden a la nueva consulta. ${currentSourceMessage}`
+        : "No se pudo consultar. No hay una consulta disponible para esta zona y filtros. Intenta de nuevo con conexión.";
       getElement("message").textContent = currentQueryMessage;
     }
   } finally {
@@ -624,3 +626,17 @@ if ("serviceWorker" in navigator)
     getElement("connection").textContent += " · caché offline no disponible";
   });
 loadPublications();
+
+// RA-14: un enlace a coincidencia abre solo el detalle publico vigente, nunca datos internos.
+const linkedPublication = new URLSearchParams(window.location?.search || "").get("publication");
+if (linkedPublication && /^[1-9][0-9]*$/.test(linkedPublication)) {
+  fetch(`/api/publications/${linkedPublication}`, { cache: "no-store" })
+    .then((response) => {
+      if (!response.ok) throw new Error("Caso no disponible");
+      return response.json();
+    })
+    .then((item) => showReportDetail(item, getElement("search-query")))
+    .catch(() => {
+      getElement("message").textContent = "La publicacion enlazada ya no esta disponible.";
+    });
+}

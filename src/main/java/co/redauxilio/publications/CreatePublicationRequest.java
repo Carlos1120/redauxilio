@@ -18,7 +18,42 @@ public record CreatePublicationRequest(
     String approximateQuantity,
     String declaredUrgency,
     String requesterReference,
-    MissingPersonDetails missingPerson) {
+    MissingPersonDetails missingPerson,
+    String duplicateJustification) {
+  /** Compatibilidad: los llamadores anteriores no declaran justificacion. */
+  public CreatePublicationRequest(
+      String category,
+      String assistanceSubtype,
+      String title,
+      String description,
+      String location,
+      String operationalStatus,
+      String impactType,
+      Double latitude,
+      Double longitude,
+      String needType,
+      String approximateQuantity,
+      String declaredUrgency,
+      String requesterReference,
+      MissingPersonDetails missingPerson) {
+    this(
+        category,
+        assistanceSubtype,
+        title,
+        description,
+        location,
+        operationalStatus,
+        impactType,
+        latitude,
+        longitude,
+        needType,
+        approximateQuantity,
+        declaredUrgency,
+        requesterReference,
+        missingPerson,
+        null);
+  }
+
   /** Compatibilidad RA-11: conserva el contrato de las otras categorías. */
   public CreatePublicationRequest(
       String category,

@@ -208,3 +208,32 @@ test("borra estado privado al perder conexión y al ocultar la página", async (
   assert.equal(ui.nodes.get("account-restriction-result").children.length, 0);
   assert.equal(ui.nodes.get("account-restriction-email").value, "");
 });
+for (const event of ["pagehide", "visibilitychange", "redauxilio:identity-change", "offline"]) {
+  test(`no envía una decisión si ${event} invalida el CSRF pendiente`, async () => {
+    let release;
+    const pending = new Promise((resolve) => {
+      release = resolve;
+    });
+    const ui = setup(async (url) => (url === "/csrf" ? pending : response(account())));
+    const submitted = ui.nodes
+      .get("account-restriction-form")
+      .listeners.submit({ preventDefault() {} });
+    await flush();
+    assert.equal(ui.requests.length, 1);
+    if (event === "visibilitychange") {
+      ui.document.hidden = true;
+      ui.documentListeners.get(event)();
+    } else {
+      if (event === "offline") ui.context.navigator.onLine = false;
+      ui.windowListeners.get(event)();
+    }
+    release(response({ token: "token-ficticio" }));
+    await submitted;
+    assert.equal(ui.requests.filter(({ options }) => options.method === "POST").length, 0);
+    assert.equal(ui.nodes.get("account-restriction-result").children.length, 0);
+    assert.doesNotMatch(
+      ui.nodes.get("account-restriction-message").textContent,
+      /decisión auditada/,
+    );
+  });
+}

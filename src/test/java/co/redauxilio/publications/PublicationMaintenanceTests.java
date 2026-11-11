@@ -247,6 +247,7 @@ class PublicationMaintenanceTests {
 
   @Test
   void allStatePairsRespectTheAgreedMatricesAndAuditOnlyAllowedChanges() throws Exception {
+    var matrixLocation = new java.util.concurrent.atomic.AtomicInteger();
     java.util.Map<String, java.util.Set<String>> pointMatrix =
         java.util.Map.of(
             "DISPONIBLE", java.util.Set.of("CAPACIDAD LIMITADA", "LLENO", "CERRADO"),
@@ -263,7 +264,26 @@ class PublicationMaintenanceTests {
       for (String from : matrix.keySet()) {
         for (String to : matrix.keySet()) {
           String owner = account();
-          long id = publish(owner, road);
+          // Cada par de transiciones representa un caso distinto, no un duplicado RN-26.
+          String isolated =
+              (road ? road("BLOQUEADA") : point("Punto prueba"))
+                  .replace(
+                      "\"latitude\":4.15",
+                      "\"latitude\":" + (20 + matrixLocation.incrementAndGet() * 0.02));
+          long id =
+              json.readTree(
+                      mvc.perform(
+                              post("/api/publications")
+                                  .with(user(owner))
+                                  .with(csrf())
+                                  .contentType(MediaType.APPLICATION_JSON)
+                                  .content(isolated))
+                          .andExpect(status().isCreated())
+                          .andReturn()
+                          .getResponse()
+                          .getContentAsString())
+                  .get("id")
+                  .asLong();
           boolean closed = from.equals(road ? "HABILITADA" : "CERRADO");
           jdbc.update(
               "UPDATE citizen_publication SET operational_status = ?, closed = ? WHERE id = ?",

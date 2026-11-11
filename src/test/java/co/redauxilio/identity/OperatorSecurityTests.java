@@ -25,10 +25,31 @@ import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 
-/** Permisos de operador y restricciones de cuenta en H2 aislada; no modifica cuentas reales. */
+/**
+ * Permisos y restricciones en H2 o PostgreSQL desechable; limpia únicamente sus cuentas ficticias.
+ */
 @SpringBootTest
 @AutoConfigureMockMvc
 class OperatorSecurityTests {
+  /** Solo admite PostgreSQL local con nombre de base exclusivo de pruebas RA-16. */
+  @org.springframework.test.context.DynamicPropertySource
+  static void testDatabase(org.springframework.test.context.DynamicPropertyRegistry properties) {
+    String url = System.getenv("RA16_TEST_DB_URL");
+    if (url != null
+        && !url.matches("jdbc:postgresql://127\\.0\\.0\\.1:[0-9]+/ra16_test_[a-f0-9]{12}"))
+      throw new IllegalArgumentException("Base RA16 no aislada");
+    properties.add("spring.sql.init.mode", () -> "always");
+    properties.add(
+        "spring.datasource.url",
+        () -> url == null ? "jdbc:h2:mem:ra16;MODE=PostgreSQL;DB_CLOSE_DELAY=-1" : url);
+    properties.add(
+        "spring.datasource.username",
+        () -> System.getenv().getOrDefault("RA16_TEST_DB_USERNAME", "sa"));
+    properties.add(
+        "spring.datasource.password",
+        () -> System.getenv().getOrDefault("RA16_TEST_DB_PASSWORD", ""));
+  }
+
   @Autowired private OperatorPermissions operators;
   @Autowired private AccountRestrictionService restrictions;
   @Autowired private CitizenUserDetailsService details;
@@ -271,6 +292,11 @@ class OperatorSecurityTests {
         id(citizen),
         id(operator),
         Timestamp.from(Instant.now()));
+    jdbc.update(
+        "UPDATE citizen_account SET password_hash = ? WHERE email = ?",
+        encoder.encode(PASSWORD),
+        citizen);
+    MockHttpSession existingSession = login(citizen);
     var actor = user(operator).roles("OPERATOR");
 
     mvc.perform(get("/operator").with(actor))
@@ -311,7 +337,14 @@ class OperatorSecurityTests {
         .andExpect(jsonPath("$.history[0].actorDisplayName").value("Prueba RA08"))
         .andExpect(jsonPath("$.history[0].afterBlocked").value(true));
 
-    mvc.perform(get("/api/publications").with(user(citizen))).andExpect(status().isOk());
+    mvc.perform(get("/api/publications").session(existingSession)).andExpect(status().isOk());
+    mvc.perform(
+            post("/api/my/publications/possible-duplicates")
+                .session(existingSession)
+                .with(csrf())
+                .contentType("application/json")
+                .content("{}"))
+        .andExpect(status().isForbidden());
     mvc.perform(get("/api/operator/publications").with(user(citizen).roles("OPERATOR")))
         .andExpect(status().isForbidden());
     mvc.perform(get("/api/my/verification-permission").with(user(citizen)))
@@ -323,6 +356,20 @@ class OperatorSecurityTests {
                 .with(csrf())
                 .contentType("application/json")
                 .content("{}"))
+        .andExpect(status().isForbidden());
+    // Incluye las rutas nuevas de RA-14 y la variante multipart de creación.
+    for (String path :
+        List.of(
+            "/api/my/publications/possible-duplicates", "/api/my/publications/1000000/sightings")) {
+      mvc.perform(
+              post(path)
+                  .with(user(citizen))
+                  .with(csrf())
+                  .contentType("application/json")
+                  .content("{}"))
+          .andExpect(status().isForbidden());
+    }
+    mvc.perform(multipart("/api/publications").with(user(citizen)).with(csrf()))
         .andExpect(status().isForbidden());
     mvc.perform(
             post("/api/publications/1000000/confirmations")
@@ -363,6 +410,15 @@ class OperatorSecurityTests {
         .andExpect(jsonPath("$.history[0].beforeBlocked").value(true))
         .andExpect(jsonPath("$.history[0].afterBlocked").value(false));
 
+    // La sesión abierta recupera también la consulta SQL real de candidatos RA-14.
+    mvc.perform(
+            post("/api/my/publications/possible-duplicates")
+                .session(existingSession)
+                .with(csrf())
+                .contentType("application/json")
+                .content(
+                    "{\"category\":\"ASSISTANCE\",\"assistanceSubtype\":\"SHELTER\",\"title\":\"Punto ficticio\",\"description\":\"Descripcion ficticia\",\"location\":\"Parque publico\",\"operationalStatus\":\"DISPONIBLE\",\"latitude\":40.1,\"longitude\":-70.1}"))
+        .andExpect(status().isOk());
     mvc.perform(
             post("/api/publications")
                 .with(user(citizen))
@@ -465,7 +521,7 @@ class OperatorSecurityTests {
   }
 
   @Test
-  void accountRestrictionAuditUsesAStableCursorAndExposesOlderEvents() {
+  void accountRestrictionAuditUsesAStableCursorAndExposesOlderEvents() throws Exception {
     String operator = account();
     String citizen = account();
     provision(operator, "GRANT", "Operador de prueba", UUID.randomUUID().toString());
@@ -482,10 +538,88 @@ class OperatorSecurityTests {
     var previous = restrictions.olderHistory(citizen, cursor, 50);
     assertEquals(2, previous.events().size());
     assertFalse(previous.hasOlder());
+    // Comprueba también el contrato HTTP privado de ambas páginas, no solo el servicio.
+    mvc.perform(
+            get("/api/operator/accounts/restriction")
+                .param("email", citizen)
+                .with(user(operator).roles("OPERATOR")))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.history.length()").value(50))
+        .andExpect(
+            header().string("Cache-Control", org.hamcrest.Matchers.containsString("no-store")));
+    mvc.perform(
+            get("/api/operator/accounts/restriction/history")
+                .param("email", citizen)
+                .param("beforeId", Long.toString(cursor))
+                .with(user(operator).roles("OPERATOR")))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.events.length()").value(2))
+        .andExpect(jsonPath("$.hasOlder").value(false));
     assertTrue(
         latest.history().stream()
             .noneMatch(
                 event -> previous.events().stream().anyMatch(old -> old.id() == event.id())));
+  }
+
+  /** Motivo obligatorio y límites se validan sin escribir estado ni auditoría. */
+  @Test
+  void restrictionRequiresReasonWithinLimits() throws Exception {
+    String actor = account(), target = account();
+    provision(actor, "GRANT", "Operador ficticio", UUID.randomUUID().toString());
+    for (String reason : List.of("", "   ", "x".repeat(501))) {
+      mvc.perform(
+              post("/api/operator/accounts/restriction")
+                  .with(user(actor).roles("OPERATOR"))
+                  .with(csrf())
+                  .contentType("application/json")
+                  .content(
+                      "{\"email\":\""
+                          + target
+                          + "\",\"action\":\"BLOCK\",\"reason\":\""
+                          + reason
+                          + "\"}"))
+          .andExpect(status().isBadRequest());
+    }
+    assertFalse(restrictions.inspect(target).blocked());
+    assertTrue(restrictions.inspect(target).history().isEmpty());
+  }
+
+  /** Dos conexiones independientes demuestran que el bloqueo de cuenta espera el commit SQL. */
+  @Test
+  void accountChangeWaitsForAccountLockAndSchemaCanBeReapplied() throws Exception {
+    String actor = account(), target = account();
+    provision(actor, "GRANT", "Operador ficticio", UUID.randomUUID().toString());
+    javax.sql.DataSource source = jdbc.getDataSource();
+    assertNotNull(source);
+    try (var connection = source.getConnection()) {
+      org.springframework.jdbc.datasource.init.ScriptUtils.executeSqlScript(
+          connection, new org.springframework.core.io.ClassPathResource("schema.sql"));
+      connection.setAutoCommit(false);
+      try (var statement =
+          connection.prepareStatement("SELECT id FROM citizen_account WHERE id = ? FOR UPDATE")) {
+        statement.setLong(1, id(target));
+        statement.executeQuery().close();
+      }
+      ExecutorService pool = Executors.newSingleThreadExecutor();
+      CountDownLatch started = new CountDownLatch(1);
+      Future<?> decision =
+          pool.submit(
+              () -> {
+                started.countDown();
+                restrictions.change(target, actor, "BLOCK", "Decisión concurrente ficticia");
+              });
+      try {
+        assertTrue(started.await(5, TimeUnit.SECONDS));
+        assertThrows(TimeoutException.class, () -> decision.get(300, TimeUnit.MILLISECONDS));
+        connection.commit();
+        decision.get(10, TimeUnit.SECONDS);
+        assertTrue(restrictions.inspect(target).blocked());
+        assertEquals(1, restrictions.inspect(target).history().size());
+      } finally {
+        connection.rollback();
+        pool.shutdownNow();
+      }
+    }
   }
 
   private String account() {

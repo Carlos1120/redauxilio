@@ -207,6 +207,9 @@
     message.textContent = "Guardando decisión y auditoría…";
     try {
       const csrf = await readCsrf();
+      // No iniciar una escritura si la espera de CSRF pertenece a una pantalla invalidada.
+      // Esto no cancela decisiones que ya fueron enviadas al servidor.
+      if (current !== generation || !navigator.onLine) return;
       const response = await fetch("/api/operator/accounts/restriction", {
         method: "POST",
         credentials: "same-origin",

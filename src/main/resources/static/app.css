@@ -2115,3 +2115,14 @@ footer {
   grid-row: auto;
   grid-column: 1;
 }
+
+/* RA-14: advertencia y motivo usan todo el formulario, sin columnas implicitas en movil. */
+.draft-section form > #duplicate-warning {
+  grid-column: 1 / -1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+#duplicate-justification {
+  width: 100%;
+  min-width: 0;
+}

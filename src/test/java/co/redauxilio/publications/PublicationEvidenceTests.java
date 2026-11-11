@@ -61,6 +61,8 @@ class PublicationEvidenceTests {
   @Autowired ObjectMapper json;
   private String owner;
   private long publicationId;
+  private static final java.util.concurrent.atomic.AtomicInteger fixtureLocation =
+      new java.util.concurrent.atomic.AtomicInteger();
 
   @BeforeEach
   void createFixture() throws Exception {
@@ -72,7 +74,10 @@ class PublicationEvidenceTests {
                     .with(csrf())
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(
-                        "{\"category\":\"ASSISTANCE\",\"assistanceSubtype\":\"SHELTER\",\"title\":\"Refugio de prueba\",\"description\":\"Descripción de prueba\",\"location\":\"Sector público\",\"operationalStatus\":\"DISPONIBLE\",\"latitude\":4.15,\"longitude\":-73.63}"))
+                        "{\"category\":\"ASSISTANCE\",\"assistanceSubtype\":\"SHELTER\",\"title\":\"Refugio de prueba\",\"description\":\"Descripción de prueba\",\"location\":\"Sector público\",\"operationalStatus\":\"DISPONIBLE\",\"latitude\":4.15,\"longitude\":-73.63}"
+                            .replace(
+                                "\"latitude\":4.15",
+                                "\"latitude\":" + (30 + fixtureLocation.incrementAndGet() * 0.02))))
             .andExpect(status().isCreated())
             .andReturn()
             .getResponse()
@@ -236,7 +241,9 @@ class PublicationEvidenceTests {
             "publication",
             "",
             MediaType.APPLICATION_JSON_VALUE,
-            pointRequest().getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            pointRequest()
+                .replace("\"latitude\":4.15", "\"latitude\":4.3")
+                .getBytes(java.nio.charset.StandardCharsets.UTF_8));
     int countBeforeFailure =
         jdbc.queryForObject("SELECT COUNT(*) FROM citizen_publication", Integer.class);
     mvc.perform(

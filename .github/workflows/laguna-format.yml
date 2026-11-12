@@ -1,0 +1,30 @@
+name: Normalizar formato Laguna (temporal)
+on:
+  push:
+    branches:
+      - feat/ra-ux-laguna-phase1
+permissions:
+  contents: write
+jobs:
+  normalize:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: feat/ra-ux-laguna-phase1
+          persist-credentials: true
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - name: Formatear sin cambiar funcionalidad
+        run: npx prettier --write src/main/resources/static/laguna.css src/main/resources/templates/index.html
+      - name: Quitar el utilitario temporal y guardar el resultado
+        run: |
+          git rm .github/workflows/laguna-format.yml
+          git add src/main/resources/static/laguna.css src/main/resources/templates/index.html
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "style(ux): normalizar formato de Laguna"
+          git push origin HEAD:feat/ra-ux-laguna-phase1

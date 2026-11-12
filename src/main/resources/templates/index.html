@@ -143,21 +143,21 @@
     </dialog>
     <header class="site-header">
       <div class="header-content">
-        <a class="brand" href="#main-content"
-          ><img src="/icon.svg?v=6" width="36" height="36" alt="" /><span
-            >RedAuxilio<small>Información que nos conecta</small></span
-          ></a
-        >
+        <a class="brand" href="#main-content" aria-label="RedAuxilio · Inicio"
+          ><picture>
+            <source media="(max-width: 1099px)" srcset="/laguna-assets/logo-mobile.svg" />
+            <img src="/laguna-assets/logo-desktop.svg" width="223" height="44" alt="" /></picture
+        ></a>
         <label class="header-search" for="search-query">
           <span class="search-icon" aria-hidden="true">⌕</span>
           <span class="sr-only">Buscar entre los reportes visibles</span>
           <input id="search-query" type="search" placeholder="Buscar título o lugar…" />
         </label>
         <nav aria-label="Secciones">
-          <a href="#main-content">Inicio</a><a href="#search-section">Explorar</a
-          ><a href="#own-section">Mis reportes</a>
+          <a href="#main-content" aria-current="page">Inicio</a
+          ><a href="#search-section">Explorar</a><a href="#own-section">Mis reportes</a>
         </nav>
-        <a class="header-action" href="#draft-section">＋ Nueva publicación</a>
+        <a class="header-action" href="#draft-section">＋ Publicar</a>
         <div class="identity-controls">
           <span id="connection-indicator" class="connection-indicator" aria-hidden="true"></span>
           <span id="connection" class="sr-only" role="status" aria-live="polite"></span>
@@ -178,11 +178,124 @@
       </div>
     </header>
     <main id="main-content" tabindex="-1">
-      <div class="page-intro">
-        <p class="eyebrow">RED DE INFORMACIÓN COMUNITARIA</p>
-        <h1>Información para tu comunidad</h1>
-        <p class="intro">Encuentra ayuda y comparte lo que sucede en tu comunidad.</p>
-        <a class="laguna-hero-action" href="#draft-section">＋ Reportar situación</a>
+      <div class="laguna-home-shell">
+        <div class="page-intro">
+          <p class="eyebrow">RED DE INFORMACIÓN COMUNITARIA</p>
+          <h1>Información para tu comunidad</h1>
+          <p class="intro">
+            <span class="laguna-copy-mobile">Encuentra ayuda y comparte lo que sucede.</span>
+            <span class="laguna-copy-desktop">Encuentra orientación y comparte lo que sucede.</span>
+          </p>
+          <p class="laguna-home-seal">
+            <img src="/laguna-assets/desktop-footer-shield.svg" width="16" height="16" alt="" />
+            Red de información comunitaria
+          </p>
+        </div>
+        <section class="laguna-home-card" aria-labelledby="laguna-home-title">
+          <div class="laguna-home-action">
+            <img src="/laguna-assets/report-alert.svg" width="26" height="26" alt="" />
+            <div>
+              <strong class="laguna-home-question"
+                ><span class="laguna-copy-mobile">¿Qué está pasando?</span
+                ><span class="laguna-copy-desktop">¿Qué está pasando en tu zona?</span></strong
+              >
+              <small class="laguna-home-question-help"
+                ><span class="laguna-copy-mobile">Comparte un reporte útil</span
+                ><span class="laguna-copy-desktop"
+                  >Puedes consultar reportes o compartir información para ayudar a otros.</span
+                ></small
+              >
+            </div>
+            <a class="laguna-home-report" href="#draft-section"
+              ><span class="laguna-copy-mobile">Reportar</span
+              ><span class="laguna-copy-desktop">Reportar ahora</span></a
+            >
+          </div>
+          <div class="laguna-home-body">
+            <div class="laguna-home-discovery">
+              <div class="laguna-home-illustration" aria-hidden="true"></div>
+              <h2 id="laguna-home-title">
+                <span class="laguna-copy-mobile">Reportes por categoría</span
+                ><span class="laguna-copy-desktop">Reportes cerca de ti</span>
+              </h2>
+              <p class="laguna-home-category-help">Explora por situación</p>
+              <nav class="laguna-home-categories" aria-label="Explorar reportes por categoría">
+                <a href="#search-section" data-home-category="ASSISTANCE"
+                  ><img
+                    src="/laguna-assets/map-shelter.svg"
+                    width="80"
+                    height="82"
+                    alt=""
+                  />Refugios</a
+                >
+                <a href="#search-section" data-home-category="ROAD"
+                  ><img src="/laguna-assets/map-road.svg" width="80" height="82" alt="" />Vías</a
+                >
+                <a href="#search-section" data-home-category="MISSING_PERSON"
+                  ><img
+                    src="/laguna-assets/map-person.svg"
+                    width="80"
+                    height="82"
+                    alt=""
+                  />Personas</a
+                >
+                <a href="#search-section" data-home-category="HELP_REQUEST"
+                  ><img src="/laguna-assets/map-help.svg" width="80" height="82" alt="" />Ayuda</a
+                >
+              </nav>
+            </div>
+            <div class="laguna-home-support-list">
+              <h2>Puntos de apoyo</h2>
+              <p class="laguna-home-support-help">Lugares compartidos por la comunidad</p>
+              <a class="laguna-home-support" href="#search-section" data-home-category="ASSISTANCE">
+                <img src="/laguna-assets/shelter.svg" width="26" height="26" alt="" />
+                <span
+                  ><strong>Refugio comunitario</strong
+                  ><small
+                    ><span class="laguna-copy-mobile">Ejemplo · Barrio El Barzal</span
+                    ><span class="laguna-copy-desktop">Ejemplo · Sector El Barzal</span></small
+                  ><em
+                    ><span class="laguna-copy-mobile">Información comunitaria · sin verificar</span
+                    ><span class="laguna-copy-desktop">Comunitario · sin verificar</span></em
+                  ></span
+                >
+                <img
+                  class="laguna-home-arrow"
+                  src="/laguna-assets/arrow.svg"
+                  width="19"
+                  height="19"
+                  alt=""
+                />
+              </a>
+              <a
+                class="laguna-home-support laguna-home-support-extra"
+                href="#search-section"
+                data-home-category="ASSISTANCE"
+              >
+                <img src="/laguna-assets/shelter.svg" width="26" height="26" alt="" />
+                <span
+                  ><strong>Centro de acopio comunitario</strong
+                  ><small>Ejemplo · Centro de Villavicencio</small
+                  ><em>Comunitario · sin verificar</em></span
+                >
+                <img
+                  class="laguna-home-arrow"
+                  src="/laguna-assets/arrow.svg"
+                  width="19"
+                  height="19"
+                  alt=""
+                />
+              </a>
+            </div>
+          </div>
+          <footer class="laguna-home-footer" aria-label="Información sobre los reportes">
+            <p>
+              <img src="/laguna-assets/desktop-footer-shield.svg" width="23" height="23" alt="" />
+              Información comunitaria, no oficial. Verifica la fecha y la fuente antes de actuar.
+            </p>
+            <small>RedAuxilio / Prototipo conceptual</small>
+          </footer>
+        </section>
       </div>
       <aside class="notice notice-demo" aria-label="Aviso de demostración">
         <span class="notice-icon" aria-hidden="true">!</span>
@@ -747,22 +860,15 @@
     <!-- Laguna: Cuenta aparece solo en esta barra en móvil y tablet. -->
     <nav class="laguna-bottom-nav" aria-label="Navegación principal móvil">
       <a href="#main-content" data-laguna-tab="home" aria-current="page">
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="m3 10 9-7 9 7v10H3zM9 20v-7h6v7" />
-        </svg>
+        <img src="/laguna-assets/nav-home.svg" width="24" height="24" alt="" />
         <span>Inicio</span>
       </a>
       <a href="#search-section" data-laguna-tab="explore">
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="m3 5 6-2 6 2 6-2v16l-6 2-6-2-6 2zM9 3v16M15 5v16" />
-        </svg>
+        <img src="/laguna-assets/nav-explore.svg" width="24" height="24" alt="" />
         <span>Explorar</span>
       </a>
       <a href="#draft-section" data-laguna-tab="publish">
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <rect x="3" y="3" width="18" height="18" rx="5" />
-          <path d="M12 7v10M7 12h10" />
-        </svg>
+        <img src="/laguna-assets/nav-publish.svg" width="24" height="24" alt="" />
         <span>Publicar</span>
       </a>
       <button
@@ -772,10 +878,7 @@
         aria-haspopup="dialog"
         aria-controls="identity-dialog"
       >
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <circle cx="12" cy="8" r="4" />
-          <path d="M4 21c0-5 3-8 8-8s8 3 8 8" />
-        </svg>
+        <img src="/laguna-assets/nav-account.svg" width="24" height="24" alt="" />
         <span>Cuenta</span>
       </button>
     </nav>

@@ -1,0 +1,64 @@
+<svg width="148" height="108" viewBox="0 0 148 108" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect width="148" height="108" fill="#E5E5E5"/>
+<g id="03 &#194;&#183; LAGUNA &#194;&#183; Escritorio / port&#195;&#161;til 1366 px">
+<rect x="-390" y="-485" width="1366" height="880" rx="20" fill="white"/>
+<g id="Categor&#195;&#173;as &#226;&#128;&#148; composici&#195;&#179;n flexible">
+<g id="Categor&#195;&#173;a / Personas">
+<g id="Mini mapa &#194;&#183; Personas">
+<g clip-path="url(#clip0_0_1)">
+<rect width="148" height="108" rx="15" fill="#ECF1F4"/>
+<g id="Calle vertical">
+<rect width="7" height="108" transform="translate(-4)" fill="white"/>
+</g>
+<g id="Calle vertical_2">
+<rect width="7" height="108" transform="translate(31)" fill="white"/>
+</g>
+<g id="Calle vertical_3">
+<rect width="7" height="108" transform="translate(66)" fill="white"/>
+</g>
+<g id="Calle vertical_4">
+<rect width="7" height="108" transform="translate(101)" fill="white"/>
+</g>
+<g id="Calle vertical_5">
+<rect width="7" height="108" transform="translate(136)" fill="white"/>
+</g>
+<g id="Calle horizontal">
+<rect width="148" height="7" transform="translate(0 7)" fill="white"/>
+</g>
+<g id="Calle horizontal_2">
+<rect width="148" height="7" transform="translate(0 38)" fill="white"/>
+</g>
+<g id="Calle horizontal_3">
+<rect width="148" height="7" transform="translate(0 69)" fill="white"/>
+</g>
+<g id="Calle horizontal_4">
+<rect width="148" height="7" transform="translate(0 100)" fill="white"/>
+</g>
+<g id="Zona verde">
+<rect x="37" y="33" width="72" height="34" rx="10" fill="#D5E6DD"/>
+</g>
+<circle id="Elemento de ilustraci&#195;&#179;n" cx="86" cy="54" r="17" fill="#E26066"/>
+<g id="Icono de l&#195;&#173;nea &#194;&#183; pin" clip-path="url(#clip1_0_1)">
+<g id="ECO RITMO &#194;&#183; locate" clip-path="url(#clip2_0_1)">
+<path id="Vector" d="M86.5 59.25C89.1234 59.25 91.25 57.1234 91.25 54.5C91.25 51.8766 89.1234 49.75 86.5 49.75C83.8766 49.75 81.75 51.8766 81.75 54.5C81.75 57.1234 83.8766 59.25 86.5 59.25Z" stroke="#203547" stroke-width="1.46458" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="Vector_2" d="M86.4999 46.5834V49.75M86.4999 59.25V62.4167M78.5833 54.5H81.7499M91.2499 54.5H94.4166" stroke="#203547" stroke-width="1.46458" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="Vector_3" d="M86.5001 56.0833C87.3745 56.0833 88.0834 55.3744 88.0834 54.5C88.0834 53.6255 87.3745 52.9166 86.5001 52.9166C85.6256 52.9166 84.9167 53.6255 84.9167 54.5C84.9167 55.3744 85.6256 56.0833 86.5001 56.0833Z" fill="#D7262E"/>
+</g>
+</g>
+</g>
+</g>
+</g>
+</g>
+</g>
+<defs>
+<clipPath id="clip0_0_1">
+<rect width="148" height="108" rx="15" fill="white"/>
+</clipPath>
+<clipPath id="clip1_0_1">
+<rect width="19" height="19" fill="white" transform="translate(77 45)"/>
+</clipPath>
+<clipPath id="clip2_0_1">
+<rect width="19" height="19" fill="white" transform="translate(77 45)"/>
+</clipPath>
+</defs>
+</svg>

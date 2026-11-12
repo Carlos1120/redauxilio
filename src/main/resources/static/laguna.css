@@ -1,7 +1,7 @@
 /**
  * Laguna • Primera integración: cabecera, Inicio, Explorar y navegación global.
  * Capa de estilos progresiva: no sustituye los ID, mapas, formularios ni API.
- * Figma: 09C responsive; 03G formularios; sistema visual común.
+ * Inicio: frames oficiales 4:248 (móvil) y 6:311 (escritorio).
  */
 :root {
   --color-relief-blue: #0c747c;
@@ -83,10 +83,16 @@ body {
   font-size: 0.88rem;
   border-radius: 11px;
   padding: 9px 12px;
+  background: transparent;
+  box-shadow: none;
 }
 .site-header .header-content > nav a:hover {
-  color: #073f44;
-  background: #eaf7f3;
+  color: #fff;
+  background: transparent;
+}
+.site-header .header-content > nav a:focus-visible {
+  outline: 3px solid #f5c65e;
+  outline-offset: 3px;
 }
 .site-header .header-action {
   background: #fff;
@@ -191,21 +197,10 @@ body {
   color: #eaf7f3;
   font-size: 1rem;
 }
-.laguna-hero-action {
-  display: inline-flex;
-  align-items: center;
-  min-height: 48px;
-  padding: 12px 20px;
-  margin-top: 20px;
-  border-radius: 12px;
-  background: #fff;
-  color: #07545b;
-  text-decoration: none;
-  font-weight: 750;
-}
-.laguna-hero-action:hover {
-  background: #eaf7f3;
-  color: #07545b;
+@media (max-width: 1099px) {
+  .site-header .header-search {
+    display: none;
+  }
 }
 .notice-demo {
   background: #fff2d7;
@@ -277,8 +272,8 @@ body {
   display: none;
 }
 
-/* Tabletas y móviles: panel de mapa y lista en flujo vertical. */
-@media (max-width: 1099px) {
+/* La cabecera pasa a navegación inferior antes de perder espacio para Cuenta. */
+@media (max-width: 1199px) {
   .site-header .header-content {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
@@ -361,6 +356,10 @@ body {
   .laguna-bottom-nav > :is(a, button)[aria-current="page"] {
     box-shadow: inset 0 -3px #0c747c;
   }
+}
+
+/* El mapa y la lista cambian a flujo vertical solo en sus anchos ya previstos. */
+@media (max-width: 1099px) {
   .search-section {
     height: auto;
     min-height: 0;
@@ -498,7 +497,714 @@ body {
 }
 @media (prefers-reduced-motion: reduce) {
   .laguna-bottom-nav *,
-  .laguna-hero-action {
+  .laguna-home-report {
     transition: none;
+  }
+}
+
+/* Inicio Laguna: medidas de los frames oficiales 390 × 850 y 1366 × 880.
+   Estos estilos solo afectan al inicio; Explorar y formularios conservan su DOM. */
+@font-face {
+  font-family: "Laguna Outfit";
+  src: url("/laguna-assets/outfit-latin.woff2") format("woff2");
+  font-weight: 400 700;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Laguna Atkinson";
+  src: url("/laguna-assets/atkinson-latin.woff2") format("woff2");
+  font-weight: 400 500;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Laguna Bricolage";
+  src: url("/laguna-assets/bricolage-latin.woff2") format("woff2");
+  font-weight: 700;
+  font-display: swap;
+}
+.site-header .brand {
+  font-family: "Laguna Outfit", sans-serif;
+  font-weight: 400;
+  letter-spacing: -0.04em;
+  text-decoration: underline;
+  text-decoration-color: #f5c65e;
+  text-underline-offset: 4px;
+}
+.site-header .brand img {
+  display: block;
+}
+.site-header .brand picture {
+  display: block;
+}
+.laguna-copy-desktop {
+  display: none !important;
+}
+.laguna-home-categories a:first-child,
+.laguna-home-categories a:hover {
+  background: transparent;
+  color: #50616e;
+}
+.site-header .header-content > nav a[aria-current="page"] {
+  background: transparent;
+  color: #fff;
+  box-shadow: none;
+}
+.site-header .header-content > nav .laguna-desktop-publish {
+  display: none;
+}
+.page-intro {
+  font-family: "Laguna Outfit", sans-serif;
+  background: #117c83;
+}
+.laguna-home-shell {
+  display: flow-root;
+  background: #fff;
+}
+.page-intro .laguna-home-seal {
+  display: none;
+}
+.laguna-home-card {
+  position: relative;
+  z-index: 1;
+  font-family: "Laguna Outfit", sans-serif;
+  background: transparent;
+}
+.laguna-home-action {
+  display: grid;
+  grid-template-columns: 26px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid #e4e7e9;
+  border-radius: 18px;
+  background: #fff;
+}
+.laguna-home-question,
+.laguna-home-question-help {
+  display: block;
+}
+.laguna-home-question {
+  color: #17222b;
+  font-size: 15px;
+  font-weight: 600;
+}
+.laguna-home-question-help {
+  color: #6f757b;
+  font-family: "Laguna Atkinson", sans-serif;
+  font-size: 11px;
+  font-weight: 400;
+}
+.laguna-home-report {
+  display: grid;
+  place-items: center;
+  min-height: 42px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 12px;
+  background: #f5c65e;
+  color: #183843;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+  text-decoration: none;
+}
+.laguna-home-report:hover {
+  background: #eabb50;
+  color: #183843;
+}
+.laguna-home-illustration {
+  width: 350px;
+  height: 150px;
+  margin: 0;
+  border-radius: 0;
+  background: url("/laguna-assets/home-illustration-mobile.svg") no-repeat center / contain;
+}
+.laguna-home-card h2 {
+  margin: 0;
+  color: #17252f;
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+.laguna-home-category-help,
+.laguna-home-support-help {
+  display: none;
+}
+.laguna-home-categories {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+.laguna-home-categories a {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  color: #50616e;
+  font-family: "Laguna Atkinson", sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  text-decoration: none;
+}
+.laguna-home-categories img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.laguna-home-support-list {
+  min-width: 0;
+}
+.laguna-home-support {
+  display: grid;
+  grid-template-columns: 26px minmax(0, 1fr) 19px;
+  align-items: start;
+  gap: 12px;
+  margin: 0;
+  border: 1px solid #e3e9ef;
+  border-radius: 16px;
+  background: #fff;
+  color: #15242f;
+  text-decoration: none;
+}
+.laguna-home-support span,
+.laguna-home-support strong,
+.laguna-home-support small,
+.laguna-home-support em {
+  display: block;
+}
+.laguna-home-support strong {
+  font-size: 16px;
+  font-weight: 600;
+}
+.laguna-home-support small,
+.laguna-home-support em {
+  font-family: "Laguna Atkinson", sans-serif;
+  font-style: normal;
+  font-weight: 400;
+}
+.laguna-home-support small {
+  color: #687987;
+  font-size: 12px;
+}
+.laguna-home-support em {
+  color: #815b1e;
+  font-size: 11px;
+}
+.laguna-home-arrow {
+  align-self: center;
+}
+.laguna-home-footer {
+  display: none;
+}
+
+@media (max-width: 1099px) {
+  .site-header::before {
+    top: -87px;
+    right: -36px;
+    width: 155px;
+    height: 155px;
+    border-radius: 0;
+    background: url("/laguna-assets/header-circle-mobile.svg") no-repeat center / contain;
+    box-shadow: none;
+  }
+  .site-header .header-content {
+    min-height: 75px;
+  }
+  .site-header .brand img {
+    width: 159px;
+    height: 32px;
+  }
+  .page-intro {
+    height: 104px;
+    padding: 19px 21px 0;
+  }
+  .page-intro h1 {
+    font-size: 19px;
+    font-weight: 500;
+    line-height: 1.35;
+  }
+  .page-intro .intro {
+    margin-top: 4px;
+    font-size: 13px;
+  }
+  .laguna-home-card {
+    width: min(100% - 40px, 688px);
+    margin: -1px auto 32px;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+  }
+  .laguna-home-action {
+    height: 71px;
+    padding: 0 12px;
+  }
+  .laguna-home-body {
+    padding-top: 21px;
+  }
+  .laguna-home-illustration {
+    max-width: 100%;
+  }
+  .laguna-home-discovery h2 {
+    margin-top: 27px;
+  }
+  .laguna-home-categories {
+    margin-top: 10px;
+  }
+  .laguna-home-support-list h2 {
+    margin-top: 25px;
+  }
+  .laguna-home-support {
+    min-height: 91px;
+    margin-top: 14px;
+    padding: 12px 15px;
+  }
+  .laguna-home-support-extra {
+    display: none;
+  }
+  .laguna-bottom-nav {
+    min-height: 67px;
+    padding: 0;
+  }
+  .laguna-bottom-nav > :is(a, button) {
+    min-height: 67px;
+    border-radius: 0;
+    background: #fff;
+    font-family: "Laguna Outfit", sans-serif;
+    font-size: 12px;
+    font-weight: 400;
+  }
+  .laguna-bottom-nav > :is(a, button)[aria-current="page"] {
+    position: relative;
+    background: #fff;
+    box-shadow: none;
+    font-weight: 600;
+  }
+  .laguna-bottom-nav > :is(a, button)[aria-current="page"]::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: calc(50% - 19px);
+    width: 38px;
+    height: 3px;
+    border-radius: 3px;
+    background: #117c83;
+  }
+  .laguna-bottom-nav :is(a, button) img {
+    width: 24px;
+    height: 24px;
+  }
+}
+@media (max-width: 520px) {
+  .site-header .header-content {
+    min-height: 75px;
+    padding: 10px 22px;
+  }
+  .site-header .brand img {
+    width: 159px;
+    height: 32px;
+  }
+  .site-header #connection-indicator {
+    min-width: 101px;
+  }
+  .page-intro {
+    padding: 19px 21px 0;
+  }
+  .laguna-home-illustration {
+    width: 100%;
+    background-size: 100% 100%;
+  }
+  .laguna-home-support strong {
+    font-size: 16px;
+  }
+}
+@media (min-width: 1100px) {
+  .laguna-copy-mobile {
+    display: none !important;
+  }
+  .laguna-copy-desktop {
+    display: inline !important;
+  }
+  .site-header::before {
+    top: -165px;
+    right: -37px;
+    width: 250px;
+    height: 250px;
+    border-radius: 0;
+    background: url("/laguna-assets/header-circle-desktop.svg") no-repeat center / contain;
+    box-shadow: none;
+  }
+  .site-header .header-content {
+    min-height: 89px;
+    padding-inline: max(58px, calc((100vw - 1244px) / 2));
+  }
+  .site-header .brand img {
+    width: 223px;
+    height: 44px;
+  }
+  .site-header .header-search {
+    display: none;
+  }
+  .site-header .header-content > nav {
+    margin-left: auto;
+  }
+  .site-header .header-content > nav a {
+    font-family: "Laguna Outfit", sans-serif;
+    font-size: 15px;
+  }
+  .site-header .header-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 135px;
+    min-height: 47px;
+    font-family: "Laguna Outfit", sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+  }
+  .page-intro {
+    height: 221px;
+    padding: 26px max(58px, calc((100vw - 1244px) / 2)) 0;
+  }
+  .page-intro::after {
+    content: "";
+    position: absolute;
+    right: max(88px, calc((100vw - 1190px) / 2));
+    top: -1px;
+    width: 481px;
+    height: 188px;
+    background: url("/laguna-assets/home-illustration-desktop.svg") no-repeat center / contain;
+  }
+  .page-intro h1 {
+    max-width: 750px;
+    font-size: 38px;
+    font-weight: 600;
+  }
+  .page-intro .intro {
+    margin-top: 4px;
+    font-size: 19px;
+  }
+  .page-intro .laguna-home-seal {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    width: 310px;
+    margin-top: 32px;
+    padding: 9px 16px;
+    border-radius: 17px;
+    background: #0d6975;
+    color: #fff;
+    font-family: "Laguna Atkinson", sans-serif;
+    font-size: 13px;
+  }
+  .page-intro .laguna-home-seal img {
+    flex: 0 0 16px;
+  }
+  .laguna-home-card {
+    width: min(100% - 90px, 1244px);
+    margin: -35px auto 0;
+    padding: 0 0 31px;
+    border: 0;
+    border-radius: 0;
+  }
+  .laguna-home-action {
+    height: 97px;
+    padding: 0 22px;
+    grid-template-columns: 34px minmax(0, 1fr) 213px;
+    gap: 21px;
+  }
+  .laguna-home-action > img {
+    width: 34px;
+    height: 34px;
+    content: url("/laguna-assets/desktop-action-shield.svg");
+  }
+  .laguna-home-question {
+    font-size: 21px;
+  }
+  .laguna-home-question-help {
+    font-size: 15px;
+  }
+  .laguna-home-report {
+    min-height: 54px;
+    border-radius: 14px;
+    font-size: 17px;
+  }
+  .laguna-home-report::before {
+    content: "+";
+    margin-right: 8px;
+    font-size: 20px;
+  }
+  .laguna-home-report {
+    display: flex;
+    justify-content: center;
+  }
+  .laguna-home-body {
+    display: grid;
+    grid-template-columns: minmax(0, 652fr) minmax(0, 545fr);
+    gap: 47px;
+    padding-top: 33px;
+  }
+  .laguna-home-illustration {
+    display: none;
+  }
+  .laguna-home-card h2 {
+    font-size: 27px;
+  }
+  .laguna-home-category-help,
+  .laguna-home-support-help {
+    display: block;
+    margin: 3px 0 18px;
+    color: #65798a;
+    font-family: "Laguna Atkinson", sans-serif;
+    font-size: 15px;
+  }
+  .laguna-home-categories {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 18px;
+  }
+  .laguna-home-categories a {
+    font-size: 15px;
+    gap: 11px;
+  }
+  .laguna-home-categories a:nth-child(1) img {
+    content: url("/laguna-assets/desktop-map-shelter.svg");
+  }
+  .laguna-home-categories a:nth-child(2) img {
+    content: url("/laguna-assets/desktop-map-road.svg");
+  }
+  .laguna-home-categories a:nth-child(3) img {
+    content: url("/laguna-assets/desktop-map-person.svg");
+  }
+  .laguna-home-categories a:nth-child(4) img {
+    content: url("/laguna-assets/desktop-map-help.svg");
+  }
+  .laguna-home-support {
+    grid-template-columns: 48px minmax(0, 1fr) 21px;
+    min-height: 92px;
+    margin-bottom: 20px;
+    padding: 16px 14px;
+  }
+  .laguna-home-support-list .laguna-home-support-help {
+    margin-bottom: 22px;
+  }
+  .laguna-home-support > img:first-child {
+    width: 48px;
+    height: 48px;
+    padding: 11px;
+    border-radius: 14px;
+    background: #117c83;
+    content: url("/laguna-assets/desktop-support-home.svg");
+  }
+  .laguna-home-support-extra > img:first-child {
+    background: #e86d5e;
+    content: url("/laguna-assets/desktop-support-heart.svg");
+  }
+  .laguna-home-arrow {
+    content: url("/laguna-assets/desktop-arrow.svg");
+  }
+  .laguna-home-support strong {
+    font-size: 16px;
+  }
+  .laguna-home-support em {
+    font-size: 11px;
+  }
+  .laguna-home-footer {
+    display: block;
+    margin-top: 25px;
+    padding: 0;
+    border-top: 1px solid #e6ebef;
+    color: #657987;
+    font-family: "Laguna Atkinson", sans-serif;
+  }
+  .laguna-home-footer p {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    margin: 21px 0 42px;
+    font-size: 14px;
+  }
+  .laguna-home-footer small {
+    color: #92a0aa;
+    font-size: 12px;
+  }
+  .notice-demo {
+    margin-top: 32px;
+  }
+}
+@media (min-width: 1100px) and (max-width: 1199px) {
+  .site-header .header-action {
+    display: none;
+  }
+  .laguna-bottom-nav {
+    min-height: 67px;
+    padding: 0;
+  }
+  .laguna-bottom-nav > :is(a, button) {
+    min-height: 67px;
+    border-radius: 0;
+    background: #fff;
+    font-family: "Laguna Outfit", sans-serif;
+    font-size: 12px;
+    font-weight: 400;
+  }
+  .laguna-bottom-nav > :is(a, button)[aria-current="page"] {
+    position: relative;
+    background: #fff;
+    box-shadow: none;
+    font-weight: 600;
+  }
+  .laguna-bottom-nav > :is(a, button)[aria-current="page"]::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: calc(50% - 19px);
+    width: 38px;
+    height: 3px;
+    border-radius: 3px;
+    background: #117c83;
+  }
+  .laguna-bottom-nav :is(a, button) img {
+    width: 24px;
+    height: 24px;
+  }
+}
+
+@media (min-width: 1200px) {
+  /* El frame global ubica los destinos entre x475 y x802 a 1366 px. */
+  .laguna-home-card {
+    margin-left: max(45px, calc((100vw - 1244px) / 2));
+  }
+  .page-intro::after {
+    right: auto;
+    left: min(calc(50vw + 114px), calc(100% - 481px));
+  }
+  .site-header .header-content {
+    display: flex;
+    align-items: flex-start;
+    gap: 0;
+    height: 89px;
+    padding: 0 40px 0 58px;
+  }
+  .site-header .brand {
+    position: static;
+    flex: 0 0 223px;
+    margin: 23px auto 0 0;
+    min-height: 44px;
+  }
+  .site-header .header-content > nav {
+    position: static;
+    flex: 0 0 373px;
+    width: 373px;
+    margin: 11px 0 0;
+    gap: 0;
+  }
+  .site-header .header-content > nav a {
+    min-height: 48px;
+    padding: 14px 0 0;
+    border-radius: 0;
+  }
+  .site-header .header-content > nav a:nth-child(1) {
+    position: relative;
+    width: 85px;
+  }
+  .site-header .header-content > nav a[aria-current="page"]::after {
+    content: "";
+    position: absolute;
+    top: 64px;
+    left: 0;
+    width: 61px;
+    height: 3px;
+    border-radius: 2px;
+    background: #fff;
+  }
+  .site-header .header-content > nav a:nth-child(2) {
+    position: relative;
+    width: 115px;
+  }
+  .site-header .header-content > nav a:nth-child(3) {
+    position: relative;
+    width: 173px;
+  }
+  .site-header .header-action {
+    position: static;
+    flex: 0 0 135px;
+    margin: 20px 29px 0 0;
+  }
+  .site-header .identity-controls {
+    position: static;
+    flex: 0 0 299px;
+    margin-top: 20px;
+    gap: 36px;
+  }
+  .site-header #connection-indicator {
+    width: 137px;
+    height: 36px;
+    margin-top: 7px;
+  }
+  .site-header .identity-trigger {
+    width: 126px;
+    height: 47px;
+  }
+  .site-header .identity-trigger svg {
+    display: none;
+  }
+  .site-header .identity-trigger::after {
+    margin: 0;
+    font-size: 15px;
+  }
+}
+/* Adaptaciones de los frames oficiales 4:248 y 6:311; conserva sus componentes. */
+@media (max-width: 374px) {
+  .site-header .header-content {
+    padding-inline: 18px;
+  }
+  .laguna-home-card {
+    width: calc(100% - 40px);
+  }
+  .laguna-home-action {
+    grid-template-columns: 26px minmax(0, 1fr) 84px;
+    gap: 7px;
+    padding-inline: 9px;
+  }
+  .laguna-home-question {
+    font-size: 13px;
+  }
+  .laguna-home-question-help {
+    font-size: 10px;
+  }
+  .laguna-home-report {
+    padding-inline: 8px;
+    font-size: 12px;
+  }
+  .laguna-home-illustration {
+    height: auto;
+    aspect-ratio: 7 / 3;
+  }
+  .laguna-home-categories {
+    gap: 7px;
+  }
+  .laguna-home-support {
+    grid-template-columns: 26px minmax(0, 1fr) 19px;
+    gap: 8px;
+    padding-inline: 10px;
+  }
+}
+@media (min-width: 521px) and (max-width: 1099px) {
+  .page-intro {
+    padding-inline: max(40px, calc((100vw - 688px) / 2));
+  }
+  .laguna-home-card {
+    width: min(100% - 80px, 688px);
+  }
+  .laguna-home-illustration {
+    width: min(100%, 550px);
+    height: auto;
+    aspect-ratio: 7 / 3;
+  }
+  .laguna-home-categories {
+    grid-template-columns: repeat(4, minmax(0, 130px));
+    gap: 16px;
+  }
+  .laguna-home-support {
+    max-width: 550px;
   }
 }

@@ -29,6 +29,19 @@ function loadNavigation(hash = "#main-content") {
       this.events[name] = callback;
     },
   }));
+  const desktopTabs = ["#main-content", "#search-section", "#own-section"].map((href) => ({
+    href,
+    attributes: new Map(),
+    getAttribute(name) {
+      return name === "href" ? this.href : this.attributes.get(name);
+    },
+    setAttribute(name, value) {
+      this.attributes.set(name, value);
+    },
+    removeAttribute(name) {
+      this.attributes.delete(name);
+    },
+  }));
   const dialog = {
     open: false,
     events: {},
@@ -51,8 +64,10 @@ function loadNavigation(hash = "#main-content") {
     },
   };
   const document = {
-    querySelectorAll() {
-      return tabs;
+    querySelectorAll(selector) {
+      if (selector === ".site-header .header-content > nav a") return desktopTabs;
+      if (selector === ".laguna-bottom-nav [data-laguna-tab]") return tabs;
+      return [];
     },
     getElementById(id) {
       if (id === "laguna-mobile-account") return tabs[3];
@@ -70,13 +85,17 @@ function loadNavigation(hash = "#main-content") {
     window,
     listeners,
     opened: () => openCount,
-    selected: () => tabs.filter((item) => item.attributes.has("aria-current")).map((t) => t.dataset.lagunaTab),
+    selected: () =>
+      tabs.filter((item) => item.attributes.has("aria-current")).map((t) => t.dataset.lagunaTab),
+    desktopSelected: () =>
+      desktopTabs.filter((item) => item.attributes.has("aria-current")).map((item) => item.href),
   };
 }
 
 test("Explorar inicia seleccionado si la ubicación lleva al mapa", () => {
   const view = loadNavigation("#search-section");
   assert.deepEqual(view.selected(), ["explore"]);
+  assert.deepEqual(view.desktopSelected(), ["#search-section"]);
 });
 
 test("Cuenta móvil reutiliza el disparador de sesión y nunca duplica el acceso", () => {
@@ -93,11 +112,14 @@ test("Cuenta móvil reutiliza el disparador de sesión y nunca duplica el acceso
 test("La barra alterna una sola selección al navegar entre pantallas", () => {
   const view = loadNavigation();
   assert.deepEqual(view.selected(), ["home"]);
+  assert.deepEqual(view.desktopSelected(), ["#main-content"]);
   view.tab("publish").events.click();
   assert.deepEqual(view.selected(), ["publish"]);
+  assert.deepEqual(view.desktopSelected(), []);
   view.window.location.hash = "#own-section";
   view.listeners.hashchange();
   assert.deepEqual(view.selected(), ["account"]);
+  assert.deepEqual(view.desktopSelected(), ["#own-section"]);
 });
 
 test("No se cambia la pestaña activa mientras el diálogo de cuenta está abierto", () => {

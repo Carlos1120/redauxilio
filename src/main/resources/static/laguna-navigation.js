@@ -7,10 +7,20 @@
  */
 (() => {
   const tabs = [...document.querySelectorAll(".laguna-bottom-nav [data-laguna-tab]")];
+  const desktopTabs = [...document.querySelectorAll(".site-header .header-content > nav a")];
   const account = document.getElementById("laguna-mobile-account");
   const existingAccountTrigger = document.getElementById("identity-open");
   const dialog = document.getElementById("identity-dialog");
   if (tabs.length !== 4 || !account || !existingAccountTrigger || !dialog) return;
+
+  // Los accesos del Inicio reutilizan los filtros públicos existentes.
+  for (const link of document.querySelectorAll("[data-home-category]")) {
+    link.addEventListener("click", () => {
+      document
+        .querySelector(`.quick-filters [data-category="${link.dataset.homeCategory}"]`)
+        ?.click();
+    });
+  }
 
   function selectedByHash(hash) {
     if (hash === "#draft-section") return "publish";
@@ -24,6 +34,18 @@
     for (const item of tabs) {
       if (item.dataset.lagunaTab === key) item.setAttribute("aria-current", "page");
       else item.removeAttribute("aria-current");
+    }
+    // La misma navegación activa se refleja en la cabecera de escritorio.
+    const desktopHref = {
+      home: "#main-content",
+      explore: "#search-section",
+      publish: "#draft-section",
+      account: window.location.hash === "#own-section" ? "#own-section" : null,
+    }[key];
+    for (const link of desktopTabs) {
+      if (desktopHref && link.getAttribute("href") === desktopHref)
+        link.setAttribute("aria-current", "page");
+      else link.removeAttribute("aria-current");
     }
   }
 

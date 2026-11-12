@@ -3,12 +3,13 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#d7262e" />
+    <meta name="theme-color" content="#117c83" />
     <title>RedAuxilio · Consulta comunitaria</title>
     <link rel="manifest" href="/manifest.webmanifest" />
     <!-- Leaflet queda local para que un fallo del CDN no impida iniciar el mapa. -->
     <link rel="stylesheet" href="/vendor/leaflet/leaflet.css" />
     <link rel="stylesheet" href="/app.css" />
+    <link rel="stylesheet" href="/laguna.css" />
     <script src="/vendor/leaflet/leaflet.js" defer></script>
     <script src="/map.js" defer></script>
     <script src="/identity-forms.js" defer></script>
@@ -23,6 +24,7 @@
     <script src="/confirmation.js" defer></script>
     <script src="/content-report.js" defer></script>
     <script src="/official-verification.js" defer></script>
+    <script src="/laguna-ui.js" defer></script>
   </head>
   <body>
     <a class="skip-link" href="#main-content">Saltar al contenido</a>
@@ -138,26 +140,24 @@
         </form>
       </section>
     </dialog>
-    <header class="site-header">
+    <header class="site-header" id="laguna-site-header">
       <div class="header-content">
-        <a class="brand" href="#main-content"
-          ><img src="/icon.svg?v=6" width="36" height="36" alt="" /><span
-            >RedAuxilio<small>Información que nos conecta</small></span
-          ></a
-        >
-        <label class="header-search" for="search-query">
-          <span class="search-icon" aria-hidden="true">⌕</span>
-          <span class="sr-only">Buscar entre los reportes visibles</span>
-          <input id="search-query" type="search" placeholder="Buscar título o lugar…" />
-        </label>
-        <nav aria-label="Secciones">
-          <a href="#map-title">Mapa</a><a href="#publications">Reportes</a
-          ><a href="#draft-section">Publicar</a>
+        <a class="brand" href="#laguna-home" aria-label="RedAuxilio, ir al inicio">
+          <img src="/icon.svg?v=6" width="36" height="36" alt="" />
+          <span>RedAuxilio</span>
+        </a>
+        <nav class="laguna-desktop-nav" aria-label="Navegación principal">
+          <a href="#laguna-home" data-laguna-nav="inicio">Inicio</a>
+          <a href="#search-section" data-laguna-nav="explorar">Explorar</a>
+          <a href="#own-section" data-laguna-nav="cuenta">Mis reportes</a>
         </nav>
-        <a class="header-action" href="#draft-section">＋ Nueva publicación</a>
+        <a class="header-action" href="#draft-section" data-laguna-nav="publicar">＋ Publicar</a>
         <div class="identity-controls">
           <span id="connection-indicator" class="connection-indicator" aria-hidden="true"></span>
           <span id="connection" class="sr-only" role="status" aria-live="polite"></span>
+          <span id="laguna-connection-label" class="laguna-connection" aria-hidden="true"
+            >● En línea</span
+          >
           <button
             id="identity-open"
             class="identity-trigger"
@@ -170,16 +170,54 @@
             <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
               <path d="M20 21a8 8 0 0 0-16 0M12 13a5 5 0 1 0 0-10 5 5 0 0 0 0 10Z" />
             </svg>
+            <span class="laguna-account-label">Cuenta</span>
           </button>
         </div>
+        <!-- app.js conserva el campo fuente y su manejador de búsqueda. -->
+        <label class="laguna-original-search" for="search-query" hidden>
+          <span class="sr-only">Buscar entre los reportes visibles</span>
+          <input id="search-query" type="search" placeholder="Buscar título o lugar…" />
+        </label>
       </div>
     </header>
     <main id="main-content" tabindex="-1">
-      <div class="page-intro">
-        <p class="eyebrow">RED DE INFORMACIÓN COMUNITARIA</p>
-        <h1>Orientación comunitaria, en un mapa.</h1>
-        <p class="intro">Consulta ubicaciones y reportes compartidos en la demostración.</p>
-      </div>
+      <section id="laguna-home" class="laguna-home" aria-labelledby="laguna-home-title">
+        <div class="laguna-home-copy">
+          <p class="laguna-eyebrow">RED DE INFORMACIÓN COMUNITARIA</p>
+          <h1 id="laguna-home-title">Información para tu comunidad</h1>
+          <p class="laguna-home-lead">Encuentra ayuda y comparte lo que sucede cerca de ti.</p>
+          <div class="laguna-home-actions">
+            <a class="laguna-primary-link" href="#draft-section">＋ Reportar situación</a>
+            <a class="laguna-secondary-link" href="#search-section">Explorar reportes</a>
+          </div>
+        </div>
+        <div class="laguna-home-art" aria-hidden="true">
+          <span class="laguna-art-sun"></span>
+          <span class="laguna-art-hill"></span>
+          <span class="laguna-art-house"></span>
+          <span class="laguna-art-roof"></span>
+          <span class="laguna-art-door"></span>
+          <span class="laguna-art-pin"></span>
+        </div>
+      </section>
+      <section class="laguna-categories" aria-labelledby="laguna-categories-title">
+        <div class="laguna-section-title">
+          <h2 id="laguna-categories-title">Reportes por categoría</h2>
+          <p>Consulta información compartida por la comunidad.</p>
+        </div>
+        <div class="laguna-category-grid">
+          <a href="#search-section" data-laguna-category="ASSISTANCE"
+            >⌂ <span>Refugios y acopio</span></a
+          >
+          <a href="#search-section" data-laguna-category="ROAD">↔ <span>Vías afectadas</span></a>
+          <a href="#search-section" data-laguna-category="MISSING_PERSON"
+            >◎ <span>Personas desaparecidas</span></a
+          >
+          <a href="#search-section" data-laguna-category="HELP_REQUEST"
+            >♡ <span>Solicitudes de ayuda</span></a
+          >
+        </div>
+      </section>
       <aside class="notice notice-demo" aria-label="Aviso de demostración">
         <span class="notice-icon" aria-hidden="true">!</span>
         <div>
@@ -203,6 +241,20 @@
               <h2 id="search-title">Reportes visibles</h2>
             </div>
             <span class="section-caption">Ejemplos y publicaciones</span>
+          </div>
+          <div class="laguna-explore-search">
+            <label for="laguna-search-query">Buscar por barrio o lugar</label>
+            <input
+              id="laguna-search-query"
+              type="search"
+              maxlength="160"
+              placeholder="Nombre, barrio o zona…"
+              autocomplete="off"
+              aria-describedby="laguna-search-hint"
+            />
+            <small id="laguna-search-hint"
+              >Busca dentro de los reportes de la consulta actual.</small
+            >
           </div>
           <div class="quick-filters" role="group" aria-label="Filtrar por tipo de reporte">
             <button type="button" data-category="" aria-pressed="true">Todo</button>
@@ -744,5 +796,33 @@
       <span>RedAuxilio · Proyecto académico · Equipo 4</span
       ><span>Carlos Mario Peña y Santiago Ortiz Ochoa</span>
     </footer>
+    <nav class="laguna-bottom-nav" aria-label="Navegación móvil">
+      <a href="#laguna-home" data-laguna-nav="inicio" aria-label="Inicio">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="m3 10 9-7 9 7v10h-6v-6H9v6H3z" />
+        </svg>
+        <span>Inicio</span>
+      </a>
+      <a href="#search-section" data-laguna-nav="explorar" aria-label="Explorar reportes">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="m3 5 6-2 6 2 6-2v16l-6 2-6-2-6 2zM9 3v16m6-14v16" />
+        </svg>
+        <span>Explorar</span>
+      </a>
+      <a href="#draft-section" data-laguna-nav="publicar" aria-label="Publicar reporte">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <rect x="3" y="3" width="18" height="18" rx="4" />
+          <path d="M12 7v10M7 12h10" />
+        </svg>
+        <span>Publicar</span>
+      </a>
+      <button id="laguna-account-mobile" type="button" aria-label="Abrir mi cuenta">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <circle cx="12" cy="8" r="4" />
+          <path d="M4 21c0-4 3-7 8-7s8 3 8 7" />
+        </svg>
+        <span>Cuenta</span>
+      </button>
+    </nav>
   </body>
 </html>

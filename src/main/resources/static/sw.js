@@ -6,10 +6,13 @@
  */
 // RA-10/13 renuevan recursos públicos; contacto, fotos e historiales siguen fuera de caché.
 // RA-14: renueva el shell para distribuir advertencia y control de justificacion.
-const CACHE = "redauxilio-demo-v27";
+const CACHE = "redauxilio-demo-v29";
 const SHELL = [
   "/",
   "/app.css",
+  "/laguna.css",
+  "/laguna-ui.js",
+  "/laguna-home.svg",
   "/app.js",
   "/missing-person.js",
   "/missing-person-sightings.js",

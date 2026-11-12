@@ -3,12 +3,14 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#d7262e" />
+    <meta name="theme-color" content="#117d83" />
     <title>RedAuxilio · Consulta comunitaria</title>
     <link rel="manifest" href="/manifest.webmanifest" />
     <!-- Leaflet queda local para que un fallo del CDN no impida iniciar el mapa. -->
     <link rel="stylesheet" href="/vendor/leaflet/leaflet.css" />
     <link rel="stylesheet" href="/app.css" />
+    <!-- RA-Laguna: capa de identidad progresiva, sin reemplazar la lógica existente. -->
+    <link rel="stylesheet" href="/laguna.css" />
     <script src="/vendor/leaflet/leaflet.js" defer></script>
     <script src="/map.js" defer></script>
     <script src="/identity-forms.js" defer></script>
@@ -18,6 +20,7 @@
     <script src="/missing-person-sightings.js" defer></script>
     <script src="/authorized-contact.js" defer></script>
     <script src="/app.js" defer></script>
+    <script src="/laguna-navigation.js" defer></script>
     <script src="/publication-form.js" defer></script>
     <script src="/my-publications.js" defer></script>
     <script src="/confirmation.js" defer></script>
@@ -151,8 +154,8 @@
           <input id="search-query" type="search" placeholder="Buscar título o lugar…" />
         </label>
         <nav aria-label="Secciones">
-          <a href="#map-title">Mapa</a><a href="#publications">Reportes</a
-          ><a href="#draft-section">Publicar</a>
+          <a href="#main-content">Inicio</a><a href="#search-section">Explorar</a
+          ><a href="#own-section">Mis reportes</a>
         </nav>
         <a class="header-action" href="#draft-section">＋ Nueva publicación</a>
         <div class="identity-controls">
@@ -177,8 +180,9 @@
     <main id="main-content" tabindex="-1">
       <div class="page-intro">
         <p class="eyebrow">RED DE INFORMACIÓN COMUNITARIA</p>
-        <h1>Orientación comunitaria, en un mapa.</h1>
-        <p class="intro">Consulta ubicaciones y reportes compartidos en la demostración.</p>
+        <h1>Información para tu comunidad</h1>
+        <p class="intro">Encuentra ayuda y comparte lo que sucede en tu comunidad.</p>
+        <a class="laguna-hero-action" href="#draft-section">＋ Reportar situación</a>
       </div>
       <aside class="notice notice-demo" aria-label="Aviso de demostración">
         <span class="notice-icon" aria-hidden="true">!</span>
@@ -740,6 +744,41 @@
         </section>
       </div>
     </main>
+    <!-- Laguna: Cuenta aparece solo en esta barra en móvil y tablet. -->
+    <nav class="laguna-bottom-nav" aria-label="Navegación principal móvil">
+      <a href="#main-content" data-laguna-tab="home" aria-current="page">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="m3 10 9-7 9 7v10H3zM9 20v-7h6v7" />
+        </svg>
+        <span>Inicio</span>
+      </a>
+      <a href="#search-section" data-laguna-tab="explore">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="m3 5 6-2 6 2 6-2v16l-6 2-6-2-6 2zM9 3v16M15 5v16" />
+        </svg>
+        <span>Explorar</span>
+      </a>
+      <a href="#draft-section" data-laguna-tab="publish">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <rect x="3" y="3" width="18" height="18" rx="5" />
+          <path d="M12 7v10M7 12h10" />
+        </svg>
+        <span>Publicar</span>
+      </a>
+      <button
+        id="laguna-mobile-account"
+        type="button"
+        data-laguna-tab="account"
+        aria-haspopup="dialog"
+        aria-controls="identity-dialog"
+      >
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="8" r="4" />
+          <path d="M4 21c0-5 3-8 8-8s8 3 8 8" />
+        </svg>
+        <span>Cuenta</span>
+      </button>
+    </nav>
     <footer>
       <span>RedAuxilio · Proyecto académico · Equipo 4</span
       ><span>Carlos Mario Peña y Santiago Ortiz Ochoa</span>

@@ -1,0 +1,504 @@
+/**
+ * Laguna • Primera integración: cabecera, Inicio, Explorar y navegación global.
+ * Capa de estilos progresiva: no sustituye los ID, mapas, formularios ni API.
+ * Figma: 09C responsive; 03G formularios; sistema visual común.
+ */
+:root {
+  --color-relief-blue: #0c747c;
+  --color-relief-blue-hover: #07545b;
+  --color-information-ground: #f6f9fa;
+  --color-information-paper: #ffffff;
+  --color-report-inset: #eaf7f3;
+  --color-report-ink: #193644;
+  --color-report-secondary: #4b6473;
+  --color-report-tertiary: #536c7b;
+  --color-report-border: #d5e4e6;
+  --color-report-border-subtle: #dfe9e9;
+  --color-control-border: #9bb7c0;
+  --color-focus: #0c747c;
+  --radius-control: 11px;
+  --radius-report: 15px;
+}
+html {
+  scroll-padding-top: 96px;
+}
+body {
+  background: var(--color-information-ground);
+  color: var(--color-report-ink);
+}
+:where(button, a, input, select, textarea, summary):focus-visible {
+  outline: 3px solid #07545b;
+  outline-offset: 3px;
+}
+
+/* La cabecera retiene semicírculo + sombra como detalle de identidad Laguna. */
+.site-header {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background: #117d83;
+  box-shadow: 0 4px 18px rgb(16 77 82 / 11%);
+}
+.site-header::before {
+  content: "";
+  position: absolute;
+  right: -60px;
+  top: -140px;
+  width: 260px;
+  height: 260px;
+  border-radius: 50%;
+  background: #0a6872;
+  box-shadow: -8px 12px 24px rgb(0 48 57 / 24%);
+  pointer-events: none;
+  z-index: 0;
+}
+.site-header .header-content {
+  position: relative;
+  z-index: 1;
+  gap: 12px;
+  min-height: 80px;
+  padding: 12px clamp(16px, 3.8vw, 48px);
+}
+.site-header .brand {
+  color: #fff;
+  font-size: clamp(1.25rem, 1.65vw, 1.65rem);
+  letter-spacing: -0.04em;
+}
+.site-header .brand:hover {
+  color: #fff;
+}
+.site-header .brand img {
+  width: 32px;
+  height: 32px;
+}
+.site-header .header-content > nav {
+  display: flex;
+  gap: 6px;
+  width: auto;
+  padding: 0;
+  border: 0;
+}
+.site-header .header-content > nav a {
+  color: #fff;
+  font-size: 0.88rem;
+  border-radius: 11px;
+  padding: 9px 12px;
+}
+.site-header .header-content > nav a:hover {
+  color: #073f44;
+  background: #eaf7f3;
+}
+.site-header .header-action {
+  background: #fff;
+  color: #0c747c;
+  border-radius: 12px;
+  padding-inline: 16px;
+  font-size: 0.88rem;
+  font-weight: 750;
+}
+.site-header .header-action:hover {
+  background: #eaf7f3;
+  color: #07545b;
+}
+.site-header .header-search {
+  margin: 0 auto 0 0;
+  width: clamp(160px, 20vw, 310px);
+}
+.site-header .header-search input {
+  background: #fff;
+  color: #193644;
+}
+.site-header .identity-controls {
+  flex: 0 0 auto;
+  gap: 8px;
+}
+.site-header #connection-indicator {
+  position: relative;
+  display: inline-flex;
+  width: auto;
+  min-width: 96px;
+  height: 35px;
+  padding: 7px 12px 7px 27px;
+  border: 0;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: none;
+}
+.site-header #connection-indicator::before {
+  content: "";
+  position: absolute;
+  left: 11px;
+  top: 13px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #16704b;
+}
+.site-header #connection-indicator::after {
+  content: "En línea";
+  color: #146545;
+  font-size: 0.76rem;
+  font-weight: 750;
+  white-space: nowrap;
+}
+.site-header #connection-indicator[data-online="false"]::before {
+  background: #9b6310;
+}
+.site-header #connection-indicator[data-online="false"]::after {
+  content: "Sin conexión";
+  color: #865614;
+}
+.site-header .identity-trigger {
+  width: auto;
+  min-width: 90px;
+  height: 44px;
+  border-radius: 12px;
+  background: #fff;
+  color: #0c747c;
+}
+.site-header .identity-trigger::after {
+  content: "Cuenta";
+  margin-left: 6px;
+  font-size: 0.87rem;
+  font-weight: 750;
+}
+
+/* Inicio mantiene aviso de demostración y dirige a la publicación existente. */
+.page-intro {
+  position: relative;
+  clip: auto;
+  overflow: visible;
+  width: 100%;
+  height: auto;
+  margin: 0;
+  padding: 32px clamp(16px, 4vw, 52px) 34px;
+  white-space: normal;
+  background: #117d83;
+  color: #fff;
+}
+.page-intro .eyebrow {
+  display: none;
+}
+.page-intro h1 {
+  max-width: 740px;
+  font-size: clamp(1.65rem, 3.6vw, 2.65rem);
+  font-weight: 750;
+  line-height: 1.18;
+}
+.page-intro .intro {
+  max-width: 600px;
+  margin-top: 8px;
+  color: #eaf7f3;
+  font-size: 1rem;
+}
+.laguna-hero-action {
+  display: inline-flex;
+  align-items: center;
+  min-height: 48px;
+  padding: 12px 20px;
+  margin-top: 20px;
+  border-radius: 12px;
+  background: #fff;
+  color: #07545b;
+  text-decoration: none;
+  font-weight: 750;
+}
+.laguna-hero-action:hover {
+  background: #eaf7f3;
+  color: #07545b;
+}
+.notice-demo {
+  background: #fff2d7;
+  color: #744c0d;
+  padding-block: 11px;
+  border-bottom: 1px solid #f0dfb9;
+  font-size: 0.84rem;
+}
+.notice-demo p {
+  color: #744c0d;
+}
+.notice-demo .notice-icon {
+  background: #9b6310;
+  border-color: #fff2d7;
+}
+
+/* Explorar preserva Leaflet, filtros y lista actual, sin nuevas consultas. */
+.search-section {
+  background: #e9f3f1;
+}
+.search-section::before {
+  background: #fff;
+  box-shadow: 0 5px 18px rgb(20 83 85 / 9%);
+}
+.quick-filters button {
+  border-radius: 11px;
+  border: 1px solid #d5e4e6;
+  background: #fff;
+  color: #193644;
+  font-size: 0.84rem;
+}
+.quick-filters button[aria-pressed="true"] {
+  border-color: #0c747c;
+  background: #0c747c;
+  color: #fff;
+}
+.quick-filters button:hover:not([aria-pressed="true"]) {
+  background: #eaf7f3;
+  color: #07545b;
+}
+.report-grid .card {
+  border-color: #d5e4e6;
+  border-radius: 14px;
+}
+.report-grid .card[data-selected="true"] {
+  border-color: #0c747c;
+  box-shadow: inset 0 0 0 1px #0c747c;
+}
+.report-grid .tag,
+.report-grid .report-facts > div {
+  background: #eaf7f3;
+  color: #0c747c;
+}
+.report-grid .card button {
+  color: #07545b;
+  background: #eaf7f3;
+}
+#report-map {
+  background: #e9f3f1;
+}
+#report-map .leaflet-tile-pane {
+  filter: saturate(0.6) contrast(0.95) brightness(1.03);
+}
+.draft-section {
+  border-top-color: #0c747c;
+}
+
+.laguna-bottom-nav {
+  display: none;
+}
+
+/* Tabletas y móviles: panel de mapa y lista en flujo vertical. */
+@media (max-width: 1099px) {
+  .site-header .header-content {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 10px 12px;
+    padding: 10px 18px;
+  }
+  .site-header .brand {
+    grid-area: 1 / 1;
+    min-width: 0;
+  }
+  .site-header .identity-controls {
+    grid-area: 1 / 2;
+  }
+  /* Cuenta se accede SOLAMENTE desde la navegación inferior. */
+  .site-header .identity-trigger {
+    display: none;
+  }
+  .site-header .header-content > nav,
+  .site-header .header-action {
+    display: none;
+  }
+  .site-header .header-search {
+    grid-area: 2 / 1 / 3 / -1;
+    width: 100%;
+    margin: 0;
+  }
+  main {
+    padding-bottom: calc(92px + env(safe-area-inset-bottom));
+  }
+  .laguna-bottom-nav {
+    position: fixed;
+    z-index: 1500;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    width: 100%;
+    min-height: calc(72px + env(safe-area-inset-bottom));
+    padding: 4px 8px calc(5px + env(safe-area-inset-bottom));
+    border-top: 1px solid #d5e4e6;
+    background: #fff;
+    box-shadow: 0 -2px 12px rgb(17 71 77 / 6%);
+  }
+  .laguna-bottom-nav > :is(a, button) {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    min-width: 0;
+    min-height: 58px;
+    margin: 0;
+    padding: 5px 2px;
+    border: 0;
+    border-radius: 9px;
+    background: transparent;
+    color: #536c7b;
+    font-size: clamp(0.74rem, 1.9vw, 0.85rem);
+    font-weight: 650;
+    text-align: center;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  .laguna-bottom-nav :is(a, button) svg {
+    width: 24px;
+    height: 24px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .laguna-bottom-nav > :is(a, button):hover,
+  .laguna-bottom-nav > :is(a, button)[aria-current="page"] {
+    color: #0c747c;
+    background: #eaf7f3;
+  }
+  .laguna-bottom-nav > :is(a, button)[aria-current="page"] {
+    box-shadow: inset 0 -3px #0c747c;
+  }
+  .search-section {
+    height: auto;
+    min-height: 0;
+    padding: 0 0 22px;
+    overflow: visible;
+    align-items: stretch;
+  }
+  .search-section::before {
+    display: none;
+  }
+  .search-section > .section-heading,
+  .search-section > .quick-filters,
+  .search-section > .filter-drawer,
+  .search-section > .query-message,
+  .search-section > #publications,
+  .search-section > .query-help {
+    position: relative;
+    z-index: 1;
+    width: calc(100% - 32px);
+    margin-inline: 16px;
+  }
+  .search-section > .section-heading {
+    order: 1;
+    margin-top: 20px;
+  }
+  .search-section > .quick-filters {
+    order: 2;
+  }
+  .search-section > .filter-drawer {
+    order: 3;
+  }
+  .search-section > .query-message {
+    order: 4;
+  }
+  .search-section > #publications {
+    order: 5;
+    flex: none;
+    overflow: visible;
+    padding: 0;
+  }
+  .search-section > .query-help {
+    order: 6;
+  }
+  .map-section {
+    position: relative;
+    inset: auto;
+    order: 0;
+    flex: 0 0 auto;
+    height: clamp(320px, 48vw, 440px);
+    width: 100%;
+  }
+  .map-section #report-map {
+    inset: 0;
+    height: 100%;
+    width: 100%;
+  }
+  .map-section #reset-map {
+    right: 16px;
+    bottom: 52px;
+  }
+  #report-map .leaflet-top.leaflet-left {
+    right: 16px;
+    bottom: 112px;
+  }
+  .map-legend {
+    right: 70px;
+    left: 12px;
+    bottom: 48px;
+    max-width: none;
+    width: auto;
+  }
+  .map-section #map-status[data-error="true"] {
+    right: 16px;
+    left: 16px;
+    max-width: none;
+  }
+  /* El ancho automático descuenta ambos márgenes; 100% + 16px provoca overflow en tablet. */
+  .draft-section {
+    width: auto;
+    margin: 24px 16px;
+  }
+  .draft-section form {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .draft-section
+    form
+    > :is(.field, fieldset, .publication-fields, .description-fields, .draft-actions) {
+    grid-column: 1 / -1;
+    grid-row: auto;
+  }
+  footer {
+    padding-bottom: calc(84px + env(safe-area-inset-bottom));
+  }
+}
+@media (max-width: 520px) {
+  .site-header .header-content {
+    padding: 10px 14px;
+  }
+  .site-header .brand {
+    font-size: 1.18rem;
+  }
+  .site-header .brand img {
+    width: 27px;
+    height: 27px;
+  }
+  .page-intro {
+    padding: 25px 18px 28px;
+  }
+  .page-intro h1 {
+    font-size: 1.65rem;
+  }
+  .page-intro .intro {
+    font-size: 0.94rem;
+  }
+  .laguna-hero-action {
+    width: 100%;
+    justify-content: center;
+  }
+  .quick-filters {
+    gap: 8px;
+  }
+  .quick-filters button {
+    flex: 1 1 120px;
+  }
+  .location-actions,
+  .coordinate-fields {
+    flex-direction: column;
+  }
+  .coordinate-fields > .field {
+    width: 100%;
+  }
+  .report-grid .report-facts {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .laguna-bottom-nav *,
+  .laguna-hero-action {
+    transition: none;
+  }
+}

@@ -1,0 +1,30 @@
+name: Formato único Laguna
+on:
+  push:
+    branches:
+      - feat/laguna-shell-home-explore
+    paths:
+      - .github/workflows/laguna-format-once.yml
+permissions:
+  contents: write
+jobs:
+  format-once:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/laguna-shell-home-explore
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - run: npm ci
+      - run: npx prettier --write src/main/resources/static/laguna.css src/main/resources/templates/index.html
+      - name: Guardar archivos formateados y eliminar esta tarea temporal
+        run: |
+          rm .github/workflows/laguna-format-once.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/main/resources/static/laguna.css src/main/resources/templates/index.html .github/workflows/laguna-format-once.yml
+          git commit -m "style(ui): formatear implementación Laguna"
+          git push origin HEAD:feat/laguna-shell-home-explore

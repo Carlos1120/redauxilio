@@ -36,6 +36,15 @@ test("La barra inferior móvil expone cuatro destinos y Cuenta una sola vez", ()
   assert.match(js, /existingAccountTrigger\.click\(\)/);
 });
 
+test("Inicio conserva el texto de cada dispositivo y el escudo original", () => {
+  assert.match(html, /Encuentra ayuda y comparte lo que sucede\./);
+  assert.match(html, /Encuentra orientación y comparte lo que sucede\./);
+  assert.match(
+    html,
+    /class="laguna-home-seal"[\s\S]*?src="\/laguna-assets\/desktop-footer-shield\.svg"/,
+  );
+});
+
 test("CSS respeta mobile/tablet, safe-area y las funciones del mapa", () => {
   assert.match(css, /@media \(max-width: 1099px\)/);
   assert.match(css, /@media \(max-width: 520px\)/);

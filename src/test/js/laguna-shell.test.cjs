@@ -11,7 +11,15 @@ const js = fs.readFileSync(path.join(root, "static/laguna-navigation.js"), "utf8
 const sw = fs.readFileSync(path.join(root, "static/sw.js"), "utf8");
 
 test("Laguna conserva los ID de las funciones existentes", () => {
-  for (const id of ["identity-open", "identity-dialog", "connection-indicator", "search-query", "draft-section", "own-section", "report-map"]) {
+  for (const id of [
+    "identity-open",
+    "identity-dialog",
+    "connection-indicator",
+    "search-query",
+    "draft-section",
+    "own-section",
+    "report-map",
+  ]) {
     assert.match(html, new RegExp('id="' + id + '"'));
   }
 });
@@ -19,7 +27,10 @@ test("Laguna conserva los ID de las funciones existentes", () => {
 test("La barra inferior móvil expone cuatro destinos y Cuenta una sola vez", () => {
   const block = html.match(/<nav class="laguna-bottom-nav"[\s\S]*?<\/nav>/)?.[0];
   assert.ok(block, "Se necesita navegación inferior");
-  assert.deepEqual([...block.matchAll(/data-laguna-tab="([^"]+)"/g)].map(m => m[1]), ["home", "explore", "publish", "account"]);
+  assert.deepEqual(
+    [...block.matchAll(/data-laguna-tab="([^"]+)"/g)].map((m) => m[1]),
+    ["home", "explore", "publish", "account"],
+  );
   assert.equal((block.match(/id="laguna-mobile-account"/g) || []).length, 1);
   assert.match(css, /\.site-header \.identity-trigger\s*\{\s*display: none;\s*\}/);
   assert.match(js, /existingAccountTrigger\.click\(\)/);
@@ -45,4 +56,18 @@ test("La PWA precarga los nuevos recursos Laguna", () => {
   assert.match(sw, /"\/laguna-navigation\.js"/);
   assert.match(html, /href="\/laguna\.css"/);
   assert.match(html, /src="\/laguna-navigation\.js"/);
+});
+
+test("Los recursos visuales públicos de Inicio existen y están disponibles sin red", () => {
+  const usedAssets = new Set(
+    [
+      ...html.matchAll(/(?:src|srcset)="(\/laguna-assets\/[^" ]+)"/g),
+      ...css.matchAll(/url\("(\/laguna-assets\/[^" ]+)"\)/g),
+    ].map((match) => match[1]),
+  );
+  assert.ok(usedAssets.size > 10, "Inicio debe utilizar recursos originales locales");
+  for (const asset of usedAssets) {
+    assert.ok(fs.statSync(path.join(root, "static", asset.slice(1))).size > 0, asset);
+    assert.ok(sw.includes(`"${asset}"`), `Falta ${asset} en la PWA`);
+  }
 });

@@ -1,0 +1,43 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="80" height="82" viewBox="0 0 80 82" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Miniatura cartogr&#195;&#161;fica editable">
+<g clip-path="url(#clip0_0_98)">
+<rect width="80" height="82" rx="15" fill="#ECF0F1"/>
+<g id="Calle vertical">
+<rect width="4" height="82" transform="translate(10)" fill="white"/>
+</g>
+<g id="Calle vertical_2">
+<rect width="4" height="82" transform="translate(32)" fill="white"/>
+</g>
+<g id="Calle vertical_3">
+<rect width="4" height="82" transform="translate(54)" fill="white"/>
+</g>
+<g id="Calle horizontal">
+<rect width="80" height="4" transform="translate(0 9)" fill="white"/>
+</g>
+<g id="Calle horizontal_2">
+<rect width="80" height="4" transform="translate(0 31)" fill="white"/>
+</g>
+<g id="Calle horizontal_3">
+<rect width="80" height="4" transform="translate(0 53)" fill="white"/>
+</g>
+<g id="Zona verde">
+<rect x="31" y="34" width="39" height="18" rx="6" fill="#D0E3D9"/>
+</g>
+<circle id="Ellipse" cx="40" cy="41" r="13" fill="#E86D5E"/>
+<g id="Icono de l&#195;&#173;nea &#194;&#183; Ubicaci&#195;&#179;n" clip-path="url(#clip1_0_98)">
+<g id="ECO RITMO &#194;&#183; road">
+<path id="Vector" d="M36.6667 33.5L34.1667 48.5M43.3333 33.5L45.8333 48.5M40 35.1667V37.6667M40 41V43.5M40 46.8333V48.5" stroke-width="1.54167" stroke-linecap="round" stroke-linejoin="round" stroke="#203547"/>
+<path id="Vector_2" d="M35 46H45" stroke-width="1.83333" stroke-linecap="round" stroke-linejoin="round" stroke="#D7262E"/>
+</g>
+</g>
+</g>
+</g>
+<defs>
+<clipPath id="clip0_0_98">
+<rect width="80" height="82" rx="15" fill="white"/>
+</clipPath>
+<clipPath id="clip1_0_98">
+<rect width="20" height="20" fill="white" transform="translate(30 31)"/>
+</clipPath>
+</defs>
+</svg>

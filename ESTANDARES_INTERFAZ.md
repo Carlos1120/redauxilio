@@ -126,4 +126,4 @@ Cambiar la dirección visual global requiere actualizar esta guía, el CSS compa
 
 ## Laguna pública — incremento visual
 
-Laguna es la dirección aprobada para Inicio y Explorar; se implementa por pantallas sobre el diseño existente. Este incremento presenta en Inicio la tarjeta, accesos por categoría y una ilustración local según el frame 09C, sin cambiar servicios ni el mapa. La equivalencia visual final y las pantallas posteriores siguen pendientes de revisión cruzada. El panel de operador conserva su dirección anterior hasta su migración explícita.
+Laguna es la dirección aprobada para Inicio y Explorar; se implementa por pantallas sobre el diseño existente. Inicio usa exclusivamente los frames originales 4:248 (390 px) y 6:311 (1366 px) de Figma; 360 y 768 px son adaptaciones responsive de esos diseños, no reproducciones de los auxiliares 09C. Las fuentes, colores y recursos Laguna originales se limitan a las pantallas migradas; las demás conservan sus componentes actuales hasta su revisión. La equivalencia visual final y las pantallas posteriores siguen pendientes de revisión cruzada. No se alteran servicios ni el mapa por este cambio visual.

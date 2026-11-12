@@ -6,12 +6,42 @@
  */
 // RA-10/13 renuevan recursos públicos; contacto, fotos e historiales siguen fuera de caché.
 // RA-14: renueva el shell para distribuir advertencia y control de justificacion.
-const CACHE = "redauxilio-demo-v29";
+const CACHE = "redauxilio-demo-v30";
 const SHELL = [
   "/",
   "/app.css",
   "/laguna.css",
   "/laguna-navigation.js",
+  // Recursos públicos originales de Inicio; ninguna imagen privada se precarga.
+  "/laguna-assets/home-illustration-mobile.svg",
+  "/laguna-assets/home-illustration-desktop.svg",
+  "/laguna-assets/logo-mobile.svg",
+  "/laguna-assets/logo-desktop.svg",
+  "/laguna-assets/header-circle-mobile.svg",
+  "/laguna-assets/header-circle-desktop.svg",
+  "/laguna-assets/map-shelter.svg",
+  "/laguna-assets/map-road.svg",
+  "/laguna-assets/map-person.svg",
+  "/laguna-assets/map-help.svg",
+  "/laguna-assets/desktop-map-shelter.svg",
+  "/laguna-assets/desktop-map-road.svg",
+  "/laguna-assets/desktop-map-person.svg",
+  "/laguna-assets/desktop-map-help.svg",
+  "/laguna-assets/desktop-action-shield.svg",
+  "/laguna-assets/desktop-support-home.svg",
+  "/laguna-assets/desktop-support-heart.svg",
+  "/laguna-assets/desktop-arrow.svg",
+  "/laguna-assets/desktop-footer-shield.svg",
+  "/laguna-assets/nav-home.svg",
+  "/laguna-assets/nav-explore.svg",
+  "/laguna-assets/nav-publish.svg",
+  "/laguna-assets/nav-account.svg",
+  "/laguna-assets/report-alert.svg",
+  "/laguna-assets/shelter.svg",
+  "/laguna-assets/arrow.svg",
+  "/laguna-assets/outfit-latin.woff2",
+  "/laguna-assets/atkinson-latin.woff2",
+  "/laguna-assets/bricolage-latin.woff2",
   "/app.js",
   "/missing-person.js",
   "/missing-person-sightings.js",

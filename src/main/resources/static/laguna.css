@@ -207,6 +207,90 @@ body {
   background: #eaf7f3;
   color: #07545b;
 }
+/* El primer bloque de Inicio sigue el orden del frame 09C sin cambiar la consulta pública. */
+.laguna-home-card {
+  width: min(100% - 32px, 760px);
+  margin: 18px auto;
+  padding: 16px;
+  border: 1px solid var(--color-report-border);
+  border-radius: 18px;
+  background: #fff;
+}
+.laguna-home-card h2 {
+  margin: 14px 0 10px;
+  font-size: 1.25rem;
+}
+.laguna-home-report,
+.laguna-home-categories a,
+.laguna-home-support {
+  display: block;
+  padding: 14px;
+  border: 1px solid var(--color-report-border);
+  border-radius: 12px;
+  color: var(--color-report-ink);
+  text-decoration: none;
+  font-weight: 700;
+}
+.laguna-home-report {
+  background: var(--color-relief-blue);
+  color: #fff;
+  text-align: center;
+}
+.laguna-home-illustration {
+  position: relative;
+  height: 130px;
+  margin-top: 12px;
+  overflow: hidden;
+  border-radius: 12px;
+  background: linear-gradient(145deg, #e7f7f2 45%, #b6ded0 45%);
+}
+.laguna-home-sun {
+  position: absolute;
+  top: 16px;
+  right: 35px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #f9b64e;
+}
+.laguna-home-house {
+  position: absolute;
+  right: 45px;
+  bottom: -13px;
+  color: #0c747c;
+  font-size: 120px;
+  line-height: 1;
+}
+.laguna-home-caption {
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  padding: 8px;
+  border-radius: 10px;
+  background: #fff;
+  font-weight: 700;
+}
+.laguna-home-caption small,
+.laguna-home-support small {
+  display: block;
+  font-weight: 400;
+}
+.laguna-home-categories {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.laguna-home-support {
+  margin-bottom: 0;
+}
+@media (max-width: 1099px) {
+  .site-header .header-search {
+    display: none;
+  }
+  .laguna-hero-action {
+    display: none;
+  }
+}
 .notice-demo {
   background: #fff2d7;
   color: #744c0d;

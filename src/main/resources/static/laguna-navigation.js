@@ -12,6 +12,15 @@
   const dialog = document.getElementById("identity-dialog");
   if (tabs.length !== 4 || !account || !existingAccountTrigger || !dialog) return;
 
+  // Los accesos del Inicio reutilizan los filtros públicos existentes.
+  for (const link of document.querySelectorAll("[data-home-category]")) {
+    link.addEventListener("click", () => {
+      document
+        .querySelector(`.quick-filters [data-category="${link.dataset.homeCategory}"]`)
+        ?.click();
+    });
+  }
+
   function selectedByHash(hash) {
     if (hash === "#draft-section") return "publish";
     if (hash === "#own-section") return "account";

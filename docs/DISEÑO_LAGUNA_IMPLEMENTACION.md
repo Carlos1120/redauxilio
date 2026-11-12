@@ -1,12 +1,14 @@
 # RA-LAGUNA-01 — Inicio, Explorar y navegación responsive
 
 ## Decisión de diseño
+
 Laguna es el estilo aprobado para implementar. Solar y Azul permanecen intactos en Figma.
 
 - [Laguna · responsive 360 y 768 px](https://www.figma.com/design/jdOBCS8zKaUs3pvxvUGF1y/RedAuxilio?node-id=136-2955)
 - [Laguna · formularios y campos mínimos](https://www.figma.com/design/jdOBCS8zKaUs3pvxvUGF1y/RedAuxilio?node-id=46-1532)
 
 ## Alcance de esta primera entrega
+
 1. CSS Laguna complementario a `app.css`, para conservar el DOM y toda la lógica.
 2. Cabecera, semicírculo con sombra, Inicio, mapa, lista y filtros con identidad Laguna.
 3. Navegación inferior en anchos <=1099 px: Inicio, Explorar, Publicar y Cuenta. **No duplicar Cuenta arriba en móvil.**
@@ -15,6 +17,7 @@ Laguna es el estilo aprobado para implementar. Solar y Azul permanecen intactos 
 6. Pruebas estructurales de contrato del DOM y caché.
 
 ## Fuera de alcance
+
 - No se modifican controladores, entidades, autorizaciones, ni datos persistentes.
 - No se implementan todavía los formularios guiados de tres pasos de 03G.
 - No se añaden nuevos estados del backend ni se inventan datos faltantes.
@@ -22,6 +25,7 @@ Laguna es el estilo aprobado para implementar. Solar y Azul permanecen intactos 
 - Solar y Azul continúan disponibles exclusivamente en Figma, sin eliminaciones.
 
 ## Validaciones antes de integrar
+
 - `npm test`, `npm run format:check`, pruebas Java y GitHub Actions.
 - Recorridos públicos a 360, 390, 768 y 1366 px. Sin barra de desplazamiento horizontal.
 - Inicio, Explorar y mapa + lista; ubicación y filtro; apertura/cierre de cuenta.
@@ -30,5 +34,10 @@ Laguna es el estilo aprobado para implementar. Solar y Azul permanecen intactos 
 - El formulario de publicación existente, fotografías, reportes propios y moderación no deben tener regresiones.
 
 ## Próximas iteraciones
+
 Integrar pantalla por pantalla el asistente de publicación de 03G, detalle de publicación,
 Mis reportes y las interfaces de operador. Cada fase se valida antes del siguiente merge.
+
+## Incremento de fidelidad en preparación
+
+Inicio incorpora una ilustración local sin dependencias, accesos de categoría y punto de apoyo en el orden del frame 09C. Los accesos reutilizan los filtros de Explorar. La separación completa de vistas y la equivalencia final con Figma siguen pendientes de validación; este bloque no constituye aceptación visual.

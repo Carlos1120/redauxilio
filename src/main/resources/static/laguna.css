@@ -879,3 +879,15 @@ main {
     border: 1px solid CanvasText;
   }
 }
+
+/* Ilustración Laguna original exportada de Figma y servida desde la PWA. */
+.laguna-home-art {
+  width: min(100%, 420px);
+  height: auto;
+  aspect-ratio: 7 / 3;
+  background: url("/laguna-home.svg") center / contain no-repeat;
+}
+
+.laguna-home-art > span {
+  display: none;
+}

@@ -437,7 +437,9 @@ body {
     left: 16px;
     max-width: none;
   }
+  /* El ancho automático descuenta ambos márgenes; 100% + 16px provoca overflow en tablet. */
   .draft-section {
+    width: auto;
     margin: 24px 16px;
   }
   .draft-section form {

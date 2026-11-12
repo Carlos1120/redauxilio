@@ -33,6 +33,13 @@ test("CSS respeta mobile/tablet, safe-area y las funciones del mapa", () => {
   assert.match(css, /env\(safe-area-inset-bottom\)/);
 });
 
+test("Publicar y Mis publicaciones conservan el ancho disponible en tablet", () => {
+  assert.match(html, /id="draft-section" class="draft-section"/);
+  assert.match(html, /id="own-section" class="draft-section"/);
+  const sizing = /\.draft-section\s*\{\s*width:\s*auto;\s*margin:\s*24px 16px;/;
+  assert.match(css, sizing);
+});
+
 test("La PWA precarga los nuevos recursos Laguna", () => {
   assert.match(sw, /"\/laguna\.css"/);
   assert.match(sw, /"\/laguna-navigation\.js"/);

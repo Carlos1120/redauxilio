@@ -155,7 +155,9 @@
         <div class="identity-controls">
           <span id="connection-indicator" class="connection-indicator" aria-hidden="true"></span>
           <span id="connection" class="sr-only" role="status" aria-live="polite"></span>
-          <span id="laguna-connection-label" class="laguna-connection" aria-hidden="true">● En línea</span>
+          <span id="laguna-connection-label" class="laguna-connection" aria-hidden="true"
+            >● En línea</span
+          >
           <button
             id="identity-open"
             class="identity-trigger"
@@ -168,7 +170,7 @@
             <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
               <path d="M20 21a8 8 0 0 0-16 0M12 13a5 5 0 1 0 0-10 5 5 0 0 0 0 10Z" />
             </svg>
-          <span class="laguna-account-label">Cuenta</span>
+            <span class="laguna-account-label">Cuenta</span>
           </button>
         </div>
         <!-- app.js conserva el campo fuente y su manejador de búsqueda. -->
@@ -204,10 +206,16 @@
           <p>Consulta información compartida por la comunidad.</p>
         </div>
         <div class="laguna-category-grid">
-          <a href="#search-section" data-laguna-category="ASSISTANCE">⌂ <span>Refugios y acopio</span></a>
+          <a href="#search-section" data-laguna-category="ASSISTANCE"
+            >⌂ <span>Refugios y acopio</span></a
+          >
           <a href="#search-section" data-laguna-category="ROAD">↔ <span>Vías afectadas</span></a>
-          <a href="#search-section" data-laguna-category="MISSING_PERSON">◎ <span>Personas desaparecidas</span></a>
-          <a href="#search-section" data-laguna-category="HELP_REQUEST">♡ <span>Solicitudes de ayuda</span></a>
+          <a href="#search-section" data-laguna-category="MISSING_PERSON"
+            >◎ <span>Personas desaparecidas</span></a
+          >
+          <a href="#search-section" data-laguna-category="HELP_REQUEST"
+            >♡ <span>Solicitudes de ayuda</span></a
+          >
         </div>
       </section>
       <aside class="notice notice-demo" aria-label="Aviso de demostración">
@@ -244,7 +252,9 @@
               autocomplete="off"
               aria-describedby="laguna-search-hint"
             />
-            <small id="laguna-search-hint">Busca dentro de los reportes de la consulta actual.</small>
+            <small id="laguna-search-hint"
+              >Busca dentro de los reportes de la consulta actual.</small
+            >
           </div>
           <div class="quick-filters" role="group" aria-label="Filtrar por tipo de reporte">
             <button type="button" data-category="" aria-pressed="true">Todo</button>

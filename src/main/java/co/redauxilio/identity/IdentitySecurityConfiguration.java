@@ -99,6 +99,9 @@ class IdentitySecurityConfiguration {
                         "/csrf",
                         "/favicon.ico",
                         "/app.css",
+                        // Recursos de la identidad visual Laguna: shell público, sin permisos de API.
+                        "/laguna.css",
+                        "/laguna-navigation.js",
                         "/app.js",
                         "/missing-person.js",
                         // Modulos del detalle publico, tambien antes de iniciar sesion.

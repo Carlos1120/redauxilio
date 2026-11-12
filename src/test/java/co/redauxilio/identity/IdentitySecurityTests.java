@@ -88,18 +88,12 @@ class IdentitySecurityTests {
     mvc.perform(get("/laguna.css"))
         .andExpect(status().isOk())
         .andExpect(content().contentTypeCompatibleWith("text/css"))
-        .andExpect(
-            content()
-                .string(
-                    org.hamcrest.Matchers.containsString(".laguna-bottom-nav")));
+        .andExpect(content().string(org.hamcrest.Matchers.containsString(".laguna-bottom-nav")));
 
     mvc.perform(get("/laguna-navigation.js"))
         .andExpect(status().isOk())
         .andExpect(content().contentTypeCompatibleWith("text/javascript"))
-        .andExpect(
-            content()
-                .string(
-                    org.hamcrest.Matchers.containsString("laguna-mobile-account")));
+        .andExpect(content().string(org.hamcrest.Matchers.containsString("laguna-mobile-account")));
   }
 
   /** El detalle anonimo debe cargar los modulos sin recibir una pagina de acceso como script. */

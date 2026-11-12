@@ -21,7 +21,7 @@ test("La barra inferior móvil expone cuatro destinos y Cuenta una sola vez", ()
   assert.ok(block, "Se necesita navegación inferior");
   assert.deepEqual([...block.matchAll(/data-laguna-tab="([^"]+)"/g)].map(m => m[1]), ["home", "explore", "publish", "account"]);
   assert.equal((block.match(/id="laguna-mobile-account"/g) || []).length, 1);
-  assert.match(css, /\.site-header \.identity-trigger \{ display: none; \}/);
+  assert.match(css, /\.site-header \.identity-trigger\s*\{\s*display: none;\s*\}/);
   assert.match(js, /existingAccountTrigger\.click\(\)/);
 });
 

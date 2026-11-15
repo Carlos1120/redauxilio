@@ -1,16 +1,20 @@
-/* RedAuxilio Laguna · Fase 1: sistema visual y consulta.
-   Solo presentación: conserva IDs y permisos de los módulos existentes. */
+/**
+ * Laguna • Primera integración: cabecera, Inicio, Explorar y navegación global.
+ * Capa de estilos progresiva: no sustituye los ID, mapas, formularios ni API.
+ * Inicio: frames oficiales 4:248 (móvil) y 6:311 (escritorio).
+ */
 :root {
   --color-relief-blue: #0c747c;
-  --color-relief-blue-hover: #095e66;
-  --color-information-ground: #f8fafc;
+  --color-relief-blue-hover: #07545b;
+  --color-information-ground: #f6f9fa;
+  --color-information-paper: #ffffff;
   --color-report-inset: #eaf7f3;
   --color-report-ink: #193644;
-  --color-report-secondary: #536d7b;
-  --color-report-tertiary: #607886;
-  --color-report-border: #cbdce4;
-  --color-report-border-subtle: #dce6eb;
-  --color-control-border: #8ba5b1;
+  --color-report-secondary: #4b6473;
+  --color-report-tertiary: #536c7b;
+  --color-report-border: #d5e4e6;
+  --color-report-border-subtle: #dfe9e9;
+  --color-control-border: #9bb7c0;
   --color-focus: #0c747c;
   --radius-control: 11px;
   --radius-report: 15px;
@@ -74,6 +78,52 @@ body {
   font-weight: 800;
   letter-spacing: -0.04em;
   text-decoration: none;
+  scroll-padding-top: 96px;
+}
+body {
+  background: var(--color-information-ground);
+  color: var(--color-report-ink);
+}
+:where(button, a, input, select, textarea, summary):focus-visible {
+  outline: 3px solid #07545b;
+  outline-offset: 3px;
+}
+
+/* La cabecera retiene semicírculo + sombra como detalle de identidad Laguna. */
+.site-header {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background: #117d83;
+  box-shadow: 0 4px 18px rgb(16 77 82 / 11%);
+}
+.site-header::before {
+  content: "";
+  position: absolute;
+  right: -60px;
+  top: -140px;
+  width: 260px;
+  height: 260px;
+  border-radius: 50%;
+  background: #0a6872;
+  box-shadow: -8px 12px 24px rgb(0 48 57 / 24%);
+  pointer-events: none;
+  z-index: 0;
+}
+.site-header .header-content {
+  position: relative;
+  z-index: 1;
+  gap: 12px;
+  min-height: 80px;
+  padding: 12px clamp(16px, 3.8vw, 48px);
+}
+.site-header .brand {
+  color: #fff;
+  font-size: clamp(1.25rem, 1.65vw, 1.65rem);
+  letter-spacing: -0.04em;
+}
+.site-header .brand:hover {
+  color: #fff;
 }
 .site-header .brand img {
   width: 32px;

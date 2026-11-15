@@ -1,0 +1,44 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="80" height="82" viewBox="0 0 80 82" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Miniatura cartogr&#195;&#161;fica editable">
+<g clip-path="url(#clip0_0_203)">
+<rect width="80" height="82" rx="15" fill="#ECF0F1"/>
+<g id="Calle vertical">
+<rect width="4" height="82" transform="translate(10)" fill="white"/>
+</g>
+<g id="Calle vertical_2">
+<rect width="4" height="82" transform="translate(32)" fill="white"/>
+</g>
+<g id="Calle vertical_3">
+<rect width="4" height="82" transform="translate(54)" fill="white"/>
+</g>
+<g id="Calle horizontal">
+<rect width="80" height="4" transform="translate(0 9)" fill="white"/>
+</g>
+<g id="Calle horizontal_2">
+<rect width="80" height="4" transform="translate(0 31)" fill="white"/>
+</g>
+<g id="Calle horizontal_3">
+<rect width="80" height="4" transform="translate(0 53)" fill="white"/>
+</g>
+<g id="Zona verde">
+<rect x="31" y="34" width="39" height="18" rx="6" fill="#D0E3D9"/>
+</g>
+<circle id="Ellipse" cx="40" cy="41" r="13" fill="#E86D5E"/>
+<g id="Icono de l&#195;&#173;nea &#194;&#183; Ubicaci&#195;&#179;n" clip-path="url(#clip1_0_203)">
+<g id="ECO RITMO &#194;&#183; shelter">
+<path id="Vector" d="M32.5 39.3333L40 33.5L47.5 39.3333V47.6667C47.5 47.8877 47.4122 48.0996 47.2559 48.2559C47.0996 48.4122 46.8877 48.5 46.6667 48.5H33.3333C33.1123 48.5 32.9004 48.4122 32.7441 48.2559C32.5878 48.0996 32.5 47.8877 32.5 47.6667V39.3333Z" stroke-width="1.54167" stroke-linecap="round" stroke-linejoin="round" stroke="#203547"/>
+<path id="Vector_2" d="M35.8333 46V43.5M35.8333 43.5V41.8333M35.8333 43.5H44.1667M44.1667 46V43.5M44.1667 43.5V41.8333" stroke-width="1.54167" stroke-linecap="round" stroke-linejoin="round" stroke="#203547"/>
+<path id="Vector_3" d="M35.8333 46H44.1667" stroke-width="1.83333" stroke-linecap="round" stroke-linejoin="round" stroke="#D7262E"/>
+</g>
+</g>
+</g>
+</g>
+<defs>
+<clipPath id="clip0_0_203">
+<rect width="80" height="82" rx="15" fill="white"/>
+</clipPath>
+<clipPath id="clip1_0_203">
+<rect width="20" height="20" fill="white" transform="translate(30 31)"/>
+</clipPath>
+</defs>
+</svg>

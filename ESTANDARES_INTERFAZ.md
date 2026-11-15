@@ -1,5 +1,13 @@
 # Estándares de interfaz de RedAuxilio
 
+> Transición Laguna (15 de noviembre de 2026): la dirección visual objetivo de
+> Inicio es Figma [móvil 4:248](https://www.figma.com/design/jdOBCS8zKaUs3pvxvUGF1y/RedAuxilio?node-id=4-248)
+> y [escritorio 6:311](https://www.figma.com/design/jdOBCS8zKaUs3pvxvUGF1y/RedAuxilio?node-id=6-311).
+> `docs/DISEÑO_LAGUNA_IMPLEMENTACION.md` registra el alcance de la migración.
+> La paleta, tipografía y composición de la versión 1.0 que siguen abajo se
+> aplican a módulos aún no migrados; sus reglas de accesibilidad y seguridad
+> permanecen vigentes. El PR #37 está en revisión visual, sin aceptación final.
+
 Versión 1.0 · 6 de octubre de 2026. Dirección visual solicitada por Santiago Ortiz Ochoa y aplicada en el PR #8. Esta guía define cómo continuar ese diseño; no registra aprobación de Carlos ni sustituye ESTANDARES.md, los requisitos o las pruebas de aceptación.
 
 ## 1. Objetivo y fuente de referencia
@@ -123,3 +131,7 @@ Cambiar la dirección visual global requiere actualizar esta guía, el CSS compa
 ## Panel de operador RA-08
 
 `/operator` carga `moderation.css` después de `app.css`, manteniendo Onest, rojo y tokens compartidos. Desde 1100 px usa cola lateral con desplazamiento propio y contexto principal; por debajo usa una columna y controles apilados en móvil. Sin métricas inventadas ni recursos privados en el service worker. Categoría/ID, revisión, confianza y estado se identifican por texto; selección con borde y aria-pressed. Historial en línea de tiempo: diferencias conocidas como texto y registro original solo en detalle técnico plegado. Ocultar/cerrar requieren confirmación integrada con cancelar/Escape y retorno de foco. Esta variante visual requiere aceptación humana; no cambia las reglas ni la dirección del mapa público.
+
+## Laguna pública — incremento visual
+
+Laguna es la dirección aprobada para Inicio y Explorar; se implementa por pantallas sobre el diseño existente. Inicio usa exclusivamente los frames originales 4:248 (390 px) y 6:311 (1366 px) de Figma; 360 y 768 px son adaptaciones responsive de esos diseños, no reproducciones de los auxiliares 09C. Las fuentes, colores y recursos Laguna originales se limitan a las pantallas migradas; las demás conservan sus componentes actuales hasta su revisión. La equivalencia visual final y las pantallas posteriores siguen pendientes de revisión cruzada. No se alteran servicios ni el mapa por este cambio visual.

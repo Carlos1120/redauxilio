@@ -19,6 +19,15 @@ Los frames 09C de 360 y 768 px son auxiliares y no definen Inicio. Estos anchos 
 5. PWA con nuevo CSS y JS en precaché; se actualiza el color de interfaz.
 6. Pruebas estructurales de contrato del DOM y caché.
 
+## Separación de secciones (15 de noviembre)
+
+Inicio conserva la composición oficial Laguna, mientras Explorar muestra el mapa y la lista;
+Publicar muestra solo el formulario; Mis reportes muestra solo la gestión del autor.
+La navegación por hash mantiene los ID y controladores existentes. Al mostrar Explorar,
+Leaflet recalcula el tamaño; «Señalar en mapa» abre Explorar y regresa a Publicar con
+las coordenadas seleccionadas. El diálogo de cuenta comparte la tipografía y paleta
+Laguna. La etiqueta de los controles de cabecera usa 15 px y centrado explícito.
+
 ## Fuera de alcance
 
 - No se modifican controladores, entidades, autorizaciones, ni datos persistentes.

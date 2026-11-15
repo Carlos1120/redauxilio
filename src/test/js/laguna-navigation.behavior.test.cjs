@@ -64,6 +64,7 @@ function loadNavigation(hash = "#main-content") {
     },
   };
   const document = {
+    body: { dataset: {} },
     querySelectorAll(selector) {
       if (selector === ".site-header .header-content > nav a") return desktopTabs;
       if (selector === ".laguna-bottom-nav [data-laguna-tab]") return tabs;
@@ -89,11 +90,13 @@ function loadNavigation(hash = "#main-content") {
       tabs.filter((item) => item.attributes.has("aria-current")).map((t) => t.dataset.lagunaTab),
     desktopSelected: () =>
       desktopTabs.filter((item) => item.attributes.has("aria-current")).map((item) => item.href),
+    page: () => document.body.dataset.lagunaPage,
   };
 }
 
 test("Explorar inicia seleccionado si la ubicación lleva al mapa", () => {
   const view = loadNavigation("#search-section");
+  assert.equal(view.page(), "explore");
   assert.deepEqual(view.selected(), ["explore"]);
   assert.deepEqual(view.desktopSelected(), ["#search-section"]);
 });
@@ -111,6 +114,7 @@ test("Cuenta móvil reutiliza el disparador de sesión y nunca duplica el acceso
 
 test("La barra alterna una sola selección al navegar entre pantallas", () => {
   const view = loadNavigation();
+  assert.equal(view.page(), "home");
   assert.deepEqual(view.selected(), ["home"]);
   assert.deepEqual(view.desktopSelected(), ["#main-content"]);
   view.tab("publish").events.click();
@@ -118,6 +122,7 @@ test("La barra alterna una sola selección al navegar entre pantallas", () => {
   assert.deepEqual(view.desktopSelected(), []);
   view.window.location.hash = "#own-section";
   view.listeners.hashchange();
+  assert.equal(view.page(), "own");
   assert.deepEqual(view.selected(), ["account"]);
   assert.deepEqual(view.desktopSelected(), ["#own-section"]);
 });

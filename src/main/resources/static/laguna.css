@@ -1227,3 +1227,78 @@ body {
     max-width: 550px;
   }
 }
+
+/* Navegación por secciones: Inicio, Explorar, Publicar y Mis reportes ocupan
+   una pantalla cada una; el DOM y los controladores siguen compartidos. */
+body[data-laguna-page="home"] > main > :is(.notice-demo, .workspace),
+body[data-laguna-page="explore"] > main > .laguna-home-shell,
+body[data-laguna-page="publish"] > main > .laguna-home-shell,
+body[data-laguna-page="own"] > main > .laguna-home-shell {
+  display: none;
+}
+body[data-laguna-page="publish"] > main > .notice-demo,
+body[data-laguna-page="own"] > main > .notice-demo,
+body[data-laguna-page="explore"] .workspace > :is(#draft-section, #own-section),
+body[data-laguna-page="publish"] .workspace > :is(#search-section, #own-section),
+body[data-laguna-page="own"] .workspace > :is(#search-section, #draft-section) {
+  display: none;
+}
+body[data-laguna-page="publish"] .workspace,
+body[data-laguna-page="own"] .workspace {
+  display: block;
+}
+
+/* Cuenta usa la misma identidad Laguna que la cabecera, sin alterar el flujo
+   de sesión ni la validación existente. */
+#identity-dialog {
+  border-color: #d5e4e6;
+  border-radius: 20px;
+  color: #193644;
+  font-family: "Laguna Outfit", sans-serif;
+  box-shadow: 0 24px 65px rgb(7 55 60 / 24%);
+}
+#identity-dialog::backdrop {
+  background: rgb(8 42 49 / 50%);
+}
+#identity-dialog .identity-dialog-heading .eyebrow {
+  color: #0c747c;
+}
+#identity-dialog #identity-close {
+  background: #eaf7f3;
+  color: #193644;
+}
+#identity-dialog .identity-panel > p:not(.identity-message, .identity-footnote),
+#identity-dialog .identity-footnote {
+  color: #4b6473;
+}
+#identity-dialog .identity-form input {
+  border-color: #9bb7c0;
+  color: #193644;
+}
+#identity-dialog .identity-submit {
+  background: #0c747c;
+  color: #fff;
+}
+#identity-dialog .identity-submit:hover {
+  background: #07545b;
+}
+#identity-dialog .identity-switch {
+  color: #0c747c;
+}
+#identity-dialog .identity-switch:hover {
+  color: #07545b;
+}
+
+/* La etiqueta queda centrada y legible en los tres controles de la cabecera. */
+.site-header .header-action,
+.site-header .identity-trigger,
+.site-header #connection-indicator {
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+.site-header .header-action,
+.site-header .identity-trigger::after,
+.site-header #connection-indicator::after {
+  font-size: 15px;
+}

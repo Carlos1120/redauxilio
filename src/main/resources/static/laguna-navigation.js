@@ -31,6 +31,14 @@
   }
 
   function setActive(key) {
+    // Cada destino conserva su sección y lógica, pero se presenta como pantalla propia.
+    const page = key === "account" ? "own" : key;
+    if (!dialog.open || key !== "account") document.body.dataset.lagunaPage = page;
+    if (page === "explore") {
+      window.requestAnimationFrame?.(() =>
+        window.dispatchEvent(new Event("redauxilio:map-visible")),
+      );
+    }
     for (const item of tabs) {
       if (item.dataset.lagunaTab === key) item.setAttribute("aria-current", "page");
       else item.removeAttribute("aria-current");
@@ -61,7 +69,10 @@
   });
   dialog.addEventListener("close", () => setActive(selectedByHash(window.location.hash)));
   window.addEventListener("hashchange", () => {
-    if (!dialog.open) setActive(selectedByHash(window.location.hash));
+    if (!dialog.open) {
+      setActive(selectedByHash(window.location.hash));
+      window.scrollTo?.(0, 0);
+    }
   });
   setActive(selectedByHash(window.location.hash));
 })();

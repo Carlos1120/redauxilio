@@ -16,12 +16,45 @@ async function submitIdentityFormWithoutReload(form) {
   const message = document.getElementById("identity-csrf-message");
 
   if (path === "/login" && access === "account" && response.ok) {
+    const requestedAccess = form.dataset.loginAccess || "citizen";
     form.reset();
     // Una cuenta nueva no debe heredar fotos privadas del borrador anterior en este navegador.
     await window.RedAuxilioPublicationUI?.clearEvidenceDraft?.();
+    let accessMessage = "Sesión iniciada.";
+    // La elección visual no asigna roles: se consulta el permiso vigente en el servidor.
+    if (requestedAccess === "operator") {
+      try {
+        const permission = await fetch("/operator", {
+          credentials: "same-origin",
+          cache: "no-store",
+          headers: { Accept: "text/html" },
+        });
+        if (permission.ok && !permission.redirected) {
+          window.location.assign("/operator");
+          return;
+        }
+        accessMessage = "Sesión iniciada. Esta cuenta no tiene permiso de auditoría.";
+      } catch {
+        accessMessage = "Sesión iniciada. No se pudo comprobar el permiso de auditoría.";
+      }
+    } else if (requestedAccess === "verifier") {
+      try {
+        const permission = await fetch("/api/my/verification-permission", {
+          credentials: "same-origin",
+          cache: "no-store",
+          headers: { Accept: "application/json" },
+        });
+        accessMessage =
+          permission.ok && (await permission.json()).canVerify === true
+            ? "Sesión iniciada. Puedes verificar publicaciones autorizadas desde sus detalles."
+            : "Sesión iniciada. Esta cuenta no tiene permiso de verificación.";
+      } catch {
+        accessMessage = "Sesión iniciada. No se pudo comprobar el permiso de verificación.";
+      }
+    }
     window.dispatchEvent(
       new CustomEvent("redauxilio:identity-action", {
-        detail: { authenticated: true, message: "Sesión iniciada." },
+        detail: { authenticated: true, message: accessMessage },
       }),
     );
   } else if (path === "/logout" && destination.searchParams.has("signedout") && response.ok) {

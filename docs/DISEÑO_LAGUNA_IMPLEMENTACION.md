@@ -28,6 +28,18 @@ Leaflet recalcula el tamaño; «Señalar en mapa» abre Explorar y regresa a Pub
 las coordenadas seleccionadas. El diálogo de cuenta comparte la tipografía y paleta
 Laguna. La etiqueta de los controles de cabecera usa 15 px y centrado explícito.
 
+## Acceso por perfil y movimiento (15 de noviembre)
+
+El diálogo ofrece tres contextos de ingreso: Ciudadano, Auditor y Verificador autorizado.
+Todos usan la cuenta existente y el mismo login con CSRF; la elección no concede permisos.
+Tras el login, Auditor abre `/operator` solo si esa ruta protegida confirma el permiso;
+Verificador consulta `/api/my/verification-permission` y muestra si puede respaldar
+publicaciones. La tercera opción designa un permiso de verificación de publicaciones,
+no una identidad personal verificada. El encabezado incorpora ondas y puntos suaves,
+con movimiento lento; las acciones tienen respuesta al pasar el puntero. `prefers-reduced-motion`
+desactiva las animaciones. Esta ampliación visual solicitada por Santiago queda sujeta
+a revisión de fidelidad Laguna antes de integrar.
+
 ## Fuera de alcance
 
 - No se modifican controladores, entidades, autorizaciones, ni datos persistentes.

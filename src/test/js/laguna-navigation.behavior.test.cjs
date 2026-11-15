@@ -57,6 +57,20 @@ function loadNavigation(hash = "#main-content") {
     },
   };
   const listeners = {};
+  const roleOptions = ["citizen", "operator", "verifier"].map((mode) => ({
+    dataset: { loginAccess: mode },
+    attributes: new Map(),
+    events: {},
+    setAttribute(name, value) {
+      this.attributes.set(name, value);
+    },
+    addEventListener(name, callback) {
+      this.events[name] = callback;
+    },
+  }));
+  const submit = { textContent: "Continuar como ciudadano" };
+  const loginForm = { dataset: { loginAccess: "citizen" }, querySelector: () => submit };
+  const roleHelp = { textContent: "" };
   const window = {
     location: { hash },
     addEventListener(name, callback) {
@@ -68,9 +82,14 @@ function loadNavigation(hash = "#main-content") {
     querySelectorAll(selector) {
       if (selector === ".site-header .header-content > nav a") return desktopTabs;
       if (selector === ".laguna-bottom-nav [data-laguna-tab]") return tabs;
+      if (selector === "[data-login-access][aria-pressed]") return roleOptions;
       return [];
     },
+    querySelector() {
+      return loginForm;
+    },
     getElementById(id) {
+      if (id === "identity-access-help") return roleHelp;
       if (id === "laguna-mobile-account") return tabs[3];
       if (id === "identity-open") return existingTrigger;
       if (id === "identity-dialog") return dialog;
@@ -91,6 +110,10 @@ function loadNavigation(hash = "#main-content") {
     desktopSelected: () =>
       desktopTabs.filter((item) => item.attributes.has("aria-current")).map((item) => item.href),
     page: () => document.body.dataset.lagunaPage,
+    role: () => loginForm.dataset.loginAccess,
+    roleOptions,
+    roleHelp,
+    submit,
   };
 }
 
@@ -99,6 +122,19 @@ test("Explorar inicia seleccionado si la ubicación lleva al mapa", () => {
   assert.equal(view.page(), "explore");
   assert.deepEqual(view.selected(), ["explore"]);
   assert.deepEqual(view.desktopSelected(), ["#search-section"]);
+});
+
+test("la elección de acceso cambia la orientación, sin tocar la sesión", () => {
+  const view = loadNavigation();
+  view.roleOptions[1].events.click();
+  assert.equal(view.role(), "operator");
+  assert.equal(view.submit.textContent, "Continuar como auditor");
+  assert.match(view.roleHelp.textContent, /permiso de operador/);
+  assert.equal(view.roleOptions[1].attributes.get("aria-pressed"), "true");
+  assert.equal(view.roleOptions[0].attributes.get("aria-pressed"), "false");
+  view.roleOptions[2].events.click();
+  assert.equal(view.role(), "verifier");
+  assert.match(view.roleHelp.textContent, /no verifica la identidad/);
 });
 
 test("Cuenta móvil reutiliza el disparador de sesión y nunca duplica el acceso", () => {

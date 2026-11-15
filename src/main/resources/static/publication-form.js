@@ -9,6 +9,23 @@ const draftForm = publicationField("draft-form");
 const publicationCategory = publicationField("publication-category");
 const publicationMessage = publicationField("draft-message");
 const locationMessage = publicationField("location-message");
+const locationPreviewStatus = publicationField("publication-location-status");
+let locationPreviewMap = null;
+let locationPreviewMarker = null;
+if (publicationField("publication-location-map") && window.L) {
+  locationPreviewMap = window.L.map("publication-location-map", { scrollWheelZoom: false }).setView(
+    [4.145, -73.625],
+    5,
+  );
+  window.L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    maxZoom: 19,
+    attribution:
+      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+  }).addTo(locationPreviewMap);
+  locationPreviewMap.on("click", ({ latlng }) =>
+    proposeLocation(latlng.lat, latlng.lng, "Punto seleccionado en el mapa"),
+  );
+}
 const evidenceInput = publicationField("publication-evidence");
 const evidencePreview = publicationField("evidence-preview");
 let duplicateFingerprint = null;
@@ -128,7 +145,55 @@ function proposeLocation(latitude, longitude, label) {
   if (label) publicationField("publication-location").value = label.slice(0, 160);
   locationMessage.textContent = "Ubicación propuesta. Corrige las coordenadas si hace falta.";
   publicationUI.reportMap?.focusOn(latitude, longitude);
+  updateLocationPreview();
 }
+
+/** Refleja la ubicación elegida en un mapa secundario y anuncia si faltan coordenadas o lugar. */
+function updateLocationPreview() {
+  if (!locationPreviewStatus) return;
+  const latitudeText = publicationField("latitude").value.trim();
+  const longitudeText = publicationField("longitude").value.trim();
+  const latitude = Number(latitudeText);
+  const longitude = Number(longitudeText);
+  const valid =
+    latitudeText !== "" &&
+    longitudeText !== "" &&
+    Number.isFinite(latitude) &&
+    Number.isFinite(longitude) &&
+    latitude >= -90 &&
+    latitude <= 90 &&
+    longitude >= -180 &&
+    longitude <= 180;
+  if (!valid) {
+    if (locationPreviewMarker) locationPreviewMap?.removeLayer(locationPreviewMarker);
+    locationPreviewMarker = null;
+    locationPreviewStatus.dataset.state = latitudeText || longitudeText ? "invalid" : "pending";
+    locationPreviewStatus.textContent =
+      latitudeText || longitudeText
+        ? "Revisa las coordenadas para mostrar un punto válido."
+        : "Ubicación pendiente · elige un punto o escribe coordenadas.";
+    return;
+  }
+  locationPreviewMap?.setView([latitude, longitude], 15, { animate: false });
+  if (locationPreviewMap) {
+    if (locationPreviewMarker) locationPreviewMarker.setLatLng([latitude, longitude]);
+    else locationPreviewMarker = window.L.marker([latitude, longitude]).addTo(locationPreviewMap);
+  }
+  const hasPlace = publicationField("publication-location").value.trim() !== "";
+  locationPreviewStatus.dataset.state = hasPlace ? "ready" : "pending";
+  locationPreviewStatus.textContent = hasPlace
+    ? `Punto elegido · ${latitude.toFixed(5)}, ${longitude.toFixed(5)}`
+    : `Punto marcado · falta indicar el lugar público (${latitude.toFixed(5)}, ${longitude.toFixed(5)})`;
+}
+publicationUI.refreshLocationPreview = () => {
+  updateLocationPreview();
+  if (locationPreviewMap)
+    window.requestAnimationFrame(() => locationPreviewMap.invalidateSize({ pan: false }));
+};
+for (const id of ["latitude", "longitude", "publication-location"]) {
+  publicationField(id).addEventListener("input", updateLocationPreview);
+}
+updateLocationPreview();
 
 publicationField("select-location").disabled = !publicationUI.reportMap;
 publicationField("select-location").addEventListener("click", () => {

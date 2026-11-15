@@ -199,12 +199,17 @@ publicationField("select-location").disabled = !publicationUI.reportMap;
 publicationField("select-location").addEventListener("click", () => {
   locationMessage.textContent =
     "Haz clic en el mapa para proponer un punto; también puedes escribir coordenadas.";
-  publicationUI.reportMap?.selectLocation((latitude, longitude) =>
-    proposeLocation(
-      latitude,
-      longitude,
-      publicationField("publication-location").value || "Punto seleccionado",
-    ),
+  // El mapa vive en Explorar; vuelve al formulario al escoger el punto.
+  window.location.hash = "#search-section";
+  window.requestAnimationFrame(() =>
+    publicationUI.reportMap?.selectLocation((latitude, longitude) => {
+      proposeLocation(
+        latitude,
+        longitude,
+        publicationField("publication-location").value || "Punto seleccionado",
+      );
+      window.location.hash = "#draft-section";
+    }),
   );
 });
 

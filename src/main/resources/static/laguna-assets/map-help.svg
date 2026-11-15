@@ -1,0 +1,44 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="80" height="82" viewBox="0 0 80 82" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Miniatura cartogr&#195;&#161;fica editable">
+<g clip-path="url(#clip0_0_134)">
+<rect width="80" height="82" rx="15" fill="#ECF0F1"/>
+<g id="Calle vertical">
+<rect width="4" height="82" transform="translate(10)" fill="white"/>
+</g>
+<g id="Calle vertical_2">
+<rect width="4" height="82" transform="translate(32)" fill="white"/>
+</g>
+<g id="Calle vertical_3">
+<rect width="4" height="82" transform="translate(54)" fill="white"/>
+</g>
+<g id="Calle horizontal">
+<rect width="80" height="4" transform="translate(0 9)" fill="white"/>
+</g>
+<g id="Calle horizontal_2">
+<rect width="80" height="4" transform="translate(0 31)" fill="white"/>
+</g>
+<g id="Calle horizontal_3">
+<rect width="80" height="4" transform="translate(0 53)" fill="white"/>
+</g>
+<g id="Zona verde">
+<rect x="31" y="34" width="39" height="18" rx="6" fill="#D0E3D9"/>
+</g>
+<circle id="Ellipse" cx="40" cy="41" r="13" fill="#E86D5E"/>
+<g id="Icono de l&#195;&#173;nea &#194;&#183; Ubicaci&#195;&#179;n" clip-path="url(#clip1_0_134)">
+<g id="ECO RITMO &#194;&#183; help">
+<path id="Vector" d="M32.5 41.8333C34.1667 41 35.8333 41.4167 36.6667 42.6667L38.3333 45.1667H41.6667L43.3333 42.6667C44.1667 41.4167 45.8333 41 47.5 41.8333" stroke-width="1.54167" stroke-linecap="round" stroke-linejoin="round" stroke="#203547"/>
+<path id="Vector_2" d="M32.5 41.8333V46L36.6667 48.5H43.3333L47.5 46V41.8333" stroke-width="1.54167" stroke-linecap="round" stroke-linejoin="round" stroke="#203547"/>
+<path id="Vector_3" d="M40 34.3333V37.25M40 37.25V40.1667M40 37.25H37.0833M40 37.25H42.9167" stroke-width="1.83333" stroke-linecap="round" stroke-linejoin="round" stroke="#D7262E"/>
+</g>
+</g>
+</g>
+</g>
+<defs>
+<clipPath id="clip0_0_134">
+<rect width="80" height="82" rx="15" fill="white"/>
+</clipPath>
+<clipPath id="clip1_0_134">
+<rect width="20" height="20" fill="white" transform="translate(30 31)"/>
+</clipPath>
+</defs>
+</svg>

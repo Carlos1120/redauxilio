@@ -91,7 +91,11 @@ function setup(status = 201, candidates = [], precheckGate = null) {
       getElementById: get,
       createElement: () => ({ append() {}, addEventListener() {}, setAttribute() {} }),
     },
-    window: { RedAuxilioPublicationUI: ui },
+    window: {
+      RedAuxilioPublicationUI: ui,
+      location: { hash: "#draft-section" },
+      requestAnimationFrame: (callback) => callback(),
+    },
     URL,
     FormData,
     Blob,

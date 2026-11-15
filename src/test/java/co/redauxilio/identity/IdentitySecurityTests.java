@@ -82,6 +82,27 @@ class IdentitySecurityTests {
         .andExpect(content().contentTypeCompatibleWith("text/javascript"));
   }
 
+  /** El estilo Laguna debe estar disponible sin sesión, incluso en la primera visita. */
+  @Test
+  void lagunaAssetsLoadForAnonymousVisitorsWithoutLoginRedirect() throws Exception {
+    mvc.perform(get("/laguna.css"))
+        .andExpect(status().isOk())
+        .andExpect(content().contentTypeCompatibleWith("text/css"))
+        .andExpect(content().string(org.hamcrest.Matchers.containsString(".laguna-bottom-nav")));
+
+    mvc.perform(get("/laguna-navigation.js"))
+        .andExpect(status().isOk())
+        .andExpect(content().contentTypeCompatibleWith("text/javascript"))
+        .andExpect(content().string(org.hamcrest.Matchers.containsString("laguna-mobile-account")));
+
+    mvc.perform(get("/laguna-assets/home-illustration-mobile.svg"))
+        .andExpect(status().isOk())
+        .andExpect(content().contentTypeCompatibleWith("image/svg+xml"));
+    mvc.perform(get("/laguna-assets/outfit-latin.woff2"))
+        .andExpect(status().isOk())
+        .andExpect(content().contentTypeCompatibleWith("font/woff2"));
+  }
+
   /** El detalle anonimo debe cargar los modulos sin recibir una pagina de acceso como script. */
   @Test
   void publicDetailScriptsLoadWithoutAuthentication() throws Exception {

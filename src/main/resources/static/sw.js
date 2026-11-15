@@ -10,6 +10,9 @@ const CACHE = "redauxilio-demo-v33";
 const SHELL = [
   "/",
   "/app.css",
+  "/laguna.css",
+  "/laguna-ui.js",
+  "/laguna-home.svg",
   "/app.js",
   "/missing-person.js",
   "/missing-person-sightings.js",

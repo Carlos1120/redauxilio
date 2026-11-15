@@ -6,7 +6,10 @@
 > `docs/DISEÑO_LAGUNA_IMPLEMENTACION.md` registra el alcance de la migración.
 > La paleta, tipografía y composición de la versión 1.0 que siguen abajo se
 > aplican a módulos aún no migrados; sus reglas de accesibilidad y seguridad
-> permanecen vigentes. El PR #37 está en revisión visual, sin aceptación final.
+> permanecen vigentes. El PR #37 se integró en la rama Laguna; su aceptación
+> visual humana no consta en esta guía. La ampliación de acceso incorpora tres
+> opciones, ondas sutiles en cabecera y respuesta al puntero, con movimiento
+> reducido respetado. Registrar su revisión antes de integrar a `develop`.
 
 Versión 1.0 · 6 de octubre de 2026. Dirección visual solicitada por Santiago Ortiz Ochoa y aplicada en el PR #8. Esta guía define cómo continuar ese diseño; no registra aprobación de Carlos ni sustituye ESTANDARES.md, los requisitos o las pruebas de aceptación.
 

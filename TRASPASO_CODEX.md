@@ -1,19 +1,15 @@
-# RedAuxilio — continuidad Laguna
+# RedAuxilio — traspaso Laguna
 
-Actualización: 12 de noviembre de 2026 (Colombia). Worktree aislado `C:/Users/cmps-/RedAuxilio-recovery/laguna-fidelidad`, rama `codex/laguna-fidelidad`, PR #37 Draft hacia `feat/laguna-shell-home-explore` (PR #36). El último HEAD publicado antes de esta corrección es `bd56c76c6197f54b869a8b6195d83ad603208561`; verificar el HEAD remoto antes de publicar. No tocar otras ramas, worktrees, servidores ni bases; no hacer merge ni atribuir aceptación humana.
+Actualizado: 15 de noviembre de 2026 (Colombia). El estado remoto se debe comprobar de nuevo antes de cualquier publicación o integración. La rama de trabajo es `codex/laguna-fidelidad`, creada localmente desde `origin/codex/laguna-fidelidad` en un worktree aislado. El punto de partida comprobado fue `0b4ab1aed79f24821b1f53983b03d6fc01743c61`. El PR [#37](https://github.com/Carlos1120/redauxilio/pull/37) está abierto como Draft hacia `feat/laguna-shell-home-explore`; el PR #36 lleva esa base hacia `develop`. Ninguno está integrado. No mezclar los PR #34 y #35 sin revisar solapamientos. No atribuir aprobación visual a Carlos ni hacer merge.
 
-## Módulo y contrato visual
+## Contrato visual y alcance
 
-Inicio es el único módulo activo. Las referencias oficiales son Figma `4:248` (390×850) y `6:311` (1366×880), archivo `jdOBCS8zKaUs3pvxvUGF1y`. Los frames 09C de 360 y 768 px son auxiliares, nunca fuentes de composición definitiva. Mantener originales SVG, fuentes, textos, tarjetas, ilustraciones, iconos y jerarquía. Los demás módulos, incluido Explorar, esperan la validación de Inicio. Solar y Azul permanecen intactos en Figma.
+Inicio usa los frames oficiales de Figma `4:248` (390×850) y `6:311` (1366×880), archivo `jdOBCS8zKaUs3pvxvUGF1y`. Los frames 09C son auxiliares. Conservar componentes, textos, fuentes SVG y comportamiento responsive de Laguna, junto a búsqueda, filtros, Leaflet, publicación, sesión, privacidad y PWA existentes. `ESTANDARES_INTERFAZ.md` registra la transición; su antigua estética roja/Onest sigue orientando módulos aún no migrados y no sustituye los frames Laguna. Las reglas de accesibilidad y seguridad continúan vigentes.
 
-## Corrección y evidencia vigente
+## Verificación de este bloque
 
-La auditoría del PR #37 encontró Cuenta recortada a 1202 px, navegación superior con fondos y doble subrayado, una esquina cuadrada sobre el fondo Laguna y texto/escudo faltantes en escritorio. Se sustituyó el posicionamiento absoluto de la cabecera por distribución flexible desde 1200 px; de 1100 a 1199 px se usa la navegación inferior. El estado activo muestra una sola línea blanca, el hover conserva texto blanco sin fondo y el foco visible permanece. La tarjeta deja ver sus cuatro radios de 18 px. Se restauraron el texto original de escritorio y el escudo local de la cápsula. No se cambiaron servicios, roles, datos ni reglas de negocio.
+La revisión local de Inicio detectó 15 px perdidos por la barra de desplazamiento clásica a 390 px. Se ocultó únicamente la barra visual móvil sin impedir el desplazamiento, y se recuperó la curva blanca de 21 px debajo del encabezado. En Chrome a 390×850, la tarjeta de acción quedó en `x=20, y=178, ancho=350`, la ilustración en `x=20, y=270, ancho=350` y el apoyo empieza en `y=657`. Se midieron 360, 390, 768, 1099, 1100, 1199, 1200, 1202, 1256, 1280 y 1366 px sin overflow horizontal. El enlace «Refugios» activó el filtro de asistencia y mostró un resultado. Las 11 pruebas JS Laguna y las 158 pruebas JS completas pasaron; Prettier pasó. `mvn verify` con Corretto 21.0.10 terminó correctamente: 205 pruebas Java, cero fallos, errores u omitidas. Java 25 detuvo Spotless por incompatibilidad del formateador, sin fallo de las pruebas de interfaz.
 
-Instancia QA: `http://127.0.0.1:61384/`, H2 aislada en `C:/Users/cmps-/RedAuxilio-recovery/laguna-fidelity-qa/data/fidelity`. El JAR sirve el árbol local del bloque; no confundirlo con un commit publicado hasta verificarlo. Capturas y scripts de medición están fuera de Git en `C:/Users/cmps-/RedAuxilio-recovery/laguna-fidelity-qa/figma/`. Los límites de logo y navegación pasaron a 1099, 1100, 1199, 1200, 1202, 1256, 1280 y 1366 px: sin recortes, intersecciones ni overflow. A 1202 px, Cuenta termina en x=1147 y el área visible en x=1187. La esquina que era blanca ahora coincide con el verde del Figma. Chrome comprobó hover, selección y foco por teclado. Comparación visual: diferencia media 8,17/255 a 390 px y 4,93/255 a 1366 px; 768 px conservó su composición.
+## Siguiente paso
 
-Pruebas JS dirigidas 11/11, Prettier y `git diff --check` aprobados. El CI anterior de `bd56c76` fue SUCCESS; consultar GitHub Actions para el HEAD actual del PR #37. No repetir suites Java/Node completas por esta corrección visual.
-
-## Siguiente acción
-
-Comprobar CI del HEAD publicado y revisar con Carlos las capturas de 1202 y 1366 px. Mantener PR Draft y no pasar a Explorar antes de su revisión visual de Inicio.
+Guardar y compartir las capturas Figma/Chrome de 390×850 y 1366×880, actualizar el mismo PR y comprobar CI del nuevo HEAD. Inicio todavía requiere revisión visual humana. Los frames Laguna de Explorar son `8:559` (móvil) y `8:648` (escritorio). Preparar ese módulo después sin sustituir Leaflet por el mapa ilustrativo de Figma; su fidelidad y pruebas permanecen pendientes.

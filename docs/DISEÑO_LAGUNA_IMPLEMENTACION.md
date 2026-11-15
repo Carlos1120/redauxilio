@@ -43,6 +43,25 @@ Mis reportes y las interfaces de operador. Cada fase se valida antes del siguien
 
 ## Fidelidad de Inicio en PR #37
 
+### Revisión del 15 de noviembre de 2026
+
+En Chrome a 390×850 se comprobó que la barra vertical clásica restaba 15 px
+al lienzo móvil: la tarjeta de acción, la ilustración y las categorías quedaban
+estrechas respecto al frame oficial `4:248`. La hoja Laguna oculta esa barra
+visual hasta 520 px sin impedir el desplazamiento; la curva blanca del área
+principal recupera el borde de 21 px. Tras el ajuste, la tarjeta mide
+`x=20, y=178, ancho=350`, la ilustración `x=20, y=270, ancho=350` y la tarjeta
+de apoyo comienza en `y=657` a 390×850. Se revisaron 360, 390, 768, 1099,
+1100, 1199, 1200, 1202, 1256, 1280 y 1366 px sin overflow horizontal.
+El filtro «Refugios» abrió Explorar, activó asistencia y mostró un resultado
+del servidor. Pruebas JS dirigidas Laguna: 11/11. Esta revisión automatizada
+no representa aceptación visual humana.
+
+Se identificaron los frames oficiales de Explorar Laguna `8:559` (390×844)
+y `8:648` (1366×880). Su mapa es ilustrativo; la implementación deberá
+conservar Leaflet y la geografía real. La comparación de ese módulo sigue
+pendiente y no se atribuye fidelidad a sus pantallas actuales.
+
 Inicio usa los SVG y fuentes originales de 4:248 y 6:311 guardados en `static/laguna-assets/`. En 360 y 768 px conserva la tarjeta blanca para reportar, la ilustración, las cuatro categorías ilustradas y la tarjeta de apoyo. Ajusta dimensiones y espacios sin adoptar los botones de texto ni la barra verde de 09C. Los accesos siguen activando los filtros públicos.
 
 Las familias Outfit, Atkinson Hyperlegible y Bricolage Grotesque se sirven localmente desde Google Fonts. Sus licencias SIL OFL originales se conservan junto a los archivos como `OFL-Outfit.txt`, `OFL-Atkinson.txt` y `OFL-Bricolage.txt` ([repositorio de fuentes](https://github.com/google/fonts/tree/main/ofl)).

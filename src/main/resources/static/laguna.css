@@ -455,6 +455,25 @@ body {
   }
 }
 @media (max-width: 520px) {
+  /* El lienzo móvil conserva el ancho útil de Figma también en navegadores
+     de escritorio con barra clásica; la página sigue desplazándose. */
+  html {
+    scrollbar-width: none;
+  }
+  html::-webkit-scrollbar {
+    display: none;
+  }
+  body .laguna-home-shell {
+    position: relative;
+    background: #117c83;
+  }
+  .laguna-home-shell::before {
+    content: "";
+    position: absolute;
+    inset: 23px 0 0;
+    border-radius: 21px 21px 0 0;
+    background: #fff;
+  }
   .site-header .header-content {
     padding: 10px 14px;
   }

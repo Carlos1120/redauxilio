@@ -1,5 +1,13 @@
 # Estándares de interfaz de RedAuxilio
 
+> Transición Laguna (15 de noviembre de 2026): la dirección visual objetivo de
+> Inicio es Figma [móvil 4:248](https://www.figma.com/design/jdOBCS8zKaUs3pvxvUGF1y/RedAuxilio?node-id=4-248)
+> y [escritorio 6:311](https://www.figma.com/design/jdOBCS8zKaUs3pvxvUGF1y/RedAuxilio?node-id=6-311).
+> `docs/DISEÑO_LAGUNA_IMPLEMENTACION.md` registra el alcance de la migración.
+> La paleta, tipografía y composición de la versión 1.0 que siguen abajo se
+> aplican a módulos aún no migrados; sus reglas de accesibilidad y seguridad
+> permanecen vigentes. El PR #37 está en revisión visual, sin aceptación final.
+
 Versión 1.0 · 6 de octubre de 2026. Dirección visual solicitada por Santiago Ortiz Ochoa y aplicada en el PR #8. Esta guía define cómo continuar ese diseño; no registra aprobación de Carlos ni sustituye ESTANDARES.md, los requisitos o las pruebas de aceptación.
 
 ## 1. Objetivo y fuente de referencia

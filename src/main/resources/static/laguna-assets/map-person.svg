@@ -1,0 +1,45 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="80" height="82" viewBox="0 0 80 82" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Miniatura cartogr&#195;&#161;fica editable">
+<g clip-path="url(#clip0_0_179)">
+<rect width="80" height="82" rx="15" fill="#ECF0F1"/>
+<g id="Calle vertical">
+<rect width="4" height="82" transform="translate(10)" fill="white"/>
+</g>
+<g id="Calle vertical_2">
+<rect width="4" height="82" transform="translate(32)" fill="white"/>
+</g>
+<g id="Calle vertical_3">
+<rect width="4" height="82" transform="translate(54)" fill="white"/>
+</g>
+<g id="Calle horizontal">
+<rect width="80" height="4" transform="translate(0 9)" fill="white"/>
+</g>
+<g id="Calle horizontal_2">
+<rect width="80" height="4" transform="translate(0 31)" fill="white"/>
+</g>
+<g id="Calle horizontal_3">
+<rect width="80" height="4" transform="translate(0 53)" fill="white"/>
+</g>
+<g id="Zona verde">
+<rect x="31" y="34" width="39" height="18" rx="6" fill="#D0E3D9"/>
+</g>
+<circle id="Ellipse" cx="40" cy="41" r="13" fill="#E86D5E"/>
+<g id="Icono de l&#195;&#173;nea &#194;&#183; Ubicaci&#195;&#179;n" clip-path="url(#clip1_0_179)">
+<g id="ECO RITMO &#194;&#183; person">
+<path id="Vector" d="M39.75 36.8333C39.75 38.076 38.7427 39.0833 37.5 39.0833C36.2574 39.0833 35.25 38.076 35.25 36.8333C35.25 35.5907 36.2574 34.5833 37.5 34.5833C38.7427 34.5833 39.75 35.5907 39.75 36.8333Z" stroke-width="1.54167" stroke-linecap="round" stroke-linejoin="round" stroke="#203547"/>
+<path id="Vector_2" d="M45.5834 38.0833C45.5834 39.0958 44.7626 39.9167 43.75 39.9167C42.7375 39.9167 41.9167 39.0958 41.9167 38.0833C41.9167 37.0708 42.7375 36.25 43.75 36.25C44.7626 36.25 45.5834 37.0708 45.5834 38.0833Z" stroke-width="1.54167" stroke-linecap="round" stroke-linejoin="round" stroke="#203547"/>
+<path id="Vector_3" d="M32.9167 47.6667V46C32.9167 43.3333 34.5833 41.8333 37.5 41.8333C40.4167 41.8333 42.0833 43.3333 42.0833 46V47.6667M42.5 42.25C45.4167 41.8333 47.0833 43.5 47.0833 46V47.6667" stroke-width="1.54167" stroke-linecap="round" stroke-linejoin="round" stroke="#203547"/>
+<path id="Vector_4" d="M34.5833 48.5H43.75" stroke-width="1.83333" stroke-linecap="round" stroke-linejoin="round" stroke="#D7262E"/>
+</g>
+</g>
+</g>
+</g>
+<defs>
+<clipPath id="clip0_0_179">
+<rect width="80" height="82" rx="15" fill="white"/>
+</clipPath>
+<clipPath id="clip1_0_179">
+<rect width="20" height="20" fill="white" transform="translate(30 31)"/>
+</clipPath>
+</defs>
+</svg>

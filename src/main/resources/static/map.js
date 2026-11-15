@@ -34,6 +34,8 @@ if (typeof window !== "undefined") {
         [4.145, -73.625],
         13,
       );
+      // Al abrir Explorar desde Inicio, Leaflet recalcula el tamaño de su contenedor.
+      window.addEventListener?.("redauxilio:map-visible", () => map.invalidateSize());
       const tileLayer = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
         subdomains: ["a", "b", "c"],
         maxZoom: 19,

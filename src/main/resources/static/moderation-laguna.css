@@ -345,3 +345,95 @@
     transition: none;
   }
 }
+
+/* La navegación privada usa la misma cabecera y los mismos recursos Laguna. */
+.operator-page .site-header .header-content {
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: clamp(10px, 2vw, 24px);
+  width: 100%;
+  height: auto;
+  min-height: 89px;
+  padding: 12px clamp(18px, 3vw, 48px);
+}
+.operator-page .site-header .brand {
+  position: static;
+  flex: 0 0 auto;
+  margin: 0 auto 0 0;
+  min-height: 0;
+  text-decoration: none;
+}
+.operator-page .site-header .brand img {
+  display: block;
+  width: 223px;
+  height: 44px;
+}
+.operator-page .site-header .header-content > nav {
+  position: static;
+  display: flex;
+  align-items: center;
+  flex: 0 1 auto;
+  gap: 4px;
+  width: auto;
+  margin: 0;
+}
+.operator-page .site-header .header-content > nav a {
+  width: auto;
+  min-height: 44px;
+  padding: 11px 10px;
+  border: 0;
+  background: transparent;
+  white-space: nowrap;
+}
+.operator-page .site-header .header-content > nav a[aria-current="page"] {
+  background: rgb(255 255 255 / 16%);
+}
+.operator-page .site-header .header-content > nav a[aria-current="page"]::after {
+  display: none;
+}
+.operator-page .site-header .header-action {
+  position: static;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  min-height: 44px;
+  margin: 0;
+  white-space: nowrap;
+}
+.operator-page #operator-logout {
+  display: flex;
+  align-items: center;
+  flex: 0 0 auto;
+  align-self: center;
+  margin: 0;
+}
+.operator-page #operator-logout button {
+  min-height: 44px;
+  margin: 0;
+  white-space: nowrap;
+}
+@media (max-width: 1199px) {
+  .operator-page .site-header .header-content > nav,
+  .operator-page .site-header .header-action {
+    display: none;
+  }
+  .operator-page .laguna-bottom-nav {
+    display: grid;
+  }
+  .operator-page .moderation-workspace {
+    padding-bottom: calc(92px + env(safe-area-inset-bottom));
+  }
+}
+@media (max-width: 600px) {
+  .operator-page .site-header .brand img {
+    width: auto;
+    max-width: 140px;
+    height: 36px;
+  }
+  .operator-page #operator-logout button {
+    padding-inline: 12px;
+    font-size: 12px;
+  }
+}

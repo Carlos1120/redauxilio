@@ -1488,3 +1488,45 @@ body[data-laguna-page="own"] .workspace {
     transition: none;
   }
 }
+
+/* El quinto destino solo aparece tras comprobar el permiso de auditoría en el servidor. */
+#operator-nav-link[hidden],
+#operator-mobile-link[hidden] {
+  display: none !important;
+}
+@media (max-width: 1199px) {
+  .laguna-bottom-nav.has-operator {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+  .laguna-bottom-nav.has-operator > :is(a, button) {
+    font-size: clamp(0.65rem, 1.8vw, 0.78rem);
+  }
+}
+@media (min-width: 1200px) {
+  .site-header .header-content > nav:has(#operator-nav-link:not([hidden])) {
+    flex-basis: 488px;
+    width: 488px;
+  }
+  .site-header .header-content > nav #operator-nav-link {
+    position: relative;
+    width: 115px;
+    min-height: 48px;
+    padding: 14px 0 0;
+  }
+}
+@media (min-width: 1200px) and (max-width: 1299px) {
+  .site-header .header-content > nav:has(#operator-nav-link:not([hidden])) {
+    flex-basis: 415px;
+    width: 415px;
+  }
+  .site-header .header-content > nav:has(#operator-nav-link:not([hidden])) a:nth-child(1) {
+    width: 70px;
+  }
+  .site-header .header-content > nav:has(#operator-nav-link:not([hidden])) a:nth-child(2),
+  .site-header .header-content > nav #operator-nav-link {
+    width: 100px;
+  }
+  .site-header .header-content > nav:has(#operator-nav-link:not([hidden])) a:nth-child(3) {
+    width: 145px;
+  }
+}

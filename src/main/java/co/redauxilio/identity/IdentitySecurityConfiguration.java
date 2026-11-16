@@ -114,6 +114,7 @@ class IdentitySecurityConfiguration {
                         "/freshness.js",
                         "/identity-forms.js",
                         "/identity-status.js",
+                        "/operator-access-nav.js",
                         "/publication-form.js",
                         "/my-publications.js",
                         "/confirmation.js",

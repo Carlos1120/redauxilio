@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#d7262e" />
+    <meta name="theme-color" content="#117d83" />
     <title>Moderación privada · RedAuxilio</title>
     <link rel="stylesheet" href="/app.css" />
     <link rel="stylesheet" href="/laguna.css" />
@@ -17,12 +17,17 @@
     <a class="skip-link" href="#moderation-workspace">Saltar a moderación</a>
     <header class="site-header">
       <div class="header-content">
-        <a class="brand" href="/"
-          ><img src="/icon.svg" width="36" height="36" alt="" /><span
-            >RedAuxilio<small>Moderación privada</small></span
-          ></a
-        >
-        <nav aria-label="Navegación del operador"><a href="/">Volver a RedAuxilio</a></nav>
+        <a class="brand" href="/" aria-label="RedAuxilio · Inicio"
+          ><picture>
+            <source media="(max-width: 1099px)" srcset="/laguna-assets/logo-mobile.svg" />
+            <img src="/laguna-assets/logo-desktop.svg" width="223" height="44" alt="" /></picture
+        ></a>
+        <nav aria-label="Secciones">
+          <a href="/">Inicio</a><a href="/#search-section">Explorar</a
+          ><a href="/#own-section">Mis reportes</a
+          ><a href="/operator" aria-current="page">Auditorías</a>
+        </nav>
+        <a class="header-action" href="/#draft-section">＋ Publicar</a>
         <form th:action="@{/logout}" method="post" id="operator-logout">
           <button type="submit" class="secondary-button">Cerrar sesión</button>
         </form>
@@ -202,5 +207,27 @@
         consultar, confirma tu sesión y tu conexión.
       </p>
     </main>
+    <nav class="laguna-bottom-nav" aria-label="Navegación principal móvil">
+      <a href="/"
+        ><img src="/laguna-assets/nav-home.svg" width="24" height="24" alt="" /><span
+          >Inicio</span
+        ></a
+      >
+      <a href="/#search-section"
+        ><img src="/laguna-assets/nav-explore.svg" width="24" height="24" alt="" /><span
+          >Explorar</span
+        ></a
+      >
+      <a href="/#draft-section"
+        ><img src="/laguna-assets/nav-publish.svg" width="24" height="24" alt="" /><span
+          >Publicar</span
+        ></a
+      >
+      <a href="/operator" aria-current="page"
+        ><img src="/laguna-assets/desktop-action-shield.svg" width="24" height="24" alt="" /><span
+          >Auditorías</span
+        ></a
+      >
+    </nav>
   </body>
 </html>

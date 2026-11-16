@@ -15,6 +15,7 @@
     <script src="/map.js" defer></script>
     <script src="/identity-forms.js" defer></script>
     <script src="/identity-status.js" defer></script>
+    <script src="/operator-access-nav.js" defer></script>
     <script src="/freshness.js" defer></script>
     <script src="/missing-person.js" defer></script>
     <script src="/missing-person-sightings.js" defer></script>
@@ -173,7 +174,8 @@
         </label>
         <nav aria-label="Secciones">
           <a href="#main-content" aria-current="page">Inicio</a
-          ><a href="#search-section">Explorar</a><a href="#own-section">Mis reportes</a>
+          ><a href="#search-section">Explorar</a><a href="#own-section">Mis reportes</a
+          ><a id="operator-nav-link" href="/operator" hidden>Auditorías</a>
         </nav>
         <a class="header-action" href="#draft-section">＋ Publicar</a>
         <div class="identity-controls">
@@ -911,6 +913,10 @@
         <img src="/laguna-assets/nav-account.svg" width="24" height="24" alt="" />
         <span>Cuenta</span>
       </button>
+      <a id="operator-mobile-link" href="/operator" hidden>
+        <img src="/laguna-assets/desktop-action-shield.svg" width="24" height="24" alt="" />
+        <span>Auditorías</span>
+      </a>
     </nav>
     <footer>
       <span>RedAuxilio · Proyecto académico · Equipo 4</span

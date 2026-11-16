@@ -1,6 +1,6 @@
 # RedAuxilio — traspaso Laguna
 
-Actualizado: 15 de noviembre de 2026 (Colombia). Rama activa `codex/laguna-operator`, creada desde `codex/laguna-access-motion` (HEAD publicado en PR #38). El PR #38 está abierto hacia `feat/laguna-shell-home-explore`; el PR #37 ya se integró en esa rama y #36 en `develop`. Verificar de nuevo esos estados antes de integrar. No hacer merge ni atribuir revisión humana inexistente.
+Actualizado: 16 de noviembre de 2026 (Colombia). Rama activa `codex/laguna-operator`, PR #39 abierto hacia `codex/laguna-access-motion` (PR #38). Verificar de nuevo los PR y sus bases antes de integrar. No hacer merge ni atribuir revisión humana inexistente.
 
 ## Dirección y alcance
 
@@ -10,10 +10,12 @@ Inicio sigue los frames oficiales de Figma `4:248` móvil y `6:311` escritorio; 
 
 Inicio, Explorar, Publicar y Mis reportes se presentan como secciones exclusivas por hash. El selector de acceso distingue Ciudadano, Auditor y Verificador autorizado, pero solo la consulta del permiso persistente concede acceso efectivo. El registro público sigue creando ciudadanos. La cabecera pública muestra ondas vectoriales y los botones responden al puntero; movimiento reducido desactiva animación. Los marcadores del mapa y la leyenda usan cuatro pictogramas Laguna. El service worker usa caché v31.
 
-Este bloque traslada `/operator` a Laguna sin cambiar endpoints ni IDs: cabecera turquesa, ondas, fuentes locales, presentación de tarea, accesos a secciones, revisión manual, cola, contexto y paneles plegables. `moderation-laguna.css` se carga después de `app.css`, `laguna.css` y `moderation.css`; no se precarga como recurso privado en el service worker. El operador carece de frame propio de Figma, por lo que esta adaptación necesita revisión visual del compañero.
+Este bloque traslada `/operator` a Laguna sin cambiar endpoints ni IDs: cabecera turquesa, ondas, fuentes locales, presentación de tarea, accesos a secciones, revisión manual, cola, contexto y paneles plegables. La cabecera privada ahora reutiliza el logotipo y la navegación pública, con Auditorías y Cerrar sesión alineado. El enlace Auditorías público se revela solo tras consultar el permiso de operador vigente para la sesión; se oculta al salir, perder red o revocar. La ruta privada mantiene su validación por petición. `moderation-laguna.css` se carga después de `app.css`, `laguna.css` y `moderation.css`; no se precarga como recurso privado en el service worker. El operador carece de frame propio de Figma, por lo que esta adaptación necesita revisión visual del compañero.
 
-La demo local aislada funciona en `http://127.0.0.1:61385/` con una base H2 de archivo en una carpeta temporal fuera de Git. Una cuenta ficticia tiene permisos de operador y verificador, concedidos y comprobados mediante las rutas protegidas; no registrar su contraseña en el repositorio. La app de IntelliJ en `8080` usa otro checkout/base. En navegador local se comprobó `/operator` a 390, 768 y 1366 px sin desbordamiento horizontal y se abrió la sección de autorizaciones. Pruebas dirigidas de moderación: 26/26; JavaScript completo: 162/162; Prettier pasó. Maven `verify` con Java 21 aprobó 205 pruebas Java, sin fallos.
+La demo aislada funciona en `http://127.0.0.1:61385/` con H2 de archivo fuera de Git. Una cuenta ficticia tiene permisos de operador y verificador; no registrar su contraseña en el repositorio. IntelliJ en `8080` usa otro checkout/base. En navegador se comprobó `/operator` a 390, 768 y 1366 px sin desbordamiento horizontal y se abrió Autorizaciones.
+
+Para el nuevo acceso se comprobó la navegación de Inicio a Auditorías en 390, 1200 y 1366 px: enlace visible con permiso vigente, sin desbordamiento a 390/1200; botón de salida alineado. La regresión Java cubre permiso ausente, concesión tras nuevo login y revocación en sesión antigua. La nueva ruta responde sin caché; el script público se precarga en PWA v32, pero ninguna respuesta privada entra en la caché. `npm test` aprobó 162 pruebas, prueba dirigida del service worker 12 y `format:check` pasó. `mvn verify` con Java 21 aprobó 205 pruebas. CI del siguiente HEAD aún debe comprobarse.
 
 ## Siguiente paso
 
-Publicar PR apilado hacia `codex/laguna-access-motion` y comprobar CI del SHA final. Revisar con Carlos la dirección visual y después integrar en orden. La fidelidad de Explorar y otros módulos permanece pendiente. No atribuir validación humana ni cerrar la transición global por este bloque.
+Actualizar el PR #39 con esta cabecera y comprobar CI del SHA final. Revisar con Carlos la dirección visual y después integrar en orden. La fidelidad de Explorar y otros módulos permanece pendiente. No atribuir validación humana ni cerrar la transición global por este bloque.

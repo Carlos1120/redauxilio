@@ -8,8 +8,9 @@
 > aplican a módulos aún no migrados; sus reglas de accesibilidad y seguridad
 > permanecen vigentes. El PR #37 se integró en la rama Laguna; su aceptación
 > visual humana no consta en esta guía. La ampliación de acceso incorpora tres
-> opciones, ondas sutiles en cabecera y respuesta al puntero, con movimiento
-> reducido respetado. Registrar su revisión antes de integrar a `develop`.
+> opciones, ondas vectoriales visibles en cabecera y respuesta al puntero, con
+> movimiento reducido respetado. Los pictogramas Laguna sustituyen los símbolos
+> anteriores del mapa. Registrar su revisión antes de integrar a `develop`.
 
 Versión 1.0 · 6 de octubre de 2026. Dirección visual solicitada por Santiago Ortiz Ochoa y aplicada en el PR #8. Esta guía define cómo continuar ese diseño; no registra aprobación de Carlos ni sustituye ESTANDARES.md, los requisitos o las pruebas de aceptación.
 
@@ -71,10 +72,10 @@ El fondo cartográfico queda desaturado para que fichas y marcadores dominen. Ap
 
 | Categoría            | Símbolo y aspecto actual                                           |
 | -------------------- | ------------------------------------------------------------------ |
-| Punto de asistencia  | `⌂`, cuadrado oscuro con esquinas redondeadas                      |
-| Vía afectada         | `↔`, círculo blanco con borde y texto rojos                        |
-| Persona desaparecida | `?`, círculo rojo                                                  |
-| Solicitud de ayuda   | `!`, círculo rojo                                                  |
+| Punto de asistencia  | Pictograma Laguna de refugio en tarjeta verde clara                |
+| Vía afectada         | Pictograma Laguna de vía en tarjeta ámbar clara                    |
+| Persona desaparecida | Pictograma Laguna de persona en tarjeta lila clara                 |
+| Solicitud de ayuda   | Pictograma Laguna de ayuda en tarjeta coral clara                  |
 | Grupo                | Número de reportes en círculo rojo; permite consultar sus miembros |
 
 Conservar leyenda y nombres accesibles: el color o el símbolo no bastan. Si falla la cartografía, la lista y el detalle siguen utilizables. El aviso conserva los fallos por tesela hasta su recuperación o retirada. No convertir el mapa de demostración en una afirmación de ubicación real.

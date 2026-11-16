@@ -1373,30 +1373,22 @@ body[data-laguna-page="own"] .workspace {
   font-size: 15px;
 }
 
-/* Textura de Laguna: ondas y puntos quedan detrás de la navegación y no
-   bloquean clics. El movimiento es lento para no competir con las acciones. */
+/* Ondas Laguna: recurso vectorial detrás de la navegación, sin capturar clics. */
 .site-header::after {
   content: "";
   position: absolute;
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  opacity: 0.5;
-  background:
-    radial-gradient(circle at 86% 52%, rgb(176 235 220 / 34%) 0 3px, transparent 4px),
-    radial-gradient(circle at 90% 32%, rgb(176 235 220 / 28%) 0 2px, transparent 3px),
-    radial-gradient(ellipse 170px 52px at 24% 105%, rgb(182 231 217 / 22%), transparent);
-  background-size:
-    120px 80px,
-    155px 90px,
-    auto;
+  opacity: 1;
+  background: url("/laguna-assets/header-waves.svg") center bottom / 100% 100% no-repeat;
 }
 @media (prefers-reduced-motion: no-preference) {
   .site-header::before {
     animation: laguna-header-drift 16s ease-in-out infinite alternate;
   }
   .site-header::after {
-    animation: laguna-header-light 10s ease-in-out infinite alternate;
+    animation: laguna-header-light 7s ease-in-out infinite alternate;
   }
 }
 @keyframes laguna-header-drift {
@@ -1406,8 +1398,45 @@ body[data-laguna-page="own"] .workspace {
 }
 @keyframes laguna-header-light {
   to {
-    opacity: 0.28;
+    transform: translateX(22px);
+    opacity: 0.7;
   }
+}
+
+/* Los marcadores y la leyenda comparten los pictogramas extraídos de Laguna. */
+.report-marker:not(.report-marker--group) {
+  display: grid;
+  place-items: center;
+  border: 2px solid #d7262e;
+  border-radius: 14px;
+  background: #fffaf6;
+  box-shadow: 0 4px 14px rgb(19 58 60 / 22%);
+}
+.report-marker--assistance {
+  background: #e8f6ee;
+}
+.report-marker--road {
+  background: #fff5df;
+}
+.report-marker--missing_person {
+  background: #f5eefa;
+}
+.report-marker--help_request {
+  background: #fff0ed;
+}
+.report-marker img {
+  display: block;
+  width: 26px;
+  height: 26px;
+}
+.map-legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.map-legend img {
+  display: block;
+  flex: none;
 }
 
 /* Respuesta de puntero visible sin desplazar la navegación ni alterar el foco. */

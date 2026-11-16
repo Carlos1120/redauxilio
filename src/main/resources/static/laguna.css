@@ -1619,25 +1619,29 @@ body[data-laguna-page="verifier"] .verifier-workspace {
   }
 }
 
-/* El quinto destino solo aparece tras comprobar el permiso de auditoría en el servidor. */
+/* El quinto destino aparece tras comprobar el permiso vigente del modo elegido. */
 #operator-nav-link[hidden],
-#operator-mobile-link[hidden] {
+#operator-mobile-link[hidden],
+#verifier-nav-link[hidden],
+#verifier-mobile-link[hidden] {
   display: none !important;
 }
 @media (max-width: 1199px) {
-  .laguna-bottom-nav.has-operator {
+  .laguna-bottom-nav.has-role-destination {
     grid-template-columns: repeat(5, minmax(0, 1fr));
   }
-  .laguna-bottom-nav.has-operator > :is(a, button) {
+  .laguna-bottom-nav.has-role-destination > :is(a, button) {
     font-size: clamp(0.65rem, 1.8vw, 0.78rem);
   }
 }
 @media (min-width: 1200px) {
-  .site-header .header-content > nav:has(#operator-nav-link:not([hidden])) {
+  .site-header
+    .header-content
+    > nav:has(:is(#operator-nav-link, #verifier-nav-link):not([hidden])) {
     flex-basis: 488px;
     width: 488px;
   }
-  .site-header .header-content > nav #operator-nav-link {
+  .site-header .header-content > nav :is(#operator-nav-link, #verifier-nav-link) {
     position: relative;
     width: 115px;
     min-height: 48px;
@@ -1645,18 +1649,29 @@ body[data-laguna-page="verifier"] .verifier-workspace {
   }
 }
 @media (min-width: 1200px) and (max-width: 1299px) {
-  .site-header .header-content > nav:has(#operator-nav-link:not([hidden])) {
+  .site-header
+    .header-content
+    > nav:has(:is(#operator-nav-link, #verifier-nav-link):not([hidden])) {
     flex-basis: 415px;
     width: 415px;
   }
-  .site-header .header-content > nav:has(#operator-nav-link:not([hidden])) a:nth-child(1) {
+  .site-header
+    .header-content
+    > nav:has(:is(#operator-nav-link, #verifier-nav-link):not([hidden]))
+    a:nth-child(1) {
     width: 70px;
   }
-  .site-header .header-content > nav:has(#operator-nav-link:not([hidden])) a:nth-child(2),
-  .site-header .header-content > nav #operator-nav-link {
+  .site-header
+    .header-content
+    > nav:has(:is(#operator-nav-link, #verifier-nav-link):not([hidden]))
+    a:nth-child(2),
+  .site-header .header-content > nav :is(#operator-nav-link, #verifier-nav-link) {
     width: 100px;
   }
-  .site-header .header-content > nav:has(#operator-nav-link:not([hidden])) a:nth-child(3) {
+  .site-header
+    .header-content
+    > nav:has(:is(#operator-nav-link, #verifier-nav-link):not([hidden]))
+    a:nth-child(3) {
     width: 145px;
   }
 }

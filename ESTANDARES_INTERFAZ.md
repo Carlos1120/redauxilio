@@ -142,6 +142,8 @@ La cabecera del operador conserva las medidas, el logotipo Laguna y los destinos
 
 El acceso Verificador autorizado abre una sección Laguna distinta de Auditorías y de las pantallas ciudadanas. Presenta publicaciones públicas, búsqueda y el formulario de respaldo existente; el servidor vuelve a comprobar el permiso al registrar cada verificación. Una misma cuenta puede tener ambos permisos, pero la elección de acceso solo determina el destino inicial y nunca concede privilegios. Los avisos de sesión usan teal para estados normales y ámbar para errores; no se repite un aviso al cambiar de modalidad.
 
+La cabecera y la navegación móvil muestran Verificaciones solo tras consultar su permiso vigente. Si una cuenta con ambos permisos entra en modo verificador, la navegación presenta Verificaciones y oculta Auditorías; en modo auditor ocurre lo inverso. Esta presentación no revoca permisos: la protección de cada ruta y operación sigue en el servidor.
+
 ## Laguna pública — incremento visual
 
 Laguna es la dirección aprobada para Inicio y Explorar; se implementa por pantallas sobre el diseño existente. Inicio usa exclusivamente los frames originales 4:248 (390 px) y 6:311 (1366 px) de Figma; 360 y 768 px son adaptaciones responsive de esos diseños, no reproducciones de los auxiliares 09C. Las fuentes, colores y recursos Laguna originales se limitan a las pantallas migradas; las demás conservan sus componentes actuales hasta su revisión. La equivalencia visual final y las pantallas posteriores siguen pendientes de revisión cruzada. No se alteran servicios ni el mapa por este cambio visual.

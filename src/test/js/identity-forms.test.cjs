@@ -105,6 +105,7 @@ test("login y logout usan CSRF y actualizan sesión sin navegación completa", a
       requestSubmit: async () => listeners.get("submit")({ preventDefault() {}, submitter: null }),
     };
     const context = {
+      sessionStorage: { setItem() {}, removeItem() {} },
       document: {
         querySelectorAll: () => [form],
         getElementById: () => message,
@@ -179,6 +180,7 @@ test("el acceso de auditor consulta el permiso real y no eleva una cuenta ciudad
       reset() {},
     };
     const context = {
+      sessionStorage: { setItem() {}, removeItem() {} },
       document: {
         querySelectorAll: () => [form],
         getElementById: () => ({ textContent: "", hidden: true }),
@@ -230,6 +232,7 @@ test("el acceso de verificador informa solo el permiso que confirma el servidor"
       reset() {},
     };
     const context = {
+      sessionStorage: { setItem() {}, removeItem() {} },
       document: {
         querySelectorAll: () => [form],
         getElementById: (id) =>

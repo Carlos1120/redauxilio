@@ -22,6 +22,7 @@ async function submitIdentityFormWithoutReload(form) {
     await window.RedAuxilioPublicationUI?.clearEvidenceDraft?.();
     let accessMessage = "Sesión iniciada.";
     let verifierAuthorized = false;
+    let effectiveAccess = requestedAccess;
     // La elección visual no asigna roles: se consulta el permiso vigente en el servidor.
     if (requestedAccess === "operator") {
       try {
@@ -31,12 +32,15 @@ async function submitIdentityFormWithoutReload(form) {
           headers: { Accept: "text/html" },
         });
         if (permission.ok && !permission.redirected) {
+          sessionStorage.setItem("redauxilio:access-mode", "operator");
           window.location.assign("/operator");
           return;
         }
         accessMessage = "Sesión iniciada. Esta cuenta no tiene permiso de auditoría.";
+        effectiveAccess = "citizen";
       } catch {
         accessMessage = "Sesión iniciada. No se pudo comprobar el permiso de auditoría.";
+        effectiveAccess = "citizen";
       }
     } else if (requestedAccess === "verifier") {
       try {
@@ -49,10 +53,13 @@ async function submitIdentityFormWithoutReload(form) {
         accessMessage = verifierAuthorized
           ? "Sesión iniciada. Abriendo tu espacio de verificación."
           : "Sesión iniciada. Esta cuenta no tiene permiso de verificación.";
+        if (!verifierAuthorized) effectiveAccess = "citizen";
       } catch {
         accessMessage = "Sesión iniciada. No se pudo comprobar el permiso de verificación.";
+        effectiveAccess = "citizen";
       }
     }
+    sessionStorage.setItem("redauxilio:access-mode", effectiveAccess);
     window.dispatchEvent(
       new CustomEvent("redauxilio:identity-action", {
         detail: { authenticated: true, message: accessMessage },
@@ -63,6 +70,7 @@ async function submitIdentityFormWithoutReload(form) {
       document.getElementById("identity-dialog")?.close();
     }
   } else if (path === "/logout" && destination.searchParams.has("signedout") && response.ok) {
+    sessionStorage.removeItem("redauxilio:access-mode");
     // Retira fotos privadas antes de anunciar el cambio de sesión; mantiene el resto del borrador.
     await window.RedAuxilioPublicationUI?.clearEvidenceDraft?.();
     window.dispatchEvent(

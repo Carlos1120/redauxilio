@@ -50,6 +50,7 @@
       explore: "#search-section",
       publish: "#draft-section",
       account: window.location.hash === "#own-section" ? "#own-section" : null,
+      verifier: "#verifier-workspace",
     }[key];
     for (const link of desktopTabs) {
       if (desktopHref && link.getAttribute("href") === desktopHref)

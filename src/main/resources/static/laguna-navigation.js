@@ -23,6 +23,7 @@
   }
 
   function selectedByHash(hash) {
+    if (hash === "#verifier-workspace") return "verifier";
     if (hash === "#draft-section") return "publish";
     if (hash === "#own-section") return "account";
     if (["#search-section", "#map-title", "#report-map", "#publications"].includes(hash))
@@ -102,6 +103,11 @@
       form.dataset.loginAccess = mode;
       form.querySelector('button[type="submit"]').textContent = copy[mode][0];
       help.textContent = copy[mode][1];
+      // Un cambio de acceso inicia un intento nuevo: no conserva avisos del anterior.
+      for (const notice of document.querySelectorAll(
+        "#identity-action-message, #identity-csrf-message, [data-access-panel='login'] > .identity-message",
+      ))
+        notice.hidden = true;
     });
   }
 })();

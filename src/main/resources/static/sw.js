@@ -6,7 +6,7 @@
  */
 // RA-10/13 renuevan recursos públicos; contacto, fotos e historiales siguen fuera de caché.
 // RA-14: renueva el shell para distribuir advertencia y control de justificacion.
-const CACHE = "redauxilio-demo-v32";
+const CACHE = "redauxilio-demo-v33";
 const SHELL = [
   "/",
   "/app.css",
@@ -60,6 +60,7 @@ const SHELL = [
   "/confirmation.js",
   "/content-report.js",
   "/official-verification.js",
+  "/verifier-workspace.js",
   "/map.js",
   "/manifest.webmanifest",
   "/icon.svg",

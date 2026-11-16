@@ -221,6 +221,7 @@ test("el acceso de verificador informa solo el permiso que confirma el servidor"
   for (const allowed of [false, true]) {
     const listeners = new Map();
     const events = [];
+    let closed = false;
     const form = {
       action: "http://localhost/login",
       dataset: { csrfFresh: "true", loginAccess: "verifier" },
@@ -229,7 +230,11 @@ test("el acceso de verificador informa solo el permiso que confirma el servidor"
       reset() {},
     };
     const context = {
-      document: { querySelectorAll: () => [form], getElementById: () => ({ hidden: true }) },
+      document: {
+        querySelectorAll: () => [form],
+        getElementById: (id) =>
+          id === "identity-dialog" ? { close: () => (closed = true) } : { hidden: true },
+      },
       window: {
         location: { origin: "http://localhost" },
         dispatchEvent: (event) => events.push(event.detail),
@@ -260,6 +265,8 @@ test("el acceso de verificador informa solo el permiso que confirma el servidor"
     );
     await listeners.get("submit")({ preventDefault() {} });
     assert.equal(events[0].authenticated, true);
-    assert.match(events[0].message, allowed ? /Puedes verificar/ : /no tiene permiso/);
+    assert.match(events[0].message, allowed ? /espacio de verificación/ : /no tiene permiso/);
+    assert.equal(context.window.location.hash, allowed ? "#verifier-workspace" : undefined);
+    assert.equal(closed, allowed);
   }
 });

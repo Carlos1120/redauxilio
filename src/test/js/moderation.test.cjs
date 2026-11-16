@@ -740,7 +740,10 @@ test("CSS de operador se carga después del compartido y no se incorpora al serv
   );
   const sw = fs.readFileSync(path.join(__dirname, "../../main/resources/static/sw.js"), "utf8");
   assert.ok(html.indexOf('href="/app.css"') < html.indexOf('href="/moderation.css"'));
+  assert.ok(html.indexOf('href="/laguna.css"') < html.indexOf('href="/moderation.css"'));
+  assert.ok(html.indexOf('href="/moderation.css"') < html.indexOf('href="/moderation-laguna.css"'));
   assert.doesNotMatch(sw, /["']\/moderation\.(css|js)["']/);
+  assert.doesNotMatch(sw, /["']\/moderation-laguna\.css["']/);
   assert.match(html, /id="manual-review-form"/);
 });
 

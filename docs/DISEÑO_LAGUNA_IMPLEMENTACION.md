@@ -94,3 +94,7 @@ La auditoría corrigió cuatro puntos: cabecera flexible desde 1200 px y navegac
 ## Marcadores y cabecera posteriores a #37
 
 Por solicitud visual de Santiago, la cabecera cambia sus puntos apenas perceptibles por ondas Laguna de mayor contraste, un anillo ámbar y un desplazamiento suave de 7 s. El semicírculo y los botones existentes se conservan. `prefers-reduced-motion: reduce` deja el recurso estático. Los cuatro marcadores del mapa y su leyenda usan pictogramas derivados de los SVG Laguna de categorías; los grupos conservan el número y el nombre accesible de cada marcador permanece en Leaflet. Las imágenes tienen `alt=""` para evitar duplicar ese nombre. El service worker sube a v31 para distribuir los SVG y CSS nuevos. Esta variación de la cabecera frente al frame de Figma queda sujeta a revisión visual del compañero.
+
+## Espacio de auditor Laguna
+
+`/operator` reutiliza los tokens, fuentes y ondas de Inicio, sin alterar la moderación ni el permiso SQL. La cabecera, presentación de la tarea, accesos a secciones, formulario de revisión, cola, contexto y paneles plegables comparten una jerarquía visual. Se conserva `app.css` y `moderation.css`; `moderation-laguna.css` aporta la capa de migración. La hoja privada no entra en el precache del service worker. El panel no tiene frame oficial propio de Figma; esta adaptación está pendiente de revisión humana. En navegador local se observaron 390, 768 y 1366 px sin desbordamiento horizontal; la vista desplegada de autorizaciones conservó formulario, lista y auditoría.

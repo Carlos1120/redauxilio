@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="/laguna.css" />
     <link rel="stylesheet" href="/moderation.css" />
     <link rel="stylesheet" href="/moderation-laguna.css" />
+    <script src="/operator-header.js" defer></script>
     <script src="/missing-person.js" defer></script>
     <script src="/moderation.js" defer></script>
     <script src="/account-restrictions.js" defer></script>
@@ -28,9 +29,24 @@
           ><a href="/operator" aria-current="page">Auditorías</a>
         </nav>
         <a class="header-action" href="/#draft-section">＋ Publicar</a>
-        <form th:action="@{/logout}" method="post" id="operator-logout">
-          <button type="submit" class="secondary-button">Cerrar sesión</button>
-        </form>
+        <div class="identity-controls">
+          <span id="connection-indicator" class="connection-indicator" aria-hidden="true"></span>
+          <span id="connection" class="sr-only" role="status" aria-live="polite"></span>
+          <details class="operator-account-menu">
+            <summary class="identity-trigger" aria-label="Abrir cuenta del auditor">
+              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path d="M20 21a8 8 0 0 0-16 0M12 13a5 5 0 0 0 0-10 5 5 0 0 0 0 10Z" />
+              </svg>
+            </summary>
+            <div class="operator-account-panel">
+              <p>Sesión de auditor</p>
+              <a href="/?access=account">Ver mi perfil</a>
+              <form th:action="@{/logout}" method="post" id="operator-logout">
+                <button type="submit" class="secondary-button">Cerrar sesión</button>
+              </form>
+            </div>
+          </details>
+        </div>
       </div>
     </header>
     <main id="moderation-workspace" class="moderation-workspace">
@@ -207,7 +223,7 @@
         consultar, confirma tu sesión y tu conexión.
       </p>
     </main>
-    <nav class="laguna-bottom-nav" aria-label="Navegación principal móvil">
+    <nav class="laguna-bottom-nav has-operator" aria-label="Navegación principal móvil">
       <a href="/"
         ><img src="/laguna-assets/nav-home.svg" width="24" height="24" alt="" /><span
           >Inicio</span
@@ -221,6 +237,11 @@
       <a href="/#draft-section"
         ><img src="/laguna-assets/nav-publish.svg" width="24" height="24" alt="" /><span
           >Publicar</span
+        ></a
+      >
+      <a href="/?access=account"
+        ><img src="/laguna-assets/nav-account.svg" width="24" height="24" alt="" /><span
+          >Cuenta</span
         ></a
       >
       <a href="/operator" aria-current="page"

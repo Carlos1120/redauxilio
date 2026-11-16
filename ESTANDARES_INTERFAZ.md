@@ -138,7 +138,7 @@ Cambiar la dirección visual global requiere actualizar esta guía, el CSS compa
 
 La transición Laguna del operador añade `laguna.css` y `moderation-laguna.css` después de la capa anterior. Cabecera turquesa con ondas, tipografía Outfit/Atkinson/Bricolage local, superficies claras y énfasis ámbar distinguen navegación, revisión, cola y decisiones. Los controles de riesgo mantienen texto y color explícitos. La navegación interna conduce a secciones existentes; los permisos, solicitudes y estados privados no cambian. A 390, 768 y 1366 px se requiere lectura sin desbordamiento horizontal. Esta pantalla no cuenta con un frame propio de Figma: su dirección deriva de Inicio Laguna y queda pendiente de revisión visual del compañero.
 
-La cabecera del operador reutiliza el logotipo Laguna y los destinos públicos Inicio, Explorar, Mis reportes y Publicar. Auditorías aparece en la navegación pública de escritorio y móvil solo tras comprobar la sesión y el permiso SQL vigente; la ruta privada sigue exigiendo ambas condiciones en cada petición. En móvil, el panel usa la misma navegación inferior y deja Cerrar sesión alineado en la cabecera.
+La cabecera del operador conserva las medidas, el logotipo Laguna y los destinos públicos Inicio, Explorar, Mis reportes y Publicar. Auditorías aparece en la navegación pública de escritorio y móvil solo tras comprobar la sesión y el permiso SQL vigente; la ruta privada sigue exigiendo ambas condiciones en cada petición. El control Cuenta comparte la cabecera con Inicio y ofrece Cerrar sesión; en móvil, se usa la misma navegación inferior.
 
 ## Laguna pública — incremento visual
 

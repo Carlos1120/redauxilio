@@ -23,12 +23,12 @@
 <g id="Zona verde">
 <rect x="31" y="34" width="39" height="18" rx="6" fill="#D0E3D9"/>
 </g>
-<circle id="Ellipse" cx="40" cy="41" r="13" fill="#E86D5E"/>
+<circle id="Ellipse" cx="40" cy="41" r="13" fill="#E9A49A"/>
 <g id="Icono de l&#195;&#173;nea &#194;&#183; Ubicaci&#195;&#179;n" clip-path="url(#clip1_0_134)">
 <g id="ECO RITMO &#194;&#183; help">
 <path id="Vector" d="M32.5 41.8333C34.1667 41 35.8333 41.4167 36.6667 42.6667L38.3333 45.1667H41.6667L43.3333 42.6667C44.1667 41.4167 45.8333 41 47.5 41.8333" stroke-width="1.54167" stroke-linecap="round" stroke-linejoin="round" stroke="#203547"/>
 <path id="Vector_2" d="M32.5 41.8333V46L36.6667 48.5H43.3333L47.5 46V41.8333" stroke-width="1.54167" stroke-linecap="round" stroke-linejoin="round" stroke="#203547"/>
-<path id="Vector_3" d="M40 34.3333V37.25M40 37.25V40.1667M40 37.25H37.0833M40 37.25H42.9167" stroke-width="1.83333" stroke-linecap="round" stroke-linejoin="round" stroke="#D7262E"/>
+<path id="Vector_3" d="M40 34.3333V37.25M40 37.25V40.1667M40 37.25H37.0833M40 37.25H42.9167" stroke-width="1.83333" stroke-linecap="round" stroke-linejoin="round" stroke="#A84B40"/>
 </g>
 </g>
 </g>

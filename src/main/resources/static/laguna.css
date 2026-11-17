@@ -984,17 +984,9 @@ body {
     font-size: 15px;
     gap: 11px;
   }
-  .laguna-home-categories a:nth-child(1) img {
-    content: url("/laguna-assets/desktop-map-shelter.svg");
-  }
-  .laguna-home-categories a:nth-child(2) img {
-    content: url("/laguna-assets/desktop-map-road.svg");
-  }
-  .laguna-home-categories a:nth-child(3) img {
-    content: url("/laguna-assets/desktop-map-person.svg");
-  }
-  .laguna-home-categories a:nth-child(4) img {
-    content: url("/laguna-assets/desktop-map-help.svg");
+  .laguna-home-categories img {
+    height: 108px;
+    object-fit: fill;
   }
   .laguna-home-support {
     grid-template-columns: 48px minmax(0, 1fr) 21px;
@@ -1537,21 +1529,25 @@ body[data-laguna-page="verifier"] .verifier-workspace {
 .report-marker:not(.report-marker--group) {
   display: grid;
   place-items: center;
-  border: 2px solid #d7262e;
+  border: 2px solid #0c747c;
   border-radius: 14px;
   background: #fffaf6;
   box-shadow: 0 4px 14px rgb(19 58 60 / 22%);
 }
 .report-marker--assistance {
+  border-color: #0c747c;
   background: #e8f6ee;
 }
 .report-marker--road {
+  border-color: #b17a18;
   background: #fff5df;
 }
 .report-marker--missing_person {
+  border-color: #766da6;
   background: #f5eefa;
 }
 .report-marker--help_request {
+  border-color: #c45d50;
   background: #fff0ed;
 }
 .report-marker img {

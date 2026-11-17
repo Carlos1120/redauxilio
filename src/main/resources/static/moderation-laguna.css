@@ -108,7 +108,7 @@
   max-width: 760px;
   margin: 6px 0 12px;
   font-family: "Laguna Bricolage", "Laguna Outfit", sans-serif;
-  font-size: clamp(32px, 4vw, 54px);
+  font-size: clamp(30px, 3.3vw, 44px);
   line-height: 1.04;
   letter-spacing: -0.055em;
 }
@@ -534,7 +534,7 @@
   .operator-page .site-header .header-action {
     flex: 0 0 135px;
     min-height: 47px;
-    margin: 20px 29px 0 0;
+    margin: 20px 29px 0 16px;
   }
   .operator-page .site-header .identity-controls {
     position: static;
@@ -557,6 +557,9 @@
   }
   .operator-page .site-header .header-content > nav a:nth-child(3) {
     width: 145px;
+  }
+  .operator-page .site-header .header-action {
+    margin-left: 10px;
   }
 }
 @media (max-width: 1199px) {

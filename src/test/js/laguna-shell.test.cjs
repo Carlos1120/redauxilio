@@ -45,6 +45,20 @@ test("Inicio conserva el texto de cada dispositivo y el escudo original", () => 
   );
 });
 
+test("las categorías conservan pictogramas y acentos Laguna diferentes", () => {
+  const assets = ["shelter", "road", "person", "help"].map((name) =>
+    fs.readFileSync(path.join(root, `static/laguna-assets/map-${name}.svg`), "utf8"),
+  );
+  for (const name of ["shelter", "road", "person", "help"])
+    assert.match(html, new RegExp(`/laguna-assets/map-${name}\\.svg`));
+  assert.equal(new Set(assets).size, 4);
+  assert.doesNotMatch(css, /content:\s*url\("\/laguna-assets\/desktop-map-/);
+  assert.match(css, /\.report-marker--assistance\s*\{[\s\S]*?border-color:\s*#0c747c/);
+  assert.match(css, /\.report-marker--road\s*\{[\s\S]*?border-color:\s*#b17a18/);
+  assert.match(css, /\.report-marker--missing_person\s*\{[\s\S]*?border-color:\s*#766da6/);
+  assert.match(css, /\.report-marker--help_request\s*\{[\s\S]*?border-color:\s*#c45d50/);
+});
+
 test("CSS respeta mobile/tablet, safe-area y las funciones del mapa", () => {
   assert.match(css, /@media \(max-width: 1099px\)/);
   assert.match(css, /@media \(max-width: 520px\)/);

@@ -1195,9 +1195,9 @@ html.app-loading {
   }
   .site-header .header-content {
     display: grid;
-    grid-template-columns: 223px minmax(0, 1fr) 135px 126px;
+    grid-template-columns: 223px minmax(0, 1fr) 135px 230px;
     align-items: flex-start;
-    column-gap: clamp(10px, 1.3vw, 22px);
+    column-gap: clamp(14px, 1.4vw, 22px);
     height: 89px;
     padding: 0 clamp(24px, 4vw, 58px);
   }
@@ -1232,9 +1232,10 @@ html.app-loading {
     content: "";
     position: absolute;
     top: 64px;
-    left: 0;
+    left: 50%;
     width: 61px;
     height: 3px;
+    transform: translateX(-50%);
     border-radius: 2px;
     background: #fff;
   }
@@ -1245,12 +1246,20 @@ html.app-loading {
   .site-header .identity-controls {
     position: static;
     justify-content: flex-end;
-    width: 126px;
+    width: 230px;
     margin-top: 20px;
-    gap: 0;
+    gap: 16px;
   }
   .site-header #connection-indicator {
-    display: none;
+    display: inline-flex;
+    width: 86px;
+    min-width: 86px;
+    margin-top: 6px;
+    padding-right: 4px;
+    padding-left: 22px;
+  }
+  .site-header #connection-indicator::before {
+    left: 8px;
   }
   .site-header .identity-trigger {
     width: 126px;
@@ -1356,6 +1365,66 @@ body[data-laguna-page="verifier"] > main > :is(.laguna-home-shell, .workspace) {
 body[data-laguna-page="publish"] .workspace,
 body[data-laguna-page="own"] .workspace {
   display: block;
+}
+
+/* Las pantallas públicas mantienen el lienzo de 1366 px de Laguna sin
+   estirar las categorías ni el formulario en monitores más anchos. */
+@media (min-width: 1100px) {
+  body[data-laguna-page="explore"] .workspace,
+  body[data-laguna-page="publish"] .workspace {
+    width: min(100%, 1366px);
+    margin-inline: auto;
+  }
+  body[data-laguna-page="explore"] .search-section {
+    min-height: 790px;
+    padding: 190px 56px 40px;
+    background: #fafcfd;
+  }
+  body[data-laguna-page="explore"] .search-section::before {
+    top: 182px;
+    bottom: 34px;
+    left: 55px;
+    width: 450px;
+    border-radius: 17px;
+    box-shadow: none;
+  }
+  body[data-laguna-page="explore"] .search-section > :is(.section-heading, .quick-filters, .filter-drawer, .query-message, #publications, .query-help) {
+    width: 450px;
+  }
+  body[data-laguna-page="explore"] .map-section {
+    inset: 190px 56px 40px 540px;
+    overflow: hidden;
+    border-radius: 17px;
+  }
+  body[data-laguna-page="publish"] .draft-section {
+    width: min(calc(100% - 112px), 1255px);
+    margin: 34px auto 56px;
+    padding: 28px;
+    border: 1px solid #dee7ec;
+    border-radius: 19px;
+    background: #fff;
+    box-shadow: none;
+    color: #193644;
+    font-family: "Laguna Outfit", sans-serif;
+  }
+  body[data-laguna-page="publish"] #draft-title {
+    font-size: 34px;
+    line-height: 1.2;
+  }
+  body[data-laguna-page="publish"] .draft-section form {
+    grid-template-columns: minmax(0, 803px) minmax(280px, 414px);
+    gap: 24px 28px;
+  }
+  .laguna-home-categories {
+    grid-template-columns: repeat(4, minmax(0, 150px));
+    justify-content: space-between;
+  }
+  .laguna-home-categories img {
+    width: 150px;
+    max-width: 100%;
+    height: 108px;
+    object-fit: contain;
+  }
 }
 
 /* Comparación de personas: espacio independiente y responsive. */

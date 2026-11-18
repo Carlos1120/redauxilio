@@ -181,16 +181,6 @@
     </dialog>
     <header class="site-header" id="laguna-site-header">
       <div class="header-content">
-        <a class="brand" href="#laguna-home" aria-label="RedAuxilio, ir al inicio">
-          <img src="/icon.svg?v=6" width="36" height="36" alt="" />
-          <span>RedAuxilio</span>
-        </a>
-        <nav class="laguna-desktop-nav" aria-label="Navegación principal">
-          <a href="#laguna-home" data-laguna-nav="inicio">Inicio</a>
-          <a href="#search-section" data-laguna-nav="explorar">Explorar</a>
-          <a href="#own-section" data-laguna-nav="cuenta">Mis reportes</a>
-        </nav>
-        <a class="header-action" href="#draft-section" data-laguna-nav="publicar">＋ Publicar</a>
         <a class="brand" href="#main-content" aria-label="RedAuxilio · Inicio"
           ><picture>
             <source media="(max-width: 1099px)" srcset="/laguna-assets/logo-mobile.svg" />
@@ -210,18 +200,9 @@
           ><a id="verifier-nav-link" href="#verifier-workspace" hidden>Verificaciones</a>
         </nav>
         <a class="header-action" href="#draft-section">＋ Publicar</a>
-        <nav aria-label="Secciones principales">
-          <a href="#page-map" data-app-page-link="map" aria-current="page">Mapa</a>
-          <a href="#page-publish" data-app-page-link="publish">Publicar</a>
-          <a href="#page-own" data-app-page-link="own">Mis reportes</a>
-        </nav>
-        <a id="open-publication" class="header-action" href="#page-publish">Publicar un reporte</a>
         <div class="identity-controls">
           <span id="connection-indicator" class="connection-indicator" aria-hidden="true"></span>
           <span id="connection" class="sr-only" role="status" aria-live="polite"></span>
-          <span id="laguna-connection-label" class="laguna-connection" aria-hidden="true"
-            >● En línea</span
-          >
           <button
             id="identity-open"
             class="identity-trigger"
@@ -234,7 +215,6 @@
             <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
               <path d="M20 21a8 8 0 0 0-16 0M12 13a5 5 0 1 0 0-10 5 5 0 0 0 0 10Z" />
             </svg>
-            <span class="laguna-account-label">Cuenta</span>
           </button>
         </div>
       </div>
@@ -462,9 +442,9 @@
           <div class="section-heading">
             <div>
               <p class="eyebrow">CONSULTA PÚBLICA</p>
-              <h2 id="search-title">Reportes visibles</h2>
+              <h2 id="search-title">Reportes comunitarios</h2>
             </div>
-            <span class="section-caption">Ejemplos y publicaciones</span>
+            <span class="section-caption">Vistos por fecha de publicación</span>
           </div>
           <div class="quick-filters" role="group" aria-label="Filtrar por tipo de reporte">
             <button type="button" data-category="" aria-pressed="true">Todo</button>
@@ -590,7 +570,7 @@
         </section>
         <section id="draft-section" class="draft-section" aria-labelledby="draft-title">
           <p class="eyebrow">PUBLICACIÓN CIUDADANA</p>
-          <h2 id="draft-title">Prepara una publicación</h2>
+          <h2 id="draft-title">Publica información que ayude</h2>
           <p id="draft-help">
             Guarda un borrador solo en este navegador o inicia sesión para publicarlo. No incluyas
             documentos personales, historias médicas, domicilios privados ni datos de contacto.

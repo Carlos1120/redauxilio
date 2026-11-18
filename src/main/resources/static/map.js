@@ -26,8 +26,10 @@ if (typeof window !== "undefined") {
     create(onMove, onDetail, labels) {
       const status = document.getElementById("map-status");
       if (!window.L) {
-        status.dataset.error = "true";
-        status.textContent = "El mapa no pudo cargarse. Puedes consultar los reportes en la lista.";
+        if (status) {
+          status.dataset.error = "true";
+          status.textContent = "El mapa no pudo cargarse. Puedes consultar los reportes en la lista.";
+        }
         return null;
       }
       const map = L.map("report-map", { scrollWheelZoom: false, worldCopyJump: true }).setView(
@@ -47,6 +49,7 @@ if (typeof window !== "undefined") {
       // El aviso es conservador mientras Leaflet mantenga una tesela fallida, incluso en su buffer.
       const failedTiles = new Set();
       function updateTileStatus() {
+        if (!status) return;
         status.dataset.error = String(failedTiles.size > 0);
         status.textContent = failedTiles.size
           ? "El fondo cartográfico no está disponible. Consulta la lista y las ubicaciones de los reportes."

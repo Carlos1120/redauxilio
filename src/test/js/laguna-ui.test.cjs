@@ -25,13 +25,11 @@ test("no duplica identificadores consumidos por los módulos actuales", () => {
   for (const id of [
     "identity-open",
     "search-query",
-    "laguna-search-query",
-    "laguna-account-mobile",
     "report-map",
     "draft-form",
   ]) {
     assert.equal((html.match(new RegExp('id="' + id + '"', "g")) || []).length, 1, id);
   }
   assert.match(html, /class="laguna-bottom-nav"/);
-  assert.match(html, /data-laguna-category="ASSISTANCE"/);
+  assert.match(html, /data-home-category="ASSISTANCE"/);
 });

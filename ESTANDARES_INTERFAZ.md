@@ -6,7 +6,11 @@
 > `docs/DISEÑO_LAGUNA_IMPLEMENTACION.md` registra el alcance de la migración.
 > La paleta, tipografía y composición de la versión 1.0 que siguen abajo se
 > aplican a módulos aún no migrados; sus reglas de accesibilidad y seguridad
-> permanecen vigentes. El PR #37 está en revisión visual, sin aceptación final.
+> permanecen vigentes. El PR #37 se integró en la rama Laguna; su aceptación
+> visual humana no consta en esta guía. La ampliación de acceso incorpora tres
+> opciones, ondas vectoriales visibles en cabecera y respuesta al puntero, con
+> movimiento reducido respetado. Los pictogramas Laguna sustituyen los símbolos
+> anteriores del mapa. Registrar su revisión antes de integrar a `develop`.
 
 Versión 1.0 · 6 de octubre de 2026. Dirección visual solicitada por Santiago Ortiz Ochoa y aplicada en el PR #8. Esta guía define cómo continuar ese diseño; no registra aprobación de Carlos ni sustituye ESTANDARES.md, los requisitos o las pruebas de aceptación.
 
@@ -68,10 +72,10 @@ El fondo cartográfico queda desaturado para que fichas y marcadores dominen. Ap
 
 | Categoría            | Símbolo y aspecto actual                                           |
 | -------------------- | ------------------------------------------------------------------ |
-| Punto de asistencia  | `⌂`, cuadrado oscuro con esquinas redondeadas                      |
-| Vía afectada         | `↔`, círculo blanco con borde y texto rojos                        |
-| Persona desaparecida | `?`, círculo rojo                                                  |
-| Solicitud de ayuda   | `!`, círculo rojo                                                  |
+| Punto de asistencia  | Pictograma Laguna de refugio en tarjeta verde clara                |
+| Vía afectada         | Pictograma Laguna de vía en tarjeta ámbar clara                    |
+| Persona desaparecida | Pictograma Laguna de persona en tarjeta lila clara                 |
+| Solicitud de ayuda   | Pictograma Laguna de ayuda en tarjeta coral clara                  |
 | Grupo                | Número de reportes en círculo rojo; permite consultar sus miembros |
 
 Conservar leyenda y nombres accesibles: el color o el símbolo no bastan. Si falla la cartografía, la lista y el detalle siguen utilizables. El aviso conserva los fallos por tesela hasta su recuperación o retirada. No convertir el mapa de demostración en una afirmación de ubicación real.
@@ -131,6 +135,14 @@ Cambiar la dirección visual global requiere actualizar esta guía, el CSS compa
 ## Panel de operador RA-08
 
 `/operator` carga `moderation.css` después de `app.css`, manteniendo Onest, rojo y tokens compartidos. Desde 1100 px usa cola lateral con desplazamiento propio y contexto principal; por debajo usa una columna y controles apilados en móvil. Sin métricas inventadas ni recursos privados en el service worker. Categoría/ID, revisión, confianza y estado se identifican por texto; selección con borde y aria-pressed. Historial en línea de tiempo: diferencias conocidas como texto y registro original solo en detalle técnico plegado. Ocultar/cerrar requieren confirmación integrada con cancelar/Escape y retorno de foco. Esta variante visual requiere aceptación humana; no cambia las reglas ni la dirección del mapa público.
+
+La transición Laguna del operador añade `laguna.css` y `moderation-laguna.css` después de la capa anterior. Cabecera turquesa con ondas, tipografía Outfit/Atkinson/Bricolage local, superficies claras y énfasis ámbar distinguen navegación, revisión, cola y decisiones. Los controles de riesgo mantienen texto y color explícitos. La navegación interna conduce a secciones existentes; los permisos, solicitudes y estados privados no cambian. A 390, 768 y 1366 px se requiere lectura sin desbordamiento horizontal. Esta pantalla no cuenta con un frame propio de Figma: su dirección deriva de Inicio Laguna y queda pendiente de revisión visual del compañero.
+
+La cabecera del operador conserva las medidas, el logotipo Laguna y los destinos públicos Inicio, Explorar, Mis reportes y Publicar. Auditorías aparece en la navegación pública de escritorio y móvil solo tras comprobar la sesión y el permiso SQL vigente; la ruta privada sigue exigiendo ambas condiciones en cada petición. El control Cuenta comparte la cabecera con Inicio y ofrece Cerrar sesión; en móvil, se usa la misma navegación inferior.
+
+El acceso Verificador autorizado abre una sección Laguna distinta de Auditorías y de las pantallas ciudadanas. Presenta publicaciones públicas, búsqueda y el formulario de respaldo existente; el servidor vuelve a comprobar el permiso al registrar cada verificación. Una misma cuenta puede tener ambos permisos, pero la elección de acceso solo determina el destino inicial y nunca concede privilegios. Los avisos de sesión usan teal para estados normales y ámbar para errores; no se repite un aviso al cambiar de modalidad.
+
+La cabecera y la navegación móvil muestran Verificaciones solo tras consultar su permiso vigente. Si una cuenta con ambos permisos entra en modo verificador, la navegación presenta Verificaciones y oculta Auditorías; en modo auditor ocurre lo inverso. Esta presentación no revoca permisos: la protección de cada ruta y operación sigue en el servidor.
 
 ## Laguna pública — incremento visual
 

@@ -6,12 +6,13 @@
  */
 // RA-10/13 renuevan recursos públicos; contacto, fotos e historiales siguen fuera de caché.
 // RA-14: renueva el shell para distribuir advertencia y control de justificacion.
-const CACHE = "redauxilio-demo-v30";
+const CACHE = "redauxilio-demo-v35";
 const SHELL = [
   "/",
   "/app.css",
   "/laguna.css",
   "/laguna-navigation.js",
+  "/operator-access-nav.js",
   // Recursos públicos originales de Inicio; ninguna imagen privada se precarga.
   "/laguna-assets/home-illustration-mobile.svg",
   "/laguna-assets/home-illustration-desktop.svg",
@@ -19,14 +20,15 @@ const SHELL = [
   "/laguna-assets/logo-desktop.svg",
   "/laguna-assets/header-circle-mobile.svg",
   "/laguna-assets/header-circle-desktop.svg",
+  "/laguna-assets/header-waves.svg",
+  "/laguna-assets/marker-shelter.svg",
+  "/laguna-assets/marker-road.svg",
+  "/laguna-assets/marker-person.svg",
+  "/laguna-assets/marker-help.svg",
   "/laguna-assets/map-shelter.svg",
   "/laguna-assets/map-road.svg",
   "/laguna-assets/map-person.svg",
   "/laguna-assets/map-help.svg",
-  "/laguna-assets/desktop-map-shelter.svg",
-  "/laguna-assets/desktop-map-road.svg",
-  "/laguna-assets/desktop-map-person.svg",
-  "/laguna-assets/desktop-map-help.svg",
   "/laguna-assets/desktop-action-shield.svg",
   "/laguna-assets/desktop-support-home.svg",
   "/laguna-assets/desktop-support-heart.svg",
@@ -54,6 +56,7 @@ const SHELL = [
   "/confirmation.js",
   "/content-report.js",
   "/official-verification.js",
+  "/verifier-workspace.js",
   "/map.js",
   "/manifest.webmanifest",
   "/icon.svg",

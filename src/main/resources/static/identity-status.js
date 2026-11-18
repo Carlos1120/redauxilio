@@ -25,8 +25,8 @@
     trigger.setAttribute(
       "aria-label",
       trigger.dataset.authenticated === "true"
-        ? "Cuenta ciudadana. Sesión iniciada. Abrir cuenta para cerrar sesión."
-        : "Cuenta ciudadana. Sin sesión iniciada. Abrir acceso ciudadano.",
+        ? "Cuenta RedAuxilio. Sesión iniciada. Abrir cuenta para cerrar sesión."
+        : "Cuenta RedAuxilio. Sin sesión iniciada. Abrir acceso.",
     );
   }
 
@@ -36,7 +36,7 @@
     if (trigger.dataset.authenticated !== "true") {
       accountName.textContent = "";
       accountEmail.textContent = "";
-      accountMessage.textContent = "Tu cuenta ciudadana está activa.";
+      accountMessage.textContent = "Tu sesión está activa.";
       return;
     }
     accountMessage.textContent = "Cargando perfil…";
@@ -56,7 +56,7 @@
       if (version !== sessionVersion) return;
       accountName.textContent = profile.displayName;
       accountEmail.textContent = profile.email;
-      accountMessage.textContent = "Tu cuenta ciudadana está activa.";
+      accountMessage.textContent = "Tu sesión está activa.";
     } catch {
       if (version !== sessionVersion) return;
       accountName.textContent = "";

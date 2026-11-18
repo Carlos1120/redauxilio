@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.CacheControl;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
@@ -20,9 +21,11 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 @Controller
 class IdentityPageController {
   private final CitizenAccountService accounts;
+  private final OperatorPermissions operators;
 
-  IdentityPageController(CitizenAccountService accounts) {
+  IdentityPageController(CitizenAccountService accounts, OperatorPermissions operators) {
     this.accounts = accounts;
+    this.operators = operators;
   }
 
   @GetMapping("/")
@@ -88,6 +91,15 @@ class IdentityPageController {
     return ResponseEntity.ok()
         .cacheControl(CacheControl.noStore())
         .body(accounts.findProfile(citizen.getUsername()));
+  }
+
+  /** Indica si la sesión y el permiso SQL actual permiten abrir el espacio de auditoría. */
+  @GetMapping(path = "/api/my/operator-permission", produces = "application/json")
+  @ResponseBody
+  ResponseEntity<java.util.Map<String, Boolean>> operatorPermission(Authentication authentication) {
+    return ResponseEntity.ok()
+        .cacheControl(CacheControl.noStore())
+        .body(java.util.Map.of("canModerate", operators.allows(authentication)));
   }
 
   private String allowedIdentityMode(String access) {

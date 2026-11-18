@@ -268,6 +268,7 @@ test("reporte de contenido precargado y POST con motivo fuera de caché", async 
   await installation;
   assert.ok(worker.precached.includes("/content-report.js"));
   assert.ok(worker.precached.includes("/official-verification.js"));
+  assert.ok(worker.precached.includes("/verifier-workspace.js"));
   assert.equal(
     fetchEvent(worker, "http://localhost:8081/api/publications/1000001/content-reports", "POST"),
     undefined,

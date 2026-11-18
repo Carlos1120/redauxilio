@@ -3,10 +3,13 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#d7262e" />
+    <meta name="theme-color" content="#117d83" />
     <title>Moderación privada · RedAuxilio</title>
     <link rel="stylesheet" href="/app.css" />
+    <link rel="stylesheet" href="/laguna.css" />
     <link rel="stylesheet" href="/moderation.css" />
+    <link rel="stylesheet" href="/moderation-laguna.css" />
+    <script src="/operator-header.js" defer></script>
     <script src="/missing-person.js" defer></script>
     <script src="/moderation.js" defer></script>
     <script src="/account-restrictions.js" defer></script>
@@ -15,26 +18,59 @@
     <a class="skip-link" href="#moderation-workspace">Saltar a moderación</a>
     <header class="site-header">
       <div class="header-content">
-        <a class="brand" href="/"
-          ><img src="/icon.svg" width="36" height="36" alt="" /><span
-            >RedAuxilio<small>Moderación privada</small></span
-          ></a
-        >
-        <nav aria-label="Navegación del operador"><a href="/">Volver al mapa público</a></nav>
-        <form th:action="@{/logout}" method="post" id="operator-logout">
-          <button type="submit" class="secondary-button">Cerrar sesión</button>
-        </form>
+        <a class="brand" href="/" aria-label="RedAuxilio · Inicio"
+          ><picture>
+            <source media="(max-width: 1099px)" srcset="/laguna-assets/logo-mobile.svg" />
+            <img src="/laguna-assets/logo-desktop.svg" width="223" height="44" alt="" /></picture
+        ></a>
+        <nav aria-label="Secciones">
+          <a href="/">Inicio</a><a href="/#search-section">Explorar</a
+          ><a href="/#own-section">Mis reportes</a
+          ><a href="/operator" aria-current="page">Auditorías</a>
+        </nav>
+        <a class="header-action" href="/#draft-section">＋ Publicar</a>
+        <div class="identity-controls">
+          <span id="connection-indicator" class="connection-indicator" aria-hidden="true"></span>
+          <span id="connection" class="sr-only" role="status" aria-live="polite"></span>
+          <details class="operator-account-menu">
+            <summary class="identity-trigger" aria-label="Abrir cuenta del auditor">
+              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path d="M20 21a8 8 0 0 0-16 0M12 13a5 5 0 0 0 0-10 5 5 0 0 0 0 10Z" />
+              </svg>
+            </summary>
+            <div class="operator-account-panel">
+              <p>Sesión de auditor</p>
+              <a href="/?access=account">Ver mi perfil</a>
+              <form th:action="@{/logout}" method="post" id="operator-logout">
+                <button type="submit" class="secondary-button">Cerrar sesión</button>
+              </form>
+            </div>
+          </details>
+        </div>
       </div>
     </header>
     <main id="moderation-workspace" class="moderation-workspace">
       <div class="operator-heading">
         <div>
-          <p class="operator-eyebrow">ESPACIO DEL OPERADOR</p>
+          <p class="operator-eyebrow">REDAUXILIO · ESPACIO PRIVADO</p>
           <h1>Moderación de contenido</h1>
-          <p>Revisa el contexto. Decide con criterio. Conserva la trazabilidad.</p>
+          <p>Revisa cada caso con contexto y deja constancia de tus decisiones.</p>
         </div>
-        <span class="operator-private">Acceso restringido · operadores</span>
+        <span class="operator-private"
+          ><img
+            src="/laguna-assets/desktop-action-shield.svg"
+            width="26"
+            height="26"
+            alt=""
+          />Acceso de auditor</span
+        >
       </div>
+      <nav class="operator-shortcuts" aria-label="Secciones del espacio de auditoría">
+        <a href="#manual-review-form">Iniciar revisión</a>
+        <a href="#operator-layout">Cola y decisiones</a>
+        <a href="#verification-permission-admin">Autorizaciones</a>
+        <a href="#account-restriction-admin">Cuentas</a>
+      </nav>
       <p id="moderation-message" class="operator-notice" role="status" aria-live="polite">
         Preparando consulta privada…
       </p>
@@ -57,7 +93,7 @@
         </div>
         <button id="manual-review-submit" type="submit">Enviar a revisión</button>
       </form>
-      <div class="operator-layout">
+      <div id="operator-layout" class="operator-layout">
         <aside class="operator-queue" aria-labelledby="moderation-list-title">
           <div class="operator-section-heading">
             <div>
@@ -187,5 +223,32 @@
         consultar, confirma tu sesión y tu conexión.
       </p>
     </main>
+    <nav class="laguna-bottom-nav has-operator" aria-label="Navegación principal móvil">
+      <a href="/"
+        ><img src="/laguna-assets/nav-home.svg" width="24" height="24" alt="" /><span
+          >Inicio</span
+        ></a
+      >
+      <a href="/#search-section"
+        ><img src="/laguna-assets/nav-explore.svg" width="24" height="24" alt="" /><span
+          >Explorar</span
+        ></a
+      >
+      <a href="/#draft-section"
+        ><img src="/laguna-assets/nav-publish.svg" width="24" height="24" alt="" /><span
+          >Publicar</span
+        ></a
+      >
+      <a href="/?access=account"
+        ><img src="/laguna-assets/nav-account.svg" width="24" height="24" alt="" /><span
+          >Cuenta</span
+        ></a
+      >
+      <a href="/operator" aria-current="page"
+        ><img src="/laguna-assets/desktop-action-shield.svg" width="24" height="24" alt="" /><span
+          >Auditorías</span
+        ></a
+      >
+    </nav>
   </body>
 </html>

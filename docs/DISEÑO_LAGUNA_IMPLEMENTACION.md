@@ -28,6 +28,18 @@ Leaflet recalcula el tamaño; «Señalar en mapa» abre Explorar y regresa a Pub
 las coordenadas seleccionadas. El diálogo de cuenta comparte la tipografía y paleta
 Laguna. La etiqueta de los controles de cabecera usa 15 px y centrado explícito.
 
+## Acceso por perfil y movimiento (15 de noviembre)
+
+El diálogo ofrece tres contextos de ingreso: Ciudadano, Auditor y Verificador autorizado.
+Todos usan la cuenta existente y el mismo login con CSRF; la elección no concede permisos.
+Tras el login, Auditor abre `/operator` solo si esa ruta protegida confirma el permiso;
+Verificador consulta `/api/my/verification-permission` y muestra si puede respaldar
+publicaciones. La tercera opción designa un permiso de verificación de publicaciones,
+no una identidad personal verificada. El encabezado incorpora ondas y puntos suaves,
+con movimiento lento; las acciones tienen respuesta al pasar el puntero. `prefers-reduced-motion`
+desactiva las animaciones. Esta ampliación visual solicitada por Santiago queda sujeta
+a revisión de fidelidad Laguna antes de integrar.
+
 ## Fuera de alcance
 
 - No se modifican controladores, entidades, autorizaciones, ni datos persistentes.
@@ -78,3 +90,11 @@ Las familias Outfit, Atkinson Hyperlegible y Bricolage Grotesque se sirven local
 Chrome real se comparó con los PNG oficiales a 390×850 y 1366×880 mediante superposición y mapa de diferencia. Tras la auditoría del PR #37, la diferencia media por canal es 8,17/255 y 4,93/255, respectivamente. Capturas finales: `C:/Users/cmps-/RedAuxilio-recovery/laguna-fidelity-qa/figma/after-audit-{390,768,1202,1366}.png`; superposiciones y diferencias: `compare-audit-{390,1366}-{overlay,diff}.png`. Los archivos están fuera de Git. Persisten diferencias de rasterizado tipográfico, barra vertical y curva blanca del lienzo móvil. La aceptación humana sigue pendiente; las tarjetas de ejemplo se identifican como ficticias.
 
 La auditoría corrigió cuatro puntos: cabecera flexible desde 1200 px y navegación inferior hasta 1199 px; un único indicador blanco para la sección activa sin fondo en hover; cuatro esquinas de 18 px visibles en la tarjeta superpuesta; texto y escudo originales en el encabezado de escritorio. Se midieron los límites de logo y navegación a 1099, 1100, 1199, 1200, 1202, 1256, 1280 y 1366 px: sin recortes, solapamientos ni overflow horizontal. A 1202 px Cuenta termina en x=1147 dentro de un área visible de 1187 px. Hover, selección y foco visible se verificaron en Chrome; 390 y 768 px conservaron la composición. `before-audit-1202.png` y `after-audit-1202.png` permiten comparar el defecto y su corrección.
+
+## Marcadores y cabecera posteriores a #37
+
+Por solicitud visual de Santiago, la cabecera cambia sus puntos apenas perceptibles por ondas Laguna de mayor contraste, un anillo ámbar y un desplazamiento suave de 7 s. El semicírculo y los botones existentes se conservan. `prefers-reduced-motion: reduce` deja el recurso estático. Los cuatro marcadores del mapa y su leyenda usan pictogramas derivados de los SVG Laguna de categorías; los grupos conservan el número y el nombre accesible de cada marcador permanece en Leaflet. Las imágenes tienen `alt=""` para evitar duplicar ese nombre. El service worker sube a v31 para distribuir los SVG y CSS nuevos. Esta variación de la cabecera frente al frame de Figma queda sujeta a revisión visual del compañero.
+
+## Espacio de auditor Laguna
+
+`/operator` reutiliza los tokens, fuentes y ondas de Inicio, sin alterar la moderación ni el permiso SQL. La cabecera, presentación de la tarea, accesos a secciones, formulario de revisión, cola, contexto y paneles plegables comparten una jerarquía visual. Se conserva `app.css` y `moderation.css`; `moderation-laguna.css` aporta la capa de migración. La hoja privada no entra en el precache del service worker. El panel no tiene frame oficial propio de Figma; esta adaptación está pendiente de revisión humana. En navegador local se observaron 390, 768 y 1366 px sin desbordamiento horizontal; la vista desplegada de autorizaciones conservó formulario, lista y auditoría.

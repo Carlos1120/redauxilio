@@ -1282,6 +1282,42 @@ html.app-loading {
     margin-top: 7px;
   }
 }
+/* En escritorio compacto conserva Cuenta y el estado sin envolver ni solaparse. */
+@media (min-width: 1200px) and (max-width: 1499px) {
+  .site-header .identity-controls {
+    width: 126px;
+    gap: 8px;
+  }
+  .site-header #connection-indicator {
+    display: block;
+    width: 10px;
+    min-width: 10px;
+    height: 10px;
+    padding: 0;
+    border: 2px solid #fff;
+    border-radius: 50%;
+    background: #16704b;
+    box-shadow: 0 0 0 1px #d5e4e6;
+  }
+  .site-header #connection-indicator::before,
+  .site-header #connection-indicator::after,
+  .site-header .laguna-connection {
+    display: none;
+  }
+  .site-header .identity-trigger {
+    width: 96px;
+    min-width: 96px;
+    height: 44px;
+  }
+  .site-header .identity-trigger svg {
+    display: none;
+  }
+}
+@media (min-width: 1500px) {
+  .site-header .laguna-connection {
+    display: none;
+  }
+}
 /* Adaptaciones de los frames oficiales 4:248 y 6:311; conserva sus componentes. */
 @media (max-width: 374px) {
   .site-header .header-content {

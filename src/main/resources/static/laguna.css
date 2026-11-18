@@ -984,17 +984,9 @@ body {
     font-size: 15px;
     gap: 11px;
   }
-  .laguna-home-categories a:nth-child(1) img {
-    content: url("/laguna-assets/desktop-map-shelter.svg");
-  }
-  .laguna-home-categories a:nth-child(2) img {
-    content: url("/laguna-assets/desktop-map-road.svg");
-  }
-  .laguna-home-categories a:nth-child(3) img {
-    content: url("/laguna-assets/desktop-map-person.svg");
-  }
-  .laguna-home-categories a:nth-child(4) img {
-    content: url("/laguna-assets/desktop-map-help.svg");
+  .laguna-home-categories img {
+    height: 108px;
+    object-fit: fill;
   }
   .laguna-home-support {
     grid-template-columns: 48px minmax(0, 1fr) 21px;
@@ -1243,9 +1235,129 @@ body[data-laguna-page="publish"] .workspace > :is(#search-section, #own-section)
 body[data-laguna-page="own"] .workspace > :is(#search-section, #draft-section) {
   display: none;
 }
+body[data-laguna-page="verifier"] > main > :is(.laguna-home-shell, .notice-demo, .workspace) {
+  display: none;
+}
 body[data-laguna-page="publish"] .workspace,
 body[data-laguna-page="own"] .workspace {
   display: block;
+}
+
+/* El verificador obtiene un espacio de tarea propio; la API conserva el control de permisos. */
+.verifier-workspace {
+  display: none;
+  width: min(1244px, calc(100% - 40px));
+  margin: 28px auto 60px;
+  color: #193644;
+}
+body[data-laguna-page="verifier"] .verifier-workspace {
+  display: block;
+}
+.verifier-heading {
+  padding: clamp(24px, 4vw, 48px);
+  border-radius: 24px;
+  background: #0c747c url("/laguna-assets/header-waves.svg") no-repeat center / cover;
+  color: #fff;
+}
+.verifier-heading .eyebrow,
+.verifier-heading p {
+  color: #eaf7f3;
+}
+.verifier-heading h1 {
+  margin: 8px 0;
+  font-family: "Laguna Bricolage", sans-serif;
+  font-size: clamp(1.9rem, 3.4vw, 3rem);
+}
+.verifier-disclaimer,
+.verifier-message {
+  padding: 14px 18px;
+  border: 1px solid #d5e4e6;
+  border-radius: 12px;
+  background: #eaf7f3;
+}
+.verifier-layout {
+  display: grid;
+  grid-template-columns: minmax(260px, 0.8fr) minmax(0, 1.5fr);
+  gap: 20px;
+}
+.verifier-list-panel,
+.verifier-detail-panel {
+  min-width: 0;
+  padding: clamp(18px, 2.5vw, 30px);
+  border: 1px solid #d5e4e6;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 12px 28px rgb(7 67 75 / 8%);
+}
+.verifier-layout h2 {
+  margin-top: 0;
+  font-family: "Laguna Bricolage", sans-serif;
+}
+.verifier-list-panel label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 700;
+}
+.verifier-list-panel input {
+  width: 100%;
+  min-height: 46px;
+  margin-bottom: 16px;
+  padding: 8px 12px;
+  border: 1px solid #9bb7c0;
+  border-radius: 10px;
+}
+.verifier-list {
+  display: grid;
+  gap: 10px;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+.verifier-report {
+  display: grid;
+  gap: 5px;
+  min-height: 64px;
+  padding: 12px 14px;
+  border: 1px solid #d5e4e6;
+  border-radius: 12px;
+  background: #f6f9fa;
+  color: #193644;
+  text-align: left;
+  cursor: pointer;
+}
+.verifier-report span {
+  color: #4b6473;
+}
+.verifier-report:hover,
+.verifier-report[aria-current="true"] {
+  border-color: #0c747c;
+  background: #eaf7f3;
+}
+.verifier-report:focus-visible,
+.verifier-account-link:focus-visible {
+  outline: 3px solid #f5c65e;
+  outline-offset: 2px;
+}
+.verifier-account-link {
+  display: inline-flex;
+  margin: 12px 0;
+  color: #0c747c;
+  font-weight: 700;
+}
+.verifier-account-link[hidden] {
+  display: none;
+}
+@media (max-width: 760px) {
+  .verifier-workspace {
+    width: calc(100% - 28px);
+    margin-top: 14px;
+    padding-bottom: 80px;
+  }
+  .verifier-layout {
+    grid-template-columns: 1fr;
+  }
+  .verifier-list {
+    max-height: 270px;
+  }
 }
 
 /* Cuenta usa la misma identidad Laguna que la cabecera, sin alterar el flujo
@@ -1263,6 +1375,16 @@ body[data-laguna-page="own"] .workspace {
 }
 #identity-dialog .identity-dialog-heading .eyebrow {
   color: #0c747c;
+}
+#identity-dialog .identity-message {
+  border-left-color: #0c747c;
+  background: #eaf7f3;
+  color: #193644;
+}
+#identity-dialog .identity-message.is-error {
+  border-left-color: #9b6310;
+  background: #fff2d7;
+  color: #744c0d;
 }
 #identity-dialog #identity-close {
   background: #eaf7f3;
@@ -1407,21 +1529,25 @@ body[data-laguna-page="own"] .workspace {
 .report-marker:not(.report-marker--group) {
   display: grid;
   place-items: center;
-  border: 2px solid #d7262e;
+  border: 2px solid #0c747c;
   border-radius: 14px;
   background: #fffaf6;
   box-shadow: 0 4px 14px rgb(19 58 60 / 22%);
 }
 .report-marker--assistance {
+  border-color: #0c747c;
   background: #e8f6ee;
 }
 .report-marker--road {
+  border-color: #b17a18;
   background: #fff5df;
 }
 .report-marker--missing_person {
+  border-color: #766da6;
   background: #f5eefa;
 }
 .report-marker--help_request {
+  border-color: #c45d50;
   background: #fff0ed;
 }
 .report-marker img {
@@ -1489,25 +1615,29 @@ body[data-laguna-page="own"] .workspace {
   }
 }
 
-/* El quinto destino solo aparece tras comprobar el permiso de auditoría en el servidor. */
+/* El quinto destino aparece tras comprobar el permiso vigente del modo elegido. */
 #operator-nav-link[hidden],
-#operator-mobile-link[hidden] {
+#operator-mobile-link[hidden],
+#verifier-nav-link[hidden],
+#verifier-mobile-link[hidden] {
   display: none !important;
 }
 @media (max-width: 1199px) {
-  .laguna-bottom-nav.has-operator {
+  .laguna-bottom-nav.has-role-destination {
     grid-template-columns: repeat(5, minmax(0, 1fr));
   }
-  .laguna-bottom-nav.has-operator > :is(a, button) {
+  .laguna-bottom-nav.has-role-destination > :is(a, button) {
     font-size: clamp(0.65rem, 1.8vw, 0.78rem);
   }
 }
 @media (min-width: 1200px) {
-  .site-header .header-content > nav:has(#operator-nav-link:not([hidden])) {
+  .site-header
+    .header-content
+    > nav:has(:is(#operator-nav-link, #verifier-nav-link):not([hidden])) {
     flex-basis: 488px;
     width: 488px;
   }
-  .site-header .header-content > nav #operator-nav-link {
+  .site-header .header-content > nav :is(#operator-nav-link, #verifier-nav-link) {
     position: relative;
     width: 115px;
     min-height: 48px;
@@ -1515,18 +1645,29 @@ body[data-laguna-page="own"] .workspace {
   }
 }
 @media (min-width: 1200px) and (max-width: 1299px) {
-  .site-header .header-content > nav:has(#operator-nav-link:not([hidden])) {
+  .site-header
+    .header-content
+    > nav:has(:is(#operator-nav-link, #verifier-nav-link):not([hidden])) {
     flex-basis: 415px;
     width: 415px;
   }
-  .site-header .header-content > nav:has(#operator-nav-link:not([hidden])) a:nth-child(1) {
+  .site-header
+    .header-content
+    > nav:has(:is(#operator-nav-link, #verifier-nav-link):not([hidden]))
+    a:nth-child(1) {
     width: 70px;
   }
-  .site-header .header-content > nav:has(#operator-nav-link:not([hidden])) a:nth-child(2),
-  .site-header .header-content > nav #operator-nav-link {
+  .site-header
+    .header-content
+    > nav:has(:is(#operator-nav-link, #verifier-nav-link):not([hidden]))
+    a:nth-child(2),
+  .site-header .header-content > nav :is(#operator-nav-link, #verifier-nav-link) {
     width: 100px;
   }
-  .site-header .header-content > nav:has(#operator-nav-link:not([hidden])) a:nth-child(3) {
+  .site-header
+    .header-content
+    > nav:has(:is(#operator-nav-link, #verifier-nav-link):not([hidden]))
+    a:nth-child(3) {
     width: 145px;
   }
 }

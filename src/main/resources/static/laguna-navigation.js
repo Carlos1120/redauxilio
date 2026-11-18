@@ -23,6 +23,7 @@
   }
 
   function selectedByHash(hash) {
+    if (hash === "#verifier-workspace") return "verifier";
     if (hash === "#draft-section") return "publish";
     if (hash === "#own-section") return "account";
     if (["#search-section", "#map-title", "#report-map", "#publications"].includes(hash))
@@ -49,6 +50,7 @@
       explore: "#search-section",
       publish: "#draft-section",
       account: window.location.hash === "#own-section" ? "#own-section" : null,
+      verifier: "#verifier-workspace",
     }[key];
     for (const link of desktopTabs) {
       if (desktopHref && link.getAttribute("href") === desktopHref)
@@ -102,6 +104,11 @@
       form.dataset.loginAccess = mode;
       form.querySelector('button[type="submit"]').textContent = copy[mode][0];
       help.textContent = copy[mode][1];
+      // Un cambio de acceso inicia un intento nuevo: no conserva avisos del anterior.
+      for (const notice of document.querySelectorAll(
+        "#identity-action-message, #identity-csrf-message, [data-access-panel='login'] > .identity-message",
+      ))
+        notice.hidden = true;
     });
   }
 })();

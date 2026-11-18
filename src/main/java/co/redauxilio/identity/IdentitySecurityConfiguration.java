@@ -110,6 +110,7 @@ class IdentitySecurityConfiguration {
                         // Modulos del detalle publico, tambien antes de iniciar sesion.
                         "/missing-person-sightings.js",
                         "/official-verification.js",
+                        "/verifier-workspace.js",
                         "/authorized-contact.js",
                         "/freshness.js",
                         "/identity-forms.js",

@@ -124,6 +124,13 @@ test("Explorar inicia seleccionado si la ubicación lleva al mapa", () => {
   assert.deepEqual(view.desktopSelected(), ["#search-section"]);
 });
 
+test("Verificaciones abre su propia sección sin seleccionar un destino ciudadano", () => {
+  const view = loadNavigation("#verifier-workspace");
+  assert.equal(view.page(), "verifier");
+  assert.deepEqual(view.selected(), []);
+  assert.deepEqual(view.desktopSelected(), []);
+});
+
 test("la elección de acceso cambia la orientación, sin tocar la sesión", () => {
   const view = loadNavigation();
   view.roleOptions[1].events.click();

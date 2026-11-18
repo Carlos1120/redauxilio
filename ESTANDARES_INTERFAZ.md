@@ -6,13 +6,7 @@
 > `docs/DISEÑO_LAGUNA_IMPLEMENTACION.md` registra el alcance de la migración.
 > La paleta, tipografía y composición de la versión 1.0 que siguen abajo se
 > aplican a módulos aún no migrados; sus reglas de accesibilidad y seguridad
-> permanecen vigentes. El PR #37 se integró en la rama Laguna; su aceptación
-> visual humana no consta en esta guía. La ampliación de acceso incorpora tres
-> opciones, ondas vectoriales visibles en cabecera y respuesta al puntero, con
-> movimiento reducido respetado. Los pictogramas Laguna sustituyen los símbolos
-> anteriores del mapa. Las ondas recorren el ancho completo y el diálogo de acceso
-> se abre por acción explícita; los mensajes de error o sesión pueden abrirlo una vez.
-> Registrar su revisión antes de integrar a `develop`.
+> permanecen vigentes. El PR #37 está en revisión visual, sin aceptación final.
 
 Versión 1.0 · 6 de octubre de 2026. Dirección visual solicitada por Santiago Ortiz Ochoa y aplicada en el PR #8. Esta guía define cómo continuar ese diseño; no registra aprobación de Carlos ni sustituye ESTANDARES.md, los requisitos o las pruebas de aceptación.
 
@@ -132,6 +126,17 @@ los recursos de esta presentación; no modifica almacenamiento de borradores ni 
 - [ ] Si cambia recursos PWA, verifica recarga, instalación y desconexión/reconexión sobre la versión final.
 - [ ] El PR enlaza resultados, versión y responsable real; el compañero revisa antes de integrar.
 
+### Navegación por responsabilidades — 11 de noviembre de 2026
+
+La vista inicial prioriza el mapa, sus filtros y reportes. Publicar y gestionar publicaciones propias
+se muestran en secciones independientes, con enlaces que conservan el historial del navegador y
+funcionan por teclado. La búsqueda global solo aparece en la vista del mapa; al volver, Leaflet
+recalcula su tamaño. Las vistas sin mapa reutilizan Onest, rojo y fondo cálido, con el formulario
+de ancho completo. El formulario usa un flujo vertical de secciones para que ubicación no se monte
+sobre datos del reporte; mantiene tarjetas para datos, descripción y evidencia, y un mapa Leaflet
+compacto que refleja las coordenadas y permite ajustar el punto, con atribución de OpenStreetMap.
+Los botones táctiles tienen mayor altura y se apilan en móvil. No cambian reglas de publicación,
+permisos ni contratos del servidor. Revisión visual y formal del compañero pendiente.
 Cambiar la dirección visual global requiere actualizar esta guía, el CSS compartido y las pantallas afectadas en el mismo PR, con revisión del compañero. No se declara aceptación del equipo únicamente por editar este documento.
 
 ## Panel de operador RA-08

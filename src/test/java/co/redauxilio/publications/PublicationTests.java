@@ -151,8 +151,7 @@ class PublicationTests {
         .andExpect(view().name("index"))
         .andExpect(
             content()
-                .string(
-                    org.hamcrest.Matchers.containsString("Los ejemplos iniciales son ficticios")));
+                .string(org.hamcrest.Matchers.containsString("RedAuxilio · Consulta comunitaria")));
   }
 
   @ParameterizedTest

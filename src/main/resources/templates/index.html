@@ -16,9 +16,11 @@
     <script src="/map.js" defer></script>
     <script src="/identity-forms.js" defer></script>
     <script src="/identity-status.js" defer></script>
+    <script src="/operator-access-nav.js" defer></script>
     <script src="/freshness.js" defer></script>
     <script src="/missing-person.js" defer></script>
     <script src="/missing-person-sightings.js" defer></script>
+    <script src="/missing-person-match.js" defer></script>
     <script src="/authorized-contact.js" defer></script>
     <script src="/app.js" defer></script>
     <script src="/laguna-navigation.js" defer></script>
@@ -27,6 +29,17 @@
     <script src="/confirmation.js" defer></script>
     <script src="/content-report.js" defer></script>
     <script src="/official-verification.js" defer></script>
+    <script src="/verifier-workspace.js" defer></script>
+    <script src="/app-loader.js" defer></script>
+  </head>
+  <body data-laguna-page="home">
+    <div id="app-loader" class="app-loader" role="status" aria-label="Cargando RedAuxilio">
+      <div class="app-loader__content">
+        <img src="/laguna-assets/logo-desktop.svg" width="223" height="44" alt="RedAuxilio" />
+        <span class="app-loader__track" aria-hidden="true"></span>
+        <span class="sr-only">Cargando RedAuxilio</span>
+      </div>
+    </div>
     <script src="/laguna-ui.js" defer></script>
   </head>
   <body data-laguna-page="home">
@@ -35,25 +48,39 @@
       id="identity-dialog"
       aria-labelledby="identity-title"
       th:attr="data-initial-view=${identityMode}"
-      th:open="${identityMode != 'none'}"
+      th:open="${identityMode == 'register' or identityMode == 'account' or param.error != null or param.signedout != null or registered != null}"
     >
       <div class="identity-dialog-heading">
-        <p class="eyebrow">ACCESO CIUDADANO</p>
+        <p class="eyebrow">ACCESO A REDAUXILIO</p>
         <button id="identity-close" type="button" aria-label="Cerrar acceso">×</button>
       </div>
       <p id="identity-action-message" class="identity-message" role="status" hidden></p>
-      <p id="identity-csrf-message" class="identity-message" role="status" hidden></p>
+      <p id="identity-csrf-message" class="identity-message is-error" role="status" hidden></p>
       <section class="identity-panel" data-access-panel="login">
         <h2 id="identity-title">Inicia sesión</h2>
-        <p>Ingresa con el correo asociado a tu cuenta.</p>
-        <p class="identity-message" role="status" th:if="${param.error}">
+        <p>Elige cómo usarás tu cuenta. Los permisos se comprueban al entrar.</p>
+        <div class="identity-access-options" role="group" aria-label="Tipo de acceso">
+          <button type="button" data-login-access="citizen" aria-pressed="true">
+            <strong>Ciudadano</strong><span>Publicar y gestionar mis reportes</span>
+          </button>
+          <button type="button" data-login-access="operator" aria-pressed="false">
+            <strong>Auditor</strong><span>Revisar y moderar reportes</span>
+          </button>
+          <button type="button" data-login-access="verifier" aria-pressed="false">
+            <strong>Verificador autorizado</strong><span>Respaldar publicaciones</span>
+          </button>
+        </div>
+        <p id="identity-access-help" class="identity-access-help" role="status">
+          Accede con tu correo y contraseña habituales.
+        </p>
+        <p class="identity-message is-error" role="status" th:if="${param.error}">
           No fue posible iniciar sesión. Revisa tus datos o intenta de nuevo más tarde.
         </p>
         <p class="identity-message" role="status" th:if="${param.signedout}">Cerraste la sesión.</p>
         <p class="identity-message" role="status" th:if="${registered}">
           Cuenta creada. Ya puedes iniciar sesión.
         </p>
-        <form th:action="@{/login}" method="post" class="identity-form">
+        <form th:action="@{/login}" method="post" class="identity-form" data-login-access="citizen">
           <label for="identity-email">Correo electrónico</label>
           <input
             id="identity-email"
@@ -70,7 +97,7 @@
             autocomplete="current-password"
             required
           />
-          <button class="identity-submit" type="submit">Iniciar sesión</button>
+          <button class="identity-submit" type="submit">Continuar como ciudadano</button>
         </form>
         <p class="identity-footnote">
           ¿Aún no tienes cuenta?
@@ -82,6 +109,10 @@
       <section class="identity-panel" data-access-panel="register">
         <h2 id="register-title">Crea tu cuenta</h2>
         <p>Usaremos tu correo para identificar tu cuenta.</p>
+        <p class="identity-registration-note">
+          El registro crea una cuenta ciudadana. Los permisos de auditoría y verificación se
+          conceden por separado.
+        </p>
         <form
           th:action="@{/register}"
           th:object="${registrationForm}"
@@ -127,8 +158,8 @@
       </section>
       <section class="identity-panel" data-access-panel="account">
         <h2 id="account-title">Mi cuenta</h2>
-        <p id="account-load-message" role="status">Tu cuenta ciudadana está activa.</p>
-        <dl class="identity-profile" aria-label="Perfil ciudadano">
+        <p id="account-load-message" role="status">Tu sesión está activa.</p>
+        <dl class="identity-profile" aria-label="Perfil de la cuenta">
           <div>
             <dt>Nombre</dt>
             <dd id="account-name">Cargando perfil…</dd>
@@ -138,6 +169,13 @@
             <dd id="account-email">Cargando perfil…</dd>
           </div>
         </dl>
+        <a
+          id="verifier-workspace-link"
+          class="verifier-account-link"
+          href="#verifier-workspace"
+          hidden
+          >Ir a verificaciones</a
+        >
         <form th:action="@{/logout}" method="post" class="identity-form">
           <button class="identity-submit" type="submit">Cerrar sesión</button>
         </form>
@@ -165,6 +203,15 @@
           <span class="sr-only">Buscar entre los reportes visibles</span>
           <input id="search-query" type="search" placeholder="Buscar título o lugar…" />
         </label>
+        <nav aria-label="Secciones">
+          <a href="#main-content" aria-current="page">Inicio</a
+          ><a href="#search-section">Explorar</a
+          ><a href="#missing-match-section">Encontrar personas</a
+          ><a href="#own-section">Mis reportes</a
+          ><a id="operator-nav-link" href="/operator" hidden>Auditorías</a
+          ><a id="verifier-nav-link" href="#verifier-workspace" hidden>Verificaciones</a>
+        </nav>
+        <a class="header-action" href="#draft-section">＋ Publicar</a>
         <nav aria-label="Secciones principales">
           <a href="#page-map" data-app-page-link="map" aria-current="page">Mapa</a>
           <a href="#page-publish" data-app-page-link="publish">Publicar</a>
@@ -181,7 +228,7 @@
             id="identity-open"
             class="identity-trigger"
             type="button"
-            aria-label="Acceso ciudadano"
+            aria-label="Acceso a RedAuxilio"
             aria-haspopup="dialog"
             aria-controls="identity-dialog"
             th:attr="data-authenticated=${authenticated}"
@@ -200,27 +247,242 @@
       </div>
     </header>
     <main id="main-content" tabindex="-1">
-      <section
-        id="page-map"
-        class="app-page"
-        data-app-page="map"
-        aria-labelledby="map-welcome-title"
-        tabindex="-1"
-      >
+      <div class="laguna-home-shell">
         <div class="page-intro">
           <p class="eyebrow">RED DE INFORMACIÓN COMUNITARIA</p>
-          <h1 id="map-welcome-title">Orientación comunitaria, en un mapa.</h1>
-          <p class="intro">Consulta ubicaciones y reportes compartidos en la demostración.</p>
+          <h1>Información para tu comunidad</h1>
+          <p class="intro">
+            <span class="laguna-copy-mobile">Encuentra ayuda y comparte lo que sucede.</span>
+            <span class="laguna-copy-desktop">Encuentra orientación y comparte lo que sucede.</span>
+          </p>
+          <p class="laguna-home-seal">
+            <img src="/laguna-assets/desktop-footer-shield.svg" width="16" height="16" alt="" />
+            Red de información comunitaria
+          </p>
         </div>
-        <aside class="notice notice-demo" aria-label="Aviso de demostración">
-          <span class="notice-icon" aria-hidden="true">!</span>
+        <section class="laguna-home-card" aria-labelledby="laguna-home-title">
+          <div class="laguna-home-action">
+            <img src="/laguna-assets/report-alert.svg" width="26" height="26" alt="" />
+            <div>
+              <strong class="laguna-home-question"
+                ><span class="laguna-copy-mobile">¿Qué está pasando?</span
+                ><span class="laguna-copy-desktop">¿Qué está pasando en tu zona?</span></strong
+              >
+              <small class="laguna-home-question-help"
+                ><span class="laguna-copy-mobile">Comparte un reporte útil</span
+                ><span class="laguna-copy-desktop"
+                  >Puedes consultar reportes o compartir información para ayudar a otros.</span
+                ></small
+              >
+            </div>
+            <a class="laguna-home-report" href="#draft-section"
+              ><span class="laguna-copy-mobile">Reportar</span
+              ><span class="laguna-copy-desktop">Reportar ahora</span></a
+            >
+          </div>
+          <div class="laguna-home-body">
+            <div class="laguna-home-discovery">
+              <div class="laguna-home-illustration" aria-hidden="true"></div>
+              <h2 id="laguna-home-title">
+                <span class="laguna-copy-mobile">Reportes por categoría</span
+                ><span class="laguna-copy-desktop">Reportes cerca de ti</span>
+              </h2>
+              <p class="laguna-home-category-help">Explora por situación</p>
+              <nav class="laguna-home-categories" aria-label="Explorar reportes por categoría">
+                <a href="#search-section" data-home-category="ASSISTANCE"
+                  ><img
+                    src="/laguna-assets/map-shelter.svg"
+                    width="80"
+                    height="82"
+                    alt=""
+                  />Refugios</a
+                >
+                <a href="#search-section" data-home-category="ROAD"
+                  ><img src="/laguna-assets/map-road.svg" width="80" height="82" alt="" />Vías</a
+                >
+                <a href="#search-section" data-home-category="MISSING_PERSON"
+                  ><img
+                    src="/laguna-assets/map-person.svg"
+                    width="80"
+                    height="82"
+                    alt=""
+                  />Personas</a
+                >
+                <a href="#search-section" data-home-category="HELP_REQUEST"
+                  ><img src="/laguna-assets/map-help.svg" width="80" height="82" alt="" />Ayuda</a
+                >
+              </nav>
+            </div>
+            <div class="laguna-home-support-list">
+              <h2>Puntos de apoyo</h2>
+              <p class="laguna-home-support-help">Lugares compartidos por la comunidad</p>
+              <a class="laguna-home-support" href="#search-section" data-home-category="ASSISTANCE">
+                <img src="/laguna-assets/shelter.svg" width="26" height="26" alt="" />
+                <span
+                  ><strong>Refugio comunitario</strong
+                  ><small
+                    ><span class="laguna-copy-mobile">Ejemplo · Barrio El Barzal</span
+                    ><span class="laguna-copy-desktop">Ejemplo · Sector El Barzal</span></small
+                  ><em
+                    ><span class="laguna-copy-mobile">Información comunitaria · sin verificar</span
+                    ><span class="laguna-copy-desktop">Comunitario · sin verificar</span></em
+                  ></span
+                >
+                <img
+                  class="laguna-home-arrow"
+                  src="/laguna-assets/arrow.svg"
+                  width="19"
+                  height="19"
+                  alt=""
+                />
+              </a>
+              <a
+                class="laguna-home-support laguna-home-support-extra"
+                href="#search-section"
+                data-home-category="ASSISTANCE"
+              >
+                <img src="/laguna-assets/shelter.svg" width="26" height="26" alt="" />
+                <span
+                  ><strong>Centro de acopio comunitario</strong
+                  ><small>Ejemplo · Centro de Villavicencio</small
+                  ><em>Comunitario · sin verificar</em></span
+                >
+                <img
+                  class="laguna-home-arrow"
+                  src="/laguna-assets/arrow.svg"
+                  width="19"
+                  height="19"
+                  alt=""
+                />
+              </a>
+            </div>
+          </div>
+        </section>
+      </div>
+      <section
+        id="missing-match-section"
+        class="missing-match-workspace"
+        aria-labelledby="missing-match-title"
+      >
+        <header class="missing-match-heading">
           <div>
-            <strong>DEMOSTRACIÓN · información comunitaria sin verificar</strong>
+            <p class="eyebrow">PERSONAS DESAPARECIDAS</p>
+            <h1 id="missing-match-title">Explora posibles coincidencias</h1>
             <p>
-              Los ejemplos iniciales son ficticios. Las publicaciones de cuentas son comunitarias y
-              no tienen verificación oficial. No la uses para tomar decisiones durante una
-              emergencia.
+              Compara hasta tres fotos con los casos preparados y consulta posibles coincidencias.
             </p>
+          </div>
+        </header>
+        <div class="missing-match-layout">
+          <section class="missing-match-catalog" aria-labelledby="missing-match-catalog-title">
+            <div class="missing-match-section-heading">
+              <div>
+                <p class="eyebrow">CASOS PREPARADOS</p>
+                <h2 id="missing-match-catalog-title">Casos disponibles</h2>
+              </div>
+              <span id="missing-match-count">0 casos</span>
+            </div>
+            <div id="missing-match-candidates" class="missing-match-candidates" aria-live="polite">
+              <p class="missing-match-empty">Cargando casos…</p>
+            </div>
+          </section>
+          <section class="missing-match-action" aria-labelledby="missing-match-action-title">
+            <p class="eyebrow">COMPARACIÓN LOCAL</p>
+            <h2 id="missing-match-action-title">Sube las fotos para comparar</h2>
+            <p>
+              Usa únicamente imágenes autorizadas. Las fotos se comparan en memoria y no se guardan.
+            </p>
+            <form id="missing-match-form" enctype="multipart/form-data">
+              <label class="missing-match-drop" for="missing-match-files">
+                <span class="missing-match-drop-icon" aria-hidden="true">＋</span>
+                <strong>Seleccionar de 1 a 3 fotos</strong>
+                <small>JPEG, PNG o WebP · máximo 5 MB cada una</small>
+                <input
+                  id="missing-match-files"
+                  name="files"
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  multiple
+                  required
+                />
+              </label>
+              <div id="missing-match-previews" class="missing-match-previews"></div>
+              <button id="missing-match-submit" type="submit">Simular coincidencia</button>
+            </form>
+            <p
+              id="missing-match-message"
+              class="missing-match-message"
+              role="status"
+              aria-live="polite"
+            >
+              Agrega los casos autorizados para habilitar la comparación.
+            </p>
+          </section>
+        </div>
+        <section id="missing-match-result" class="missing-match-result" hidden aria-live="polite">
+          <div class="missing-match-result-heading">
+            <p class="eyebrow">RESULTADO DE LA COMPARACIÓN</p>
+            <h2>Posible coincidencia</h2>
+          </div>
+          <div id="missing-match-result-content"></div>
+        </section>
+      </section>
+      <section id="verifier-workspace" class="verifier-workspace" aria-labelledby="verifier-title">
+        <div class="verifier-heading">
+          <p class="eyebrow">REDAUXILIO · ESPACIO AUTORIZADO</p>
+          <h1 id="verifier-title">Verificaciones oficiales</h1>
+          <p>
+            Consulta una publicación y registra un respaldo solo cuando tengas información
+            comprobada.
+          </p>
+        </div>
+        <p class="verifier-disclaimer">
+          La verificación respalda la versión actual de una publicación; no convierte otros reportes
+          de la cuenta en oficiales.
+        </p>
+        <p id="verifier-message" class="verifier-message" role="status" aria-live="polite">
+          Comprobando permiso de verificación…
+        </p>
+        <div class="verifier-layout">
+          <section class="verifier-list-panel" aria-labelledby="verifier-list-title">
+            <h2 id="verifier-list-title">Publicaciones visibles</h2>
+            <label for="verifier-search">Buscar por título o lugar</label>
+            <input id="verifier-search" type="search" autocomplete="off" />
+            <div id="verifier-list" class="verifier-list"></div>
+          </section>
+          <section class="verifier-detail-panel" aria-labelledby="verifier-detail-title">
+            <h2 id="verifier-detail-title">Selecciona una publicación</h2>
+            <p id="verifier-detail-help">
+              Elige un reporte para consultar su estado y registrar una verificación.
+            </p>
+            <div id="verifier-official-verification"></div>
+          </section>
+        </div>
+      </section>
+      <div class="workspace">
+        <section
+          id="search-section"
+          tabindex="-1"
+          class="search-section"
+          aria-labelledby="search-title"
+        >
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">CONSULTA PÚBLICA</p>
+              <h2 id="search-title">Reportes visibles</h2>
+            </div>
+            <span class="section-caption">Ejemplos y publicaciones</span>
+          </div>
+          <div class="quick-filters" role="group" aria-label="Filtrar por tipo de reporte">
+            <button type="button" data-category="" aria-pressed="true">Todo</button>
+            <button type="button" data-category="ASSISTANCE" aria-pressed="false">
+              Asistencia
+            </button>
+            <button type="button" data-category="ROAD" aria-pressed="false">Vías</button>
+            <button type="button" data-category="MISSING_PERSON" aria-pressed="false">
+              Personas
+            </button>
+            <button type="button" data-category="HELP_REQUEST" aria-pressed="false">Ayuda</button>
           </div>
         </aside>
         <div class="workspace">
@@ -320,32 +582,25 @@
             <p id="message" class="query-message" role="status" aria-live="polite">
               Preparando consulta…
             </p>
-            <section class="map-section" aria-labelledby="map-title">
-              <div class="section-heading">
-                <h3 id="map-title">Mapa de reportes</h3>
-                <button id="reset-map" type="button" class="secondary-button">
-                  Volver al área inicial
-                </button>
-              </div>
-              <p id="map-status" class="query-help" role="status">
-                Preparando mapa. La lista permite consultar sin fondo cartográfico.
-              </p>
-              <div
-                id="report-map"
-                aria-label="Mapa de ejemplos ficticios y publicaciones comunitarias"
-              ></div>
-              <ul class="map-legend" aria-label="Leyenda del mapa">
-                <li>⌂ Punto de asistencia</li>
-                <li>↔ Vía afectada</li>
-                <li>? Persona desaparecida</li>
-                <li>! Solicitud de ayuda</li>
-              </ul>
-              <p class="query-help">
-                Un número agrupa reportes cercanos. Selecciónalo para consultar sus detalles. Los
-                filtros se aplican al área visible.
-              </p>
-            </section>
-            <div id="publications" class="report-grid" aria-busy="true"></div>
+            <div id="report-map" aria-label="Mapa de reportes y publicaciones comunitarias"></div>
+            <ul class="map-legend" aria-label="Leyenda del mapa">
+              <li>
+                <img src="/laguna-assets/marker-shelter.svg" alt="" width="22" height="22" />Punto
+                de asistencia
+              </li>
+              <li>
+                <img src="/laguna-assets/marker-road.svg" alt="" width="22" height="22" />Vía
+                afectada
+              </li>
+              <li>
+                <img src="/laguna-assets/marker-person.svg" alt="" width="22" height="22" />Persona
+                desaparecida
+              </li>
+              <li>
+                <img src="/laguna-assets/marker-help.svg" alt="" width="22" height="22" />Solicitud
+                de ayuda
+              </li>
+            </ul>
             <p class="query-help">
               Un reporte comunitario no equivale a una verificación oficial. Revisa siempre su
               confianza y fecha.
@@ -366,16 +621,27 @@
               <div id="detail-content"></div>
             </dialog>
           </section>
-        </div>
-      </section>
-      <section
-        id="page-publish"
-        class="app-page"
-        data-app-page="publish"
-        aria-labelledby="draft-title"
-        tabindex="-1"
-        hidden
-      >
+          <div id="publications" class="report-grid" aria-busy="true"></div>
+          <p class="query-help">
+            Un reporte comunitario no equivale a una verificación oficial. Revisa siempre su
+            confianza y fecha.
+          </p>
+          <dialog id="report-detail" aria-labelledby="detail-title">
+            <div class="detail-top">
+              <p id="detail-kicker" class="eyebrow">REPORTE</p>
+              <button
+                id="close-detail"
+                type="button"
+                class="secondary-button"
+                aria-label="Cerrar detalle"
+              >
+                ×
+              </button>
+            </div>
+            <h2 id="detail-title"></h2>
+            <div id="detail-content"></div>
+          </dialog>
+        </section>
         <section id="draft-section" class="draft-section" aria-labelledby="draft-title">
           <p class="eyebrow">PUBLICACIÓN CIUDADANA</p>
           <h2 id="draft-title">Prepara una publicación</h2>
@@ -822,6 +1088,10 @@
         <img src="/laguna-assets/nav-explore.svg" width="24" height="24" alt="" />
         <span>Explorar</span>
       </a>
+      <a href="#missing-match-section" data-laguna-tab="match">
+        <img src="/laguna-assets/map-person.svg" width="24" height="24" alt="" />
+        <span>Encontrar</span>
+      </a>
       <a href="#draft-section" data-laguna-tab="publish">
         <img src="/laguna-assets/nav-publish.svg" width="24" height="24" alt="" />
         <span>Publicar</span>
@@ -836,38 +1106,14 @@
         <img src="/laguna-assets/nav-account.svg" width="24" height="24" alt="" />
         <span>Cuenta</span>
       </button>
-    </nav>
-    <footer>
-      <span>RedAuxilio · Proyecto académico · Equipo 4</span
-      ><span>Carlos Mario Peña y Santiago Ortiz Ochoa</span>
-    </footer>
-    <nav class="laguna-bottom-nav" aria-label="Navegación móvil">
-      <a href="#laguna-home" data-laguna-nav="inicio" aria-label="Inicio">
-        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-          <path d="m3 10 9-7 9 7v10h-6v-6H9v6H3z" />
-        </svg>
-        <span>Inicio</span>
+      <a id="operator-mobile-link" href="/operator" hidden>
+        <img src="/laguna-assets/desktop-action-shield.svg" width="24" height="24" alt="" />
+        <span>Auditorías</span>
       </a>
-      <a href="#search-section" data-laguna-nav="explorar" aria-label="Explorar reportes">
-        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-          <path d="m3 5 6-2 6 2 6-2v16l-6 2-6-2-6 2zM9 3v16m6-14v16" />
-        </svg>
-        <span>Explorar</span>
+      <a id="verifier-mobile-link" href="#verifier-workspace" hidden>
+        <img src="/laguna-assets/desktop-action-shield.svg" width="24" height="24" alt="" />
+        <span>Verificaciones</span>
       </a>
-      <a href="#draft-section" data-laguna-nav="publicar" aria-label="Publicar reporte">
-        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-          <rect x="3" y="3" width="18" height="18" rx="4" />
-          <path d="M12 7v10M7 12h10" />
-        </svg>
-        <span>Publicar</span>
-      </a>
-      <button id="laguna-account-mobile" type="button" aria-label="Abrir mi cuenta">
-        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-          <circle cx="12" cy="8" r="4" />
-          <path d="M4 21c0-4 3-7 8-7s8 3 8 7" />
-        </svg>
-        <span>Cuenta</span>
-      </button>
     </nav>
   </body>
 </html>

@@ -20,64 +20,6 @@
   --radius-report: 15px;
 }
 html {
-  scroll-behavior: smooth;
-  scroll-padding-top: 100px;
-}
-body {
-  min-width: 320px;
-  background: #f8fafc;
-  color: #193644;
-}
-#laguna-home,
-#search-section,
-#draft-section,
-#own-section {
-  scroll-margin-top: 100px;
-}
-.site-header {
-  position: sticky;
-  top: 0;
-  z-index: 1000;
-  isolation: isolate;
-  overflow: hidden;
-  border: 0;
-  background: #117c83;
-  box-shadow: 0 3px 12px rgb(10 74 78 / 12%);
-}
-.site-header::before {
-  position: absolute;
-  z-index: -1;
-  top: -157px;
-  right: -33px;
-  width: 245px;
-  height: 245px;
-  border-radius: 50%;
-  background: #0d6b74;
-  box-shadow: -6px 10px 22px rgb(2 54 62 / 23%);
-  content: "";
-  pointer-events: none;
-}
-.header-content {
-  position: relative;
-  display: flex;
-  flex-wrap: nowrap;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  max-width: 1440px;
-  min-height: 89px;
-  padding: 12px clamp(20px, 4.2vw, 58px);
-  gap: clamp(12px, 2vw, 28px);
-}
-.site-header .brand {
-  flex: 0 0 auto;
-  min-height: 44px;
-  color: #fff;
-  gap: 8px;
-  font-size: clamp(1.4rem, 2.1vw, 1.8rem);
-  font-weight: 800;
-  letter-spacing: -0.04em;
-  text-decoration: none;
   scroll-padding-top: 96px;
 }
 body {
@@ -87,6 +29,151 @@ body {
 :where(button, a, input, select, textarea, summary):focus-visible {
   outline: 3px solid #07545b;
   outline-offset: 3px;
+}
+
+/* Transición inicial de marca: breve, responsive y sin bloquear indefinidamente. */
+html.app-loading {
+  overflow: hidden;
+}
+.app-loader {
+  position: fixed;
+  inset: 0;
+  z-index: 5000;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background: #0c747c;
+  opacity: 1;
+  visibility: visible;
+  transition:
+    opacity 320ms ease-in,
+    visibility 320ms step-end;
+  animation: app-loader-failsafe 320ms ease 4s forwards;
+}
+.app-loader::before,
+.app-loader::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+}
+.app-loader::before {
+  inset: -12%;
+  background: url("/laguna-assets/header-waves.svg") center / cover no-repeat;
+  opacity: 0.58;
+  animation: app-loader-drift 1.8s ease-in-out infinite alternate;
+}
+.app-loader::after {
+  width: clamp(220px, 34vw, 480px);
+  aspect-ratio: 1;
+  border: 2px solid rgb(245 202 112 / 52%);
+  border-radius: 50%;
+  transform: translate(42%, -34%);
+  animation: app-loader-orbit 1.6s ease-in-out infinite alternate;
+}
+.app-loader__content {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  justify-items: center;
+  gap: clamp(22px, 4vw, 34px);
+  width: min(78vw, 330px);
+  animation: app-loader-enter 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.app-loader__content img {
+  width: clamp(178px, 28vw, 255px);
+  height: auto;
+}
+.app-loader__track {
+  position: relative;
+  display: block;
+  width: min(64vw, 230px);
+  height: 3px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 24%);
+}
+.app-loader__track::after {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 42%;
+  border-radius: inherit;
+  background: #f5ca70;
+  box-shadow: 0 0 14px rgb(245 202 112 / 60%);
+  animation: app-loader-route 850ms cubic-bezier(0.65, 0, 0.35, 1) infinite;
+}
+.app-loader.is-leaving {
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+}
+.app-loader[hidden] {
+  display: none;
+}
+@keyframes app-loader-enter {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+@keyframes app-loader-route {
+  from {
+    transform: translateX(-115%);
+  }
+  to {
+    transform: translateX(340%);
+  }
+}
+@keyframes app-loader-drift {
+  to {
+    transform: translateX(3.5%);
+    opacity: 0.82;
+  }
+}
+@keyframes app-loader-orbit {
+  to {
+    transform: translate(37%, -29%) scale(1.08);
+  }
+}
+@keyframes app-loader-failsafe {
+  to {
+    pointer-events: none;
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+@media (max-width: 520px) {
+  .app-loader__content {
+    gap: 24px;
+    width: 82vw;
+  }
+  .app-loader__content img {
+    width: min(62vw, 215px);
+  }
+  .app-loader::after {
+    width: 270px;
+    transform: translate(44%, -62%);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .app-loader,
+  .app-loader::before,
+  .app-loader::after,
+  .app-loader__content,
+  .app-loader__track::after {
+    animation: none;
+  }
+  .app-loader {
+    transition: none;
+  }
+  .app-loader__track::after {
+    width: 100%;
+    transform: none;
+  }
 }
 
 /* La cabecera retiene semicírculo + sombra como detalle de identidad Laguna. */
@@ -128,608 +215,290 @@ body {
 .site-header .brand img {
   width: 32px;
   height: 32px;
-  filter: brightness(0) invert(1);
 }
-.site-header .brand:hover {
-  color: #fff;
-  text-decoration: none;
-}
-.site-header .laguna-desktop-nav {
+.site-header .header-content > nav {
   display: flex;
-  flex: 0 1 auto;
+  gap: 6px;
   width: auto;
   padding: 0;
-  margin-left: auto;
-  gap: 6px;
   border: 0;
 }
-.site-header .laguna-desktop-nav a {
-  min-height: 44px;
-  padding: 10px 13px;
-  border-radius: 9px;
+.site-header .header-content > nav a {
+  color: #fff;
+  font-size: 0.88rem;
+  border-radius: 11px;
+  padding: 9px 12px;
   background: transparent;
-  color: #fff;
-  font-size: 0.9375rem;
-  font-weight: 650;
-  text-decoration: none;
+  box-shadow: none;
 }
-.site-header .laguna-desktop-nav a:hover,
-.site-header .laguna-desktop-nav a[aria-current="page"] {
-  background: rgb(255 255 255 / 15%);
+.site-header .header-content > nav a:hover {
   color: #fff;
+  background: transparent;
+}
+.site-header .header-content > nav a:focus-visible {
+  outline: 3px solid #f5c65e;
+  outline-offset: 3px;
 }
 .site-header .header-action {
-  display: inline-flex;
-  flex: 0 0 auto;
-  align-items: center;
-  justify-content: center;
-  min-height: 47px;
-  padding: 11px 19px;
-  border-radius: 13px;
   background: #fff;
   color: #0c747c;
-  font-size: 0.9375rem;
+  border-radius: 12px;
+  padding-inline: 16px;
+  font-size: 0.88rem;
   font-weight: 750;
-  text-decoration: none;
 }
 .site-header .header-action:hover {
   background: #eaf7f3;
-  color: #095e66;
+  color: #07545b;
+}
+.site-header .header-search {
+  margin: 0 auto 0 0;
+  width: clamp(160px, 20vw, 310px);
+}
+.site-header .header-search input {
+  background: #fff;
+  color: #193644;
 }
 .site-header .identity-controls {
-  display: flex;
   flex: 0 0 auto;
-  align-items: center;
-  gap: 14px;
+  gap: 8px;
 }
 .site-header #connection-indicator {
-  display: none;
-}
-.site-header .laguna-connection {
+  position: relative;
   display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 110px;
-  min-height: 36px;
-  padding: 7px 12px;
-  border-radius: 100px;
+  width: auto;
+  min-width: 96px;
+  height: 35px;
+  padding: 7px 12px 7px 27px;
+  border: 0;
+  border-radius: 999px;
   background: #fff;
-  color: #187150;
-  font-size: 0.78125rem;
+  box-shadow: none;
+}
+.site-header #connection-indicator::before {
+  content: "";
+  position: absolute;
+  left: 11px;
+  top: 13px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #16704b;
+}
+.site-header #connection-indicator::after {
+  content: "En línea";
+  color: #146545;
+  font-size: 0.76rem;
   font-weight: 750;
   white-space: nowrap;
 }
-.site-header .laguna-connection[data-online="false"] {
-  color: #895b11;
+.site-header #connection-indicator[data-online="false"]::before {
+  background: #9b6310;
 }
-.site-header #identity-open {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+.site-header #connection-indicator[data-online="false"]::after {
+  content: "Sin conexión";
+  color: #865614;
+}
+.site-header .identity-trigger {
   width: auto;
-  min-width: 100px;
-  min-height: 47px;
-  padding: 10px 15px;
-  gap: 9px;
-  border-radius: 13px;
+  min-width: 90px;
+  height: 44px;
+  border-radius: 12px;
   background: #fff;
   color: #0c747c;
-  font-size: 0.9375rem;
 }
-.site-header #identity-open:hover {
-  background: #eaf7f3;
-}
-.site-header #identity-open svg {
-  width: 20px;
-  height: 20px;
-}
-.laguna-original-search[hidden] {
-  display: none;
-}
-main {
-  width: 100%;
-  max-width: none;
-  padding: 0;
-}
-.laguna-home {
-  display: grid;
-  grid-template-columns: minmax(0, 1.2fr) minmax(230px, 0.8fr);
-  align-items: center;
-  width: 100%;
-  min-height: 290px;
-  padding: 35px max(24px, calc((100vw - 1250px) / 2));
-  gap: 20px;
-  background: linear-gradient(125deg, #117d83, #0d727c);
-  color: #fff;
-}
-.laguna-home-copy {
-  min-width: 0;
-}
-.laguna-eyebrow {
-  margin: 0 0 14px;
-  color: #dff5ee;
-  font-size: 0.75rem;
+.site-header .identity-trigger::after {
+  content: "Cuenta";
+  margin-left: 6px;
+  font-size: 0.87rem;
   font-weight: 750;
 }
-.laguna-home h1 {
-  max-width: 710px;
+
+/* Inicio dirige a la publicación existente. */
+.page-intro {
+  position: relative;
+  clip: auto;
+  overflow: visible;
+  width: 100%;
+  height: auto;
+  margin: 0;
+  padding: 32px clamp(16px, 4vw, 52px) 34px;
+  white-space: normal;
+  background: #117d83;
   color: #fff;
-  font-size: clamp(1.9rem, 3.5vw, 3rem);
+}
+.page-intro .eyebrow {
+  display: none;
+}
+.page-intro h1 {
+  max-width: 740px;
+  font-size: clamp(1.65rem, 3.6vw, 2.65rem);
+  font-weight: 750;
   line-height: 1.18;
 }
-.laguna-home-lead {
-  max-width: 650px;
-  margin-top: 12px;
-  color: #e7f6f3;
-  font-size: 1.0625rem;
+.page-intro .intro {
+  max-width: 600px;
+  margin-top: 8px;
+  color: #eaf7f3;
+  font-size: 1rem;
 }
-.laguna-home-actions {
-  display: flex;
-  flex-wrap: wrap;
-  margin-top: 23px;
-  gap: 10px;
+@media (max-width: 1099px) {
+  .site-header .header-search {
+    display: none;
+  }
 }
-.laguna-home-actions a {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 48px;
-  padding: 12px 18px;
-  border: 1px solid #fff;
-  border-radius: 12px;
-  font-weight: 750;
-  text-decoration: none;
-}
-.laguna-primary-link {
-  background: #fff;
-  color: #0c747c;
-}
-.laguna-secondary-link {
-  background: transparent;
-  color: #fff;
-}
-.laguna-primary-link:hover {
-  background: #eaf7f3;
-  color: #095e66;
-  text-decoration: none;
-}
-.laguna-secondary-link:hover {
-  background: rgb(255 255 255 / 16%);
-  color: #fff;
-  text-decoration: none;
-}
-/* Ilustración geométrica local: no depende de imágenes externas ni representa emergencias reales. */
-.laguna-home-art {
-  position: relative;
-  width: min(100%, 375px);
-  height: 205px;
-  margin-inline: auto;
-  overflow: hidden;
-  border-radius: 19px;
-  background: linear-gradient(160deg, #dff4f1, #c4e9e0);
-}
-.laguna-art-sun {
-  position: absolute;
-  top: 19px;
-  right: 25px;
-  width: 79px;
-  height: 79px;
-  border-radius: 50%;
-  background: #ffcd54;
-}
-.laguna-art-hill {
-  position: absolute;
-  right: -15px;
-  bottom: -25px;
-  left: -15px;
-  height: 82px;
-  border-radius: 50% 50% 0 0;
-  background: #9fd0ba;
-}
-.laguna-art-house {
-  position: absolute;
-  bottom: 35px;
-  left: 35%;
-  width: 36%;
-  height: 86px;
-  border-radius: 12px 12px 6px 6px;
-  background: #fff;
-  box-shadow: 0 9px 15px rgb(14 81 87 / 12%);
-}
-.laguna-art-roof {
-  position: absolute;
-  z-index: 1;
-  bottom: 116px;
-  left: 29%;
-  width: 48%;
-  height: 17px;
-  border-radius: 4px;
-  background: #215a70;
-  transform: rotate(-24deg);
-}
-.laguna-art-door {
-  position: absolute;
-  z-index: 1;
-  bottom: 35px;
-  left: 47%;
-  width: 23px;
-  height: 51px;
-  border-radius: 6px 6px 0 0;
-  background: #117c83;
-}
-.laguna-art-pin {
-  position: absolute;
-  top: 16px;
-  left: 60%;
-  width: 24px;
-  height: 24px;
-  border: 7px solid #ed9651;
-  border-radius: 50% 50% 50% 0;
-  transform: rotate(-45deg);
-}
-.laguna-categories {
-  width: min(100% - 40px, 1250px);
-  padding: 27px 0;
-  margin-inline: auto;
-}
-.laguna-section-title h2 {
-  font-size: clamp(1.2rem, 2vw, 1.5rem);
-}
-.laguna-section-title p {
-  margin-top: 4px;
-  color: var(--color-report-secondary);
-}
-.laguna-category-grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  margin-top: 17px;
-  gap: 12px;
-}
-.laguna-category-grid a {
-  display: flex;
-  align-items: center;
-  min-height: 72px;
-  padding: 13px;
-  gap: 10px;
-  border: 1px solid #d4e3e8;
-  border-radius: 14px;
-  background: #fff;
-  color: #0c747c;
-  font-weight: 700;
-  text-decoration: none;
-}
-.laguna-category-grid a:hover {
-  border-color: #0c747c;
-  background: #eaf7f3;
-  text-decoration: none;
-}
-/* Conservamos el aviso explícito de demostración y ausencia de verificación oficial. */
-.notice-demo {
-  align-items: start;
-  padding: 12px max(20px, calc((100vw - 1250px) / 2));
-  gap: 12px;
-  background: #fff4dd;
-  color: #755013;
-  font-size: 0.8125rem;
-}
-.notice-demo .notice-icon {
-  flex-basis: 22px;
-  width: 22px;
-  height: 22px;
-  border: 1px solid #d9ad58;
-  background: #fff;
-}
-.notice-demo > div {
-  display: block;
-}
-.notice-demo p {
-  margin-top: 3px;
-  color: #755013;
-}
-.workspace {
-  display: block;
-}
+/* Explorar preserva Leaflet, filtros y lista actual, sin nuevas consultas. */
 .search-section {
-  position: relative;
-  display: grid;
-  grid-template-areas:
-    "heading heading" "search search" "filters filters"
-    "advanced advanced" "message message" "list map" "help help";
-  grid-template-columns: minmax(0, 420px) minmax(0, 1fr);
-  grid-template-rows: auto auto auto auto auto minmax(450px, auto) auto;
-  align-items: start;
-  width: min(100% - 40px, 1250px);
-  height: auto;
-  min-height: 0;
-  padding: 25px 0 35px;
-  margin-inline: auto;
-  gap: 12px 22px;
-  overflow: visible;
-  isolation: auto;
-  background: transparent;
+  background: #e9f3f1;
 }
 .search-section::before {
-  display: none;
-}
-.search-section > .section-heading {
-  grid-area: heading;
-  width: 100%;
-  padding: 0;
-  margin: 0;
-  border: 0;
-}
-.search-section .section-heading h2 {
-  color: #193644;
-  font-size: clamp(1.4rem, 2.3vw, 1.8rem);
-}
-.laguna-explore-search {
-  grid-area: search;
-  width: 100%;
-}
-.laguna-explore-search label {
-  margin-bottom: 7px;
-  color: #193644;
-  font-size: 0.875rem;
-}
-.laguna-explore-search input {
-  min-height: 50px;
-  padding: 10px 15px;
-  border: 1px solid #cbdce4;
-  border-radius: 12px;
   background: #fff;
-  color: #193644;
-}
-.laguna-explore-search small {
-  margin-top: 5px;
-  color: #607886;
-}
-.search-section > .quick-filters {
-  grid-area: filters;
-  display: flex;
-  flex-wrap: wrap;
-  width: 100%;
-  padding: 0;
-  margin: 0;
-  gap: 9px;
+  box-shadow: 0 5px 18px rgb(20 83 85 / 9%);
 }
 .quick-filters button {
-  min-height: 46px;
-  padding: 9px 16px;
-  border: 1px solid #cbdce4;
-  border-radius: 12px;
+  border-radius: 11px;
+  border: 1px solid #d5e4e6;
   background: #fff;
   color: #193644;
-  font-size: 0.875rem;
+  font-size: 0.84rem;
 }
 .quick-filters button[aria-pressed="true"] {
   border-color: #0c747c;
-  background: #eaf7f3;
-  color: #0c747c;
+  background: #0c747c;
+  color: #fff;
 }
 .quick-filters button:hover:not([aria-pressed="true"]) {
-  border-color: #0c747c;
-  background: #f2fbf8;
-  color: #0c747c;
-}
-.search-section > .filter-drawer {
-  grid-area: advanced;
-  width: 100%;
-  padding: 0 12px;
-  margin: 0;
-  border: 1px solid #dce6eb;
-  border-radius: 12px;
-  background: #fff;
-}
-.filter-drawer[open] {
-  max-height: none;
-  overflow: visible;
-}
-.search-section > .query-message {
-  grid-area: message;
-  width: 100%;
-  min-height: 0;
-  margin: 0;
-  color: #536d7b;
-  font-size: 0.875rem;
-}
-.search-section > #publications {
-  grid-area: list;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  align-content: start;
-  width: 100%;
-  height: auto;
-  min-height: 0;
-  padding: 0;
-  margin: 0;
-  gap: 12px;
-  overflow: visible;
+  background: #eaf7f3;
+  color: #07545b;
 }
 .report-grid .card {
-  border-color: #dce6eb;
-  border-radius: 15px;
-  box-shadow: 0 2px 8px rgb(13 87 93 / 4%);
+  border-color: #d5e4e6;
+  border-radius: 14px;
 }
 .report-grid .card[data-selected="true"] {
   border-color: #0c747c;
-  box-shadow: 0 0 0 1px #0c747c inset;
+  box-shadow: inset 0 0 0 1px #0c747c;
 }
-.report-grid .tag {
+.report-grid .tag,
+.report-grid .report-facts > div {
   background: #eaf7f3;
   color: #0c747c;
-}
-.report-grid .report-facts > div {
-  background: #f5faf9;
 }
 .report-grid .card button {
+  color: #07545b;
   background: #eaf7f3;
-  color: #0c747c;
-}
-.search-section > .query-help {
-  grid-area: help;
-  width: 100%;
-  margin: 0;
-  font-size: 0.875rem;
-}
-.search-section > .map-section {
-  position: relative;
-  z-index: 0;
-  grid-area: map;
-  inset: auto;
-  width: 100%;
-  height: 520px;
-  min-height: 360px;
-  margin: 0;
-  overflow: hidden;
-  border: 1px solid #dce6eb;
-  border-radius: 15px;
-  background: #e7f1ec;
 }
 #report-map {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  border-radius: 15px;
-  background: #e7f1ec;
+  background: #e9f3f1;
 }
 #report-map .leaflet-tile-pane {
-  filter: grayscale(0.35) saturate(0.72) brightness(1.05);
+  filter: saturate(0.6) contrast(0.95) brightness(1.03);
 }
-#report-map .leaflet-top.leaflet-left {
-  top: auto;
-  right: 16px;
-  bottom: 88px;
-  left: auto;
+.draft-section {
+  border-top-color: #0c747c;
 }
-.map-section #reset-map {
-  right: 16px;
-  bottom: 21px;
-}
-.map-section #reset-map::after {
-  color: #0c747c;
-}
-.map-legend {
-  right: auto;
-  bottom: 18px;
-  left: 15px;
-  max-width: min(62%, 390px);
-  color: #193644;
-}
-.report-marker,
-.report-marker--missing_person,
-.report-marker--group {
-  background: #0c747c;
-}
-.report-marker--road {
-  border-color: #0c747c;
-  background: #fff;
-  color: #0c747c;
-}
-.report-marker--assistance {
-  background: #215a70;
-}
-.draft-section,
-#own-section {
-  width: min(100% - 40px, 1250px);
-  padding: clamp(18px, 3vw, 30px);
-  margin: 25px auto;
-  border: 1px solid #dce6eb;
-  border-top: 4px solid #0c747c;
-  border-radius: 16px;
-  background: #fff;
-  box-shadow: 0 2px 14px rgb(13 87 93 / 5%);
-}
-.identity-submit {
-  background: #0c747c;
-}
-.identity-submit:hover {
-  background: #095e66;
-}
-#identity-dialog .identity-switch,
-#identity-dialog .identity-dialog-heading .eyebrow {
-  color: #0c747c;
-}
-#identity-dialog .identity-switch:hover {
-  color: #095e66;
-}
-:focus-visible,
-.identity-form input:focus-visible,
-.identity-form button:focus-visible {
-  outline: 3px solid #0c747c;
-  outline-offset: 3px;
-}
+
 .laguna-bottom-nav {
   display: none;
 }
-@media (max-width: 1099px) {
-  html {
-    scroll-padding-top: 90px;
-  }
-  body {
-    padding-bottom: calc(85px + env(safe-area-inset-bottom));
-  }
-  #laguna-home,
-  #search-section,
-  #draft-section,
-  #own-section {
-    scroll-margin-top: 90px;
-  }
-  .header-content {
-    display: flex;
-    flex-wrap: nowrap;
-    min-height: 76px;
-    padding: 10px 20px;
+
+/* La cabecera pasa a navegación inferior antes de perder espacio para Cuenta. */
+@media (max-width: 1199px) {
+  .site-header .header-content {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 10px 12px;
+    padding: 10px 18px;
   }
   .site-header .brand {
-    font-size: clamp(1.4rem, 5.5vw, 1.7rem);
-  }
-  .site-header .laguna-desktop-nav,
-  .site-header .header-action,
-  .site-header #identity-open {
-    display: none;
+    grid-area: 1 / 1;
+    min-width: 0;
   }
   .site-header .identity-controls {
-    margin-left: auto;
+    grid-area: 1 / 2;
   }
-  .site-header .laguna-connection {
-    min-width: 100px;
-    padding: 7px 10px;
+  /* Cuenta se accede SOLAMENTE desde la navegación inferior. */
+  .site-header .identity-trigger {
+    display: none;
   }
-  .laguna-home {
-    grid-template-columns: minmax(0, 1fr);
-    min-height: 0;
-    padding: 25px max(20px, calc((100vw - 700px) / 2));
-    gap: 18px;
+  .site-header .header-content > nav,
+  .site-header .header-action {
+    display: none;
   }
-  .laguna-home-art {
-    width: min(100%, 420px);
-    height: 150px;
+  .site-header .header-search {
+    grid-area: 2 / 1 / 3 / -1;
+    width: 100%;
+    margin: 0;
   }
-  .laguna-art-house {
-    height: 67px;
+  main {
+    padding-bottom: calc(92px + env(safe-area-inset-bottom));
   }
-  .laguna-art-roof {
-    bottom: 94px;
+  .laguna-bottom-nav {
+    position: fixed;
+    z-index: 1500;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    width: 100%;
+    min-height: calc(72px + env(safe-area-inset-bottom));
+    padding: 4px 8px calc(5px + env(safe-area-inset-bottom));
+    border-top: 1px solid #d5e4e6;
+    background: #fff;
+    box-shadow: 0 -2px 12px rgb(17 71 77 / 6%);
   }
-  .laguna-art-door {
-    height: 41px;
+  .laguna-bottom-nav > :is(a, button) {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    min-width: 0;
+    min-height: 58px;
+    margin: 0;
+    padding: 5px 2px;
+    border: 0;
+    border-radius: 9px;
+    background: transparent;
+    color: #536c7b;
+    font-size: clamp(0.74rem, 1.9vw, 0.85rem);
+    font-weight: 650;
+    text-align: center;
+    text-decoration: none;
+    white-space: nowrap;
   }
-  .laguna-categories,
-  .search-section,
-  .draft-section,
-  #own-section {
-    width: min(100% - 32px, 700px);
+  .laguna-bottom-nav :is(a, button) svg {
+    width: 24px;
+    height: 24px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
   }
-  .laguna-category-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .laguna-bottom-nav > :is(a, button):hover,
+  .laguna-bottom-nav > :is(a, button)[aria-current="page"] {
+    color: #0c747c;
+    background: #eaf7f3;
   }
+  .laguna-bottom-nav > :is(a, button)[aria-current="page"] {
+    box-shadow: inset 0 -3px #0c747c;
+  }
+}
+
+/* El mapa y la lista cambian a flujo vertical solo en sus anchos ya previstos. */
+@media (max-width: 1099px) {
   .search-section {
-    grid-template-areas: "heading" "search" "filters" "advanced" "message" "list" "map" "help";
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: auto;
-    padding: 25px 0;
-    gap: 14px;
+    height: auto;
+    min-height: 0;
+    padding: 0 0 22px;
+    overflow: visible;
+    align-items: stretch;
+  }
+  .search-section::before {
+    display: none;
   }
   .search-section > .section-heading,
   .search-section > .quick-filters,
@@ -737,207 +506,1574 @@ main {
   .search-section > .query-message,
   .search-section > #publications,
   .search-section > .query-help {
-    width: 100%;
-    padding-inline: 0;
-    margin-inline: 0;
+    position: relative;
+    z-index: 1;
+    width: calc(100% - 32px);
+    margin-inline: 16px;
+  }
+  .search-section > .section-heading {
+    order: 1;
+    margin-top: 20px;
+  }
+  .search-section > .quick-filters {
+    order: 2;
   }
   .search-section > .filter-drawer {
-    padding-inline: 12px;
+    order: 3;
   }
-  .search-section > .map-section {
-    order: 0;
-    height: 390px;
+  .search-section > .query-message {
+    order: 4;
   }
   .search-section > #publications {
-    order: 0;
+    order: 5;
+    flex: none;
+    overflow: visible;
+    padding: 0;
   }
-  #report-map {
+  .search-section > .query-help {
+    order: 6;
+  }
+  .map-section {
+    position: relative;
+    inset: auto;
+    order: 0;
+    flex: 0 0 auto;
+    height: clamp(320px, 48vw, 440px);
+    width: 100%;
+  }
+  .map-section #report-map {
+    inset: 0;
     height: 100%;
+    width: 100%;
+  }
+  .map-section #reset-map {
+    right: 16px;
+    bottom: 52px;
+  }
+  #report-map .leaflet-top.leaflet-left {
+    right: 16px;
+    bottom: 112px;
   }
   .map-legend {
     right: 70px;
-    bottom: 12px;
     left: 12px;
+    bottom: 48px;
     max-width: none;
-    font-size: 0.75rem;
+    width: auto;
   }
-  #report-map .leaflet-top.leaflet-left {
-    right: 14px;
-    bottom: 87px;
+  .map-section #map-status[data-error="true"] {
+    right: 16px;
+    left: 16px;
+    max-width: none;
   }
-  .map-section #reset-map {
-    right: 14px;
-    bottom: 20px;
-  }
-  .laguna-bottom-nav {
-    position: fixed;
-    z-index: 900;
-    right: 0;
-    bottom: 0;
-    left: 0;
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    width: 100%;
-    min-height: calc(72px + env(safe-area-inset-bottom));
-    padding: 4px 0 env(safe-area-inset-bottom);
-    gap: 0;
-    border-top: 1px solid #dce6eb;
-    background: #fff;
-    box-shadow: 0 -2px 10px rgb(13 87 93 / 6%);
-  }
-  .laguna-bottom-nav a,
-  .laguna-bottom-nav button {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-width: 0;
-    min-height: 64px;
-    padding: 5px 2px;
-    gap: 3px;
-    border: 0;
-    border-radius: 0;
-    background: transparent;
-    color: #667f90;
-    font-size: 0.75rem;
-    font-weight: 650;
-    text-decoration: none;
-    white-space: normal;
-  }
-  .laguna-bottom-nav a:hover,
-  .laguna-bottom-nav button:hover {
-    background: #eaf7f3;
-    color: #0c747c;
-    text-decoration: none;
-  }
-  .laguna-bottom-nav a[aria-current="page"],
-  .laguna-bottom-nav button.is-active {
-    background: transparent;
-    color: #0c747c;
-    font-weight: 800;
-  }
-  .laguna-bottom-nav a[aria-current="page"]::after,
-  .laguna-bottom-nav button.is-active::after {
-    position: absolute;
-    right: calc(50% - 19px);
-    bottom: 2px;
-    width: 38px;
-    height: 3px;
-    border-radius: 3px;
-    background: #0c747c;
-    content: "";
-  }
-  .laguna-bottom-nav svg {
-    width: 24px;
-    height: 24px;
-    fill: none;
-    stroke: currentColor;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-    stroke-width: 1.8;
+  /* El ancho automático descuenta ambos márgenes; 100% + 16px provoca overflow en tablet. */
+  .draft-section {
+    width: auto;
+    margin: 24px 16px;
   }
   .draft-section form {
     grid-template-columns: minmax(0, 1fr);
   }
-  .draft-section form > *,
-  .draft-section .publication-fields,
-  .draft-section form > .description-fields,
-  .draft-section form > fieldset:not(.description-fields) {
-    grid-row: auto;
+  .draft-section
+    form
+    > :is(.field, fieldset, .publication-fields, .description-fields, .draft-actions) {
     grid-column: 1 / -1;
-    min-width: 0;
+    grid-row: auto;
   }
-  .draft-section form > .description-fields {
-    display: block;
+  footer {
+    padding-bottom: calc(84px + env(safe-area-inset-bottom));
   }
 }
 @media (max-width: 520px) {
-  .header-content {
-    padding-inline: 16px;
-    gap: 8px;
+  /* El lienzo móvil conserva el ancho útil de Figma también en navegadores
+     de escritorio con barra clásica; la página sigue desplazándose. */
+  html {
+    scrollbar-width: none;
   }
-  .site-header .brand img {
-    width: 26px;
-    height: 26px;
+  html::-webkit-scrollbar {
+    display: none;
+  }
+  body .laguna-home-shell {
+    position: relative;
+    background: #117c83;
+  }
+  .laguna-home-shell::before {
+    content: "";
+    position: absolute;
+    inset: 23px 0 0;
+    border-radius: 21px 21px 0 0;
+    background: #fff;
+  }
+  .site-header .header-content {
+    padding: 10px 14px;
   }
   .site-header .brand {
-    font-size: 1.4rem;
+    font-size: 1.18rem;
   }
-  .site-header .laguna-connection {
-    min-width: 95px;
-    min-height: 34px;
-    font-size: 0.6875rem;
+  .site-header .brand img {
+    width: 27px;
+    height: 27px;
   }
-  .laguna-home {
-    padding: 22px 18px;
+  .page-intro {
+    padding: 25px 18px 28px;
   }
-  .laguna-home h1 {
-    font-size: 1.75rem;
+  .page-intro h1 {
+    font-size: 1.65rem;
   }
-  .laguna-home-art {
-    height: 135px;
+  .page-intro .intro {
+    font-size: 0.94rem;
   }
-  .laguna-home-actions {
-    display: grid;
-    grid-template-columns: 1fr;
+  .laguna-hero-action {
+    width: 100%;
+    justify-content: center;
   }
-  .laguna-categories {
-    padding-block: 21px;
-  }
-  .laguna-category-grid {
+  .quick-filters {
     gap: 8px;
   }
-  .laguna-category-grid a {
-    min-height: 59px;
-    padding: 10px;
-    font-size: 0.875rem;
-  }
   .quick-filters button {
-    flex: 1 1 calc(50% - 9px);
-    min-width: 0;
+    flex: 1 1 120px;
   }
-  .quick-filters button:first-child {
-    flex-basis: 100%;
+  .location-actions,
+  .coordinate-fields {
+    flex-direction: column;
   }
-  .search-section > .map-section {
-    height: 320px;
+  .coordinate-fields > .field {
+    width: 100%;
   }
-  .map-legend {
-    right: 60px;
-    padding: 7px;
-    font-size: 0.625rem;
-  }
-  .draft-section,
-  #own-section {
-    padding: 16px;
-  }
-  .draft-actions button {
-    flex: 1 1 100%;
+  .report-grid .report-facts {
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  html {
-    scroll-behavior: auto;
-  }
-}
-@media (forced-colors: active) {
-  .laguna-category-grid a,
-  .laguna-bottom-nav,
-  .laguna-home-actions a,
-  .laguna-connection {
-    border: 1px solid CanvasText;
+  .laguna-bottom-nav *,
+  .laguna-home-report {
+    transition: none;
   }
 }
 
-/* Ilustración Laguna original exportada de Figma y servida desde la PWA. */
-.laguna-home-art {
-  width: min(100%, 420px);
-  height: auto;
-  aspect-ratio: 7 / 3;
-  background: url("/laguna-home.svg") center / contain no-repeat;
+/* Inicio Laguna: medidas de los frames oficiales 390 × 850 y 1366 × 880.
+   Estos estilos solo afectan al inicio; Explorar y formularios conservan su DOM. */
+@font-face {
+  font-family: "Laguna Outfit";
+  src: url("/laguna-assets/outfit-latin.woff2") format("woff2");
+  font-weight: 400 700;
+  font-display: swap;
 }
-
-.laguna-home-art > span {
+@font-face {
+  font-family: "Laguna Atkinson";
+  src: url("/laguna-assets/atkinson-latin.woff2") format("woff2");
+  font-weight: 400 500;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Laguna Bricolage";
+  src: url("/laguna-assets/bricolage-latin.woff2") format("woff2");
+  font-weight: 700;
+  font-display: swap;
+}
+.site-header .brand {
+  font-family: "Laguna Outfit", sans-serif;
+  font-weight: 400;
+  letter-spacing: -0.04em;
+  text-decoration: underline;
+  text-decoration-color: #f5c65e;
+  text-underline-offset: 4px;
+}
+.site-header .brand img {
+  display: block;
+}
+.site-header .brand picture {
+  display: block;
+}
+.laguna-copy-desktop {
+  display: none !important;
+}
+.laguna-home-categories a:first-child,
+.laguna-home-categories a:hover {
+  background: transparent;
+  color: #50616e;
+}
+.site-header .header-content > nav a[aria-current="page"] {
+  background: transparent;
+  color: #fff;
+  box-shadow: none;
+}
+.site-header .header-content > nav .laguna-desktop-publish {
   display: none;
+}
+.page-intro {
+  font-family: "Laguna Outfit", sans-serif;
+  background: #117c83;
+}
+.laguna-home-shell {
+  display: flow-root;
+  background: #fff;
+}
+.page-intro .laguna-home-seal {
+  display: none;
+}
+.laguna-home-card {
+  position: relative;
+  z-index: 1;
+  font-family: "Laguna Outfit", sans-serif;
+  background: transparent;
+}
+.laguna-home-action {
+  display: grid;
+  grid-template-columns: 26px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid #e4e7e9;
+  border-radius: 18px;
+  background: #fff;
+}
+.laguna-home-question,
+.laguna-home-question-help {
+  display: block;
+}
+.laguna-home-question {
+  color: #17222b;
+  font-size: 15px;
+  font-weight: 600;
+}
+.laguna-home-question-help {
+  color: #6f757b;
+  font-family: "Laguna Atkinson", sans-serif;
+  font-size: 11px;
+  font-weight: 400;
+}
+.laguna-home-report {
+  display: grid;
+  place-items: center;
+  min-height: 42px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 12px;
+  background: #f5c65e;
+  color: #183843;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+  text-decoration: none;
+}
+.laguna-home-report:hover {
+  background: #eabb50;
+  color: #183843;
+}
+.laguna-home-illustration {
+  width: 350px;
+  height: 150px;
+  margin: 0;
+  border-radius: 0;
+  background: url("/laguna-assets/home-illustration-mobile.svg") no-repeat center / contain;
+}
+.laguna-home-card h2 {
+  margin: 0;
+  color: #17252f;
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+.laguna-home-category-help,
+.laguna-home-support-help {
+  display: none;
+}
+.laguna-home-categories {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+.laguna-home-categories a {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  color: #50616e;
+  font-family: "Laguna Atkinson", sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  text-decoration: none;
+}
+.laguna-home-categories img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.laguna-home-support-list {
+  min-width: 0;
+}
+.laguna-home-support {
+  display: grid;
+  grid-template-columns: 26px minmax(0, 1fr) 19px;
+  align-items: start;
+  gap: 12px;
+  margin: 0;
+  border: 1px solid #e3e9ef;
+  border-radius: 16px;
+  background: #fff;
+  color: #15242f;
+  text-decoration: none;
+}
+.laguna-home-support span,
+.laguna-home-support strong,
+.laguna-home-support small,
+.laguna-home-support em {
+  display: block;
+}
+.laguna-home-support strong {
+  font-size: 16px;
+  font-weight: 600;
+}
+.laguna-home-support small,
+.laguna-home-support em {
+  font-family: "Laguna Atkinson", sans-serif;
+  font-style: normal;
+  font-weight: 400;
+}
+.laguna-home-support small {
+  color: #687987;
+  font-size: 12px;
+}
+.laguna-home-support em {
+  color: #815b1e;
+  font-size: 11px;
+}
+.laguna-home-arrow {
+  align-self: center;
+}
+@media (max-width: 1099px) {
+  .site-header::before {
+    top: -87px;
+    right: -36px;
+    width: 155px;
+    height: 155px;
+    border-radius: 0;
+    background: url("/laguna-assets/header-circle-mobile.svg") no-repeat center / contain;
+    box-shadow: none;
+  }
+  .site-header .header-content {
+    min-height: 75px;
+  }
+  .site-header .brand img {
+    width: 159px;
+    height: 32px;
+  }
+  .page-intro {
+    height: 104px;
+    padding: 19px 21px 0;
+  }
+  .page-intro h1 {
+    font-size: 19px;
+    font-weight: 500;
+    line-height: 1.35;
+  }
+  .page-intro .intro {
+    margin-top: 4px;
+    font-size: 13px;
+  }
+  .laguna-home-card {
+    width: min(100% - 40px, 688px);
+    margin: -1px auto 32px;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+  }
+  .laguna-home-action {
+    height: 71px;
+    padding: 0 12px;
+  }
+  .laguna-home-body {
+    padding-top: 21px;
+  }
+  .laguna-home-illustration {
+    max-width: 100%;
+  }
+  .laguna-home-discovery h2 {
+    margin-top: 27px;
+  }
+  .laguna-home-categories {
+    margin-top: 10px;
+  }
+  .laguna-home-support-list h2 {
+    margin-top: 25px;
+  }
+  .laguna-home-support {
+    min-height: 91px;
+    margin-top: 14px;
+    padding: 12px 15px;
+  }
+  .laguna-home-support-extra {
+    display: none;
+  }
+  .laguna-bottom-nav {
+    min-height: 67px;
+    padding: 0;
+  }
+  .laguna-bottom-nav > :is(a, button) {
+    min-height: 67px;
+    border-radius: 0;
+    background: #fff;
+    font-family: "Laguna Outfit", sans-serif;
+    font-size: 12px;
+    font-weight: 400;
+  }
+  .laguna-bottom-nav > :is(a, button)[aria-current="page"] {
+    position: relative;
+    background: #fff;
+    box-shadow: none;
+    font-weight: 600;
+  }
+  .laguna-bottom-nav > :is(a, button)[aria-current="page"]::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: calc(50% - 19px);
+    width: 38px;
+    height: 3px;
+    border-radius: 3px;
+    background: #117c83;
+  }
+  .laguna-bottom-nav :is(a, button) img {
+    width: 24px;
+    height: 24px;
+  }
+}
+@media (max-width: 520px) {
+  .site-header .header-content {
+    min-height: 75px;
+    padding: 10px 22px;
+  }
+  .site-header .brand img {
+    width: 159px;
+    height: 32px;
+  }
+  .site-header #connection-indicator {
+    min-width: 101px;
+  }
+  .page-intro {
+    padding: 19px 21px 0;
+  }
+  .laguna-home-illustration {
+    width: 100%;
+    background-size: 100% 100%;
+  }
+  .laguna-home-support strong {
+    font-size: 16px;
+  }
+}
+@media (min-width: 1100px) {
+  .laguna-copy-mobile {
+    display: none !important;
+  }
+  .laguna-copy-desktop {
+    display: inline !important;
+  }
+  .site-header::before {
+    top: -165px;
+    right: -37px;
+    width: 250px;
+    height: 250px;
+    border-radius: 0;
+    background: url("/laguna-assets/header-circle-desktop.svg") no-repeat center / contain;
+    box-shadow: none;
+  }
+  .site-header .header-content {
+    min-height: 89px;
+    padding-inline: max(58px, calc((100vw - 1244px) / 2));
+  }
+  .site-header .brand img {
+    width: 223px;
+    height: 44px;
+  }
+  .site-header .header-search {
+    display: none;
+  }
+  .site-header .header-content > nav {
+    margin-left: auto;
+  }
+  .site-header .header-content > nav a {
+    font-family: "Laguna Outfit", sans-serif;
+    font-size: 15px;
+  }
+  .site-header .header-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 135px;
+    min-height: 47px;
+    font-family: "Laguna Outfit", sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+  }
+  .page-intro {
+    height: 221px;
+    padding: 26px max(58px, calc((100vw - 1244px) / 2)) 0;
+  }
+  .page-intro::after {
+    content: "";
+    position: absolute;
+    right: max(88px, calc((100vw - 1190px) / 2));
+    top: -1px;
+    width: 481px;
+    height: 188px;
+    background: url("/laguna-assets/home-illustration-desktop.svg") no-repeat center / contain;
+  }
+  .page-intro h1 {
+    max-width: 750px;
+    font-size: 38px;
+    font-weight: 600;
+  }
+  .page-intro .intro {
+    margin-top: 4px;
+    font-size: 19px;
+  }
+  .page-intro .laguna-home-seal {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    width: 310px;
+    margin-top: 32px;
+    padding: 9px 16px;
+    border-radius: 17px;
+    background: #0d6975;
+    color: #fff;
+    font-family: "Laguna Atkinson", sans-serif;
+    font-size: 13px;
+  }
+  .page-intro .laguna-home-seal img {
+    flex: 0 0 16px;
+  }
+  .laguna-home-card {
+    width: min(100% - 90px, 1244px);
+    margin: -35px auto 0;
+    padding: 0 0 31px;
+    border: 0;
+    border-radius: 0;
+  }
+  .laguna-home-action {
+    height: 97px;
+    padding: 0 22px;
+    grid-template-columns: 34px minmax(0, 1fr) 213px;
+    gap: 21px;
+  }
+  .laguna-home-action > img {
+    width: 34px;
+    height: 34px;
+    content: url("/laguna-assets/desktop-action-shield.svg");
+  }
+  .laguna-home-question {
+    font-size: 21px;
+  }
+  .laguna-home-question-help {
+    font-size: 15px;
+  }
+  .laguna-home-report {
+    min-height: 54px;
+    border-radius: 14px;
+    font-size: 17px;
+  }
+  .laguna-home-report::before {
+    content: "+";
+    margin-right: 8px;
+    font-size: 20px;
+  }
+  .laguna-home-report {
+    display: flex;
+    justify-content: center;
+  }
+  .laguna-home-body {
+    display: grid;
+    grid-template-columns: minmax(0, 652fr) minmax(0, 545fr);
+    gap: 47px;
+    padding-top: 33px;
+  }
+  .laguna-home-illustration {
+    display: none;
+  }
+  .laguna-home-card h2 {
+    font-size: 27px;
+  }
+  .laguna-home-category-help,
+  .laguna-home-support-help {
+    display: block;
+    margin: 3px 0 18px;
+    color: #65798a;
+    font-family: "Laguna Atkinson", sans-serif;
+    font-size: 15px;
+  }
+  .laguna-home-categories {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 18px;
+  }
+  .laguna-home-categories a {
+    font-size: 15px;
+    gap: 11px;
+  }
+  .laguna-home-categories img {
+    height: 108px;
+    object-fit: fill;
+  }
+  .laguna-home-support {
+    grid-template-columns: 48px minmax(0, 1fr) 21px;
+    min-height: 92px;
+    margin-bottom: 20px;
+    padding: 16px 14px;
+  }
+  .laguna-home-support-list .laguna-home-support-help {
+    margin-bottom: 22px;
+  }
+  .laguna-home-support > img:first-child {
+    width: 48px;
+    height: 48px;
+    padding: 11px;
+    border-radius: 14px;
+    background: #117c83;
+    content: url("/laguna-assets/desktop-support-home.svg");
+  }
+  .laguna-home-support-extra > img:first-child {
+    background: #e86d5e;
+    content: url("/laguna-assets/desktop-support-heart.svg");
+  }
+  .laguna-home-arrow {
+    content: url("/laguna-assets/desktop-arrow.svg");
+  }
+  .laguna-home-support strong {
+    font-size: 16px;
+  }
+  .laguna-home-support em {
+    font-size: 11px;
+  }
+}
+@media (min-width: 1100px) and (max-width: 1199px) {
+  .site-header .header-action {
+    display: none;
+  }
+  .laguna-bottom-nav {
+    min-height: 67px;
+    padding: 0;
+  }
+  .laguna-bottom-nav > :is(a, button) {
+    min-height: 67px;
+    border-radius: 0;
+    background: #fff;
+    font-family: "Laguna Outfit", sans-serif;
+    font-size: 12px;
+    font-weight: 400;
+  }
+  .laguna-bottom-nav > :is(a, button)[aria-current="page"] {
+    position: relative;
+    background: #fff;
+    box-shadow: none;
+    font-weight: 600;
+  }
+  .laguna-bottom-nav > :is(a, button)[aria-current="page"]::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: calc(50% - 19px);
+    width: 38px;
+    height: 3px;
+    border-radius: 3px;
+    background: #117c83;
+  }
+  .laguna-bottom-nav :is(a, button) img {
+    width: 24px;
+    height: 24px;
+  }
+}
+
+@media (min-width: 1200px) {
+  /* La cabecera reparte el ancho disponible sin fijar cada destino. Así admite
+     Encontrar personas y el acceso contextual sin que las etiquetas se monten. */
+  .laguna-home-card {
+    margin-left: max(45px, calc((100vw - 1244px) / 2));
+  }
+  .page-intro::after {
+    right: auto;
+    left: min(calc(50vw + 114px), calc(100% - 481px));
+  }
+  .site-header .header-content {
+    display: grid;
+    grid-template-columns: 223px minmax(0, 1fr) 135px 126px;
+    align-items: flex-start;
+    column-gap: clamp(10px, 1.3vw, 22px);
+    height: 89px;
+    padding: 0 clamp(24px, 4vw, 58px);
+  }
+  /* El recurso se extiende de borde a borde; el propio contraste del logotipo
+     mantiene la marca legible sin cortar el recorrido de las ondas. */
+  .site-header::after {
+    clip-path: none;
+  }
+  .site-header .brand {
+    position: static;
+    margin: 23px 0 0;
+    min-height: 44px;
+  }
+  .site-header .header-content > nav {
+    position: static;
+    justify-content: center;
+    width: 100%;
+    min-width: 0;
+    margin: 11px 0 0;
+    gap: clamp(2px, 0.35vw, 7px);
+  }
+  .site-header .header-content > nav a {
+    position: relative;
+    flex: 0 0 auto;
+    width: auto;
+    min-height: 48px;
+    padding: 14px clamp(6px, 0.65vw, 12px) 0;
+    border-radius: 0;
+    white-space: nowrap;
+  }
+  .site-header .header-content > nav a[aria-current="page"]::after {
+    content: "";
+    position: absolute;
+    top: 64px;
+    left: 0;
+    width: 61px;
+    height: 3px;
+    border-radius: 2px;
+    background: #fff;
+  }
+  .site-header .header-action {
+    position: static;
+    margin: 20px 0 0;
+  }
+  .site-header .identity-controls {
+    position: static;
+    justify-content: flex-end;
+    width: 126px;
+    margin-top: 20px;
+    gap: 0;
+  }
+  .site-header #connection-indicator {
+    display: none;
+  }
+  .site-header .identity-trigger {
+    width: 126px;
+    height: 47px;
+  }
+  .site-header .identity-trigger svg {
+    display: none;
+  }
+  .site-header .identity-trigger::after {
+    margin: 0;
+    font-size: 15px;
+  }
+}
+@media (min-width: 1500px) {
+  .site-header .header-content {
+    grid-template-columns: 223px minmax(0, 1fr) 135px 299px;
+  }
+  .site-header .identity-controls {
+    width: 299px;
+    gap: 36px;
+  }
+  .site-header #connection-indicator {
+    display: inline-flex;
+    width: 137px;
+    height: 36px;
+    margin-top: 7px;
+  }
+}
+/* Adaptaciones de los frames oficiales 4:248 y 6:311; conserva sus componentes. */
+@media (max-width: 374px) {
+  .site-header .header-content {
+    padding-inline: 18px;
+  }
+  .laguna-home-card {
+    width: calc(100% - 40px);
+  }
+  .laguna-home-action {
+    grid-template-columns: 26px minmax(0, 1fr) 84px;
+    gap: 7px;
+    padding-inline: 9px;
+  }
+  .laguna-home-question {
+    font-size: 13px;
+  }
+  .laguna-home-question-help {
+    font-size: 10px;
+  }
+  .laguna-home-report {
+    padding-inline: 8px;
+    font-size: 12px;
+  }
+  .laguna-home-illustration {
+    height: auto;
+    aspect-ratio: 7 / 3;
+  }
+  .laguna-home-categories {
+    gap: 7px;
+  }
+  .laguna-home-support {
+    grid-template-columns: 26px minmax(0, 1fr) 19px;
+    gap: 8px;
+    padding-inline: 10px;
+  }
+}
+@media (min-width: 521px) and (max-width: 1099px) {
+  .page-intro {
+    padding-inline: max(40px, calc((100vw - 688px) / 2));
+  }
+  .laguna-home-card {
+    width: min(100% - 80px, 688px);
+  }
+  .laguna-home-illustration {
+    width: min(100%, 550px);
+    height: auto;
+    aspect-ratio: 7 / 3;
+  }
+  .laguna-home-categories {
+    grid-template-columns: repeat(4, minmax(0, 130px));
+    gap: 16px;
+  }
+  .laguna-home-support {
+    max-width: 550px;
+  }
+}
+
+/* Navegación por secciones: Inicio, Explorar, Publicar y Mis reportes ocupan
+   una pantalla cada una; el DOM y los controladores siguen compartidos. */
+body[data-laguna-page="home"] > main > .workspace,
+body[data-laguna-page="explore"] > main > .laguna-home-shell,
+body[data-laguna-page="publish"] > main > .laguna-home-shell,
+body[data-laguna-page="own"] > main > .laguna-home-shell,
+body[data-laguna-page="match"] > main > :is(.laguna-home-shell, .workspace) {
+  display: none;
+}
+body[data-laguna-page="explore"] .workspace > :is(#draft-section, #own-section),
+body[data-laguna-page="publish"] .workspace > :is(#search-section, #own-section),
+body[data-laguna-page="own"] .workspace > :is(#search-section, #draft-section) {
+  display: none;
+}
+body[data-laguna-page="verifier"] > main > :is(.laguna-home-shell, .workspace) {
+  display: none;
+}
+body[data-laguna-page="publish"] .workspace,
+body[data-laguna-page="own"] .workspace {
+  display: block;
+}
+
+/* Comparación de personas: espacio independiente y responsive. */
+.missing-match-workspace {
+  display: none;
+  width: min(1244px, calc(100% - 40px));
+  margin: 28px auto 60px;
+  color: #193644;
+  font-family: "Laguna Outfit", sans-serif;
+}
+body[data-laguna-page="match"] .missing-match-workspace {
+  display: block;
+}
+.missing-match-heading {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 32px;
+  min-height: 220px;
+  padding: clamp(28px, 5vw, 56px);
+  overflow: hidden;
+  border-radius: 26px;
+  background: #0c747c url("/laguna-assets/header-waves.svg") no-repeat center / cover;
+  color: #fff;
+  box-shadow: 0 18px 48px rgb(7 67 75 / 14%);
+}
+.missing-match-heading > div {
+  position: relative;
+  z-index: 1;
+  max-width: 740px;
+}
+.missing-match-heading .eyebrow,
+.missing-match-heading p {
+  color: #eaf7f3;
+}
+.missing-match-heading h1 {
+  max-width: 720px;
+  margin: 8px 0 12px;
+  font-family: "Laguna Bricolage", sans-serif;
+  font-size: clamp(2rem, 4vw, 3.4rem);
+  line-height: 1.02;
+}
+.missing-match-heading p:last-child {
+  max-width: 650px;
+  margin-bottom: 0;
+  font-size: 1.05rem;
+}
+.missing-match-layout {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.8fr) minmax(0, 1.2fr);
+  gap: 20px;
+}
+.missing-match-catalog,
+.missing-match-action,
+.missing-match-result {
+  padding: clamp(20px, 3vw, 32px);
+  border: 1px solid #d5e4e6;
+  border-radius: 20px;
+  background: #fff;
+  box-shadow: 0 12px 28px rgb(7 67 75 / 8%);
+}
+.missing-match-section-heading {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 16px;
+}
+.missing-match-section-heading h2,
+.missing-match-action h2,
+.missing-match-result h2 {
+  margin: 4px 0 16px;
+  font-family: "Laguna Bricolage", sans-serif;
+  font-size: clamp(1.45rem, 2.2vw, 2rem);
+}
+#missing-match-count {
+  padding: 7px 11px;
+  border-radius: 999px;
+  background: #eaf7f3;
+  color: #0b5961;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.missing-match-candidates {
+  display: grid;
+  gap: 12px;
+}
+.missing-match-empty {
+  min-height: 150px;
+  margin: 0;
+  padding: 28px;
+  border: 1px dashed #9bb7c0;
+  border-radius: 14px;
+  background: #f6f9fa;
+  color: #4b6473;
+}
+.missing-match-candidate {
+  display: grid;
+  grid-template-columns: 112px minmax(0, 1fr);
+  gap: 16px;
+  padding: 12px;
+  border: 1px solid #d5e4e6;
+  border-radius: 14px;
+  background: #f6f9fa;
+}
+.missing-match-candidate img {
+  width: 112px;
+  aspect-ratio: 1;
+  border-radius: 11px;
+  object-fit: cover;
+}
+.missing-match-candidate h3,
+.missing-match-candidate p {
+  margin: 0 0 6px;
+}
+.missing-match-candidate a {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  color: #0c747c;
+  font-weight: 750;
+}
+.missing-match-drop {
+  display: grid;
+  min-height: 190px;
+  place-items: center;
+  align-content: center;
+  gap: 5px;
+  padding: 24px;
+  border: 2px dashed #8ab7b8;
+  border-radius: 16px;
+  background: #eef8f5;
+  color: #193644;
+  text-align: center;
+  cursor: pointer;
+  transition:
+    border-color 160ms ease,
+    transform 160ms ease,
+    background 160ms ease;
+}
+.missing-match-drop:hover {
+  border-color: #0c747c;
+  background: #e2f4ef;
+  transform: translateY(-2px);
+}
+.missing-match-drop:focus-within {
+  outline: 3px solid #f5c65e;
+  outline-offset: 3px;
+}
+.missing-match-drop-icon {
+  display: grid;
+  width: 48px;
+  height: 48px;
+  place-items: center;
+  border-radius: 50%;
+  background: #0c747c;
+  color: #fff;
+  font-size: 1.7rem;
+}
+.missing-match-drop input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.missing-match-previews {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+.missing-match-previews figure,
+.missing-match-comparison figure {
+  margin: 0;
+}
+.missing-match-previews img,
+.missing-match-comparison img {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 13px;
+  object-fit: cover;
+}
+.missing-match-previews figcaption,
+.missing-match-comparison figcaption {
+  margin-top: 6px;
+  color: #4b6473;
+  font-size: 0.88rem;
+  text-align: center;
+}
+#missing-match-submit {
+  width: 100%;
+  min-height: 50px;
+  margin-top: 16px;
+  border: 0;
+  border-radius: 12px;
+  background: #0c747c;
+  color: #fff;
+  font-weight: 800;
+  cursor: pointer;
+  transition:
+    transform 160ms ease,
+    background 160ms ease,
+    box-shadow 160ms ease;
+}
+#missing-match-submit:hover:not(:disabled) {
+  background: #075d64;
+  box-shadow: 0 10px 22px rgb(7 67 75 / 18%);
+  transform: translateY(-2px);
+}
+#missing-match-submit:disabled {
+  background: #aec2c5;
+  cursor: not-allowed;
+}
+.missing-match-message {
+  min-height: 48px;
+  margin: 14px 0 0;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: #f6f9fa;
+  color: #4b6473;
+}
+.missing-match-message[data-state="error"] {
+  border-left: 4px solid #d39a1e;
+  background: #fff7dc;
+  color: #624b12;
+}
+.missing-match-message[data-state="success"] {
+  border-left: 4px solid #0c747c;
+  background: #eaf7f3;
+  color: #0b5961;
+}
+.missing-match-result {
+  margin-top: 20px;
+  border-top: 4px solid #f5c65e;
+}
+.missing-match-result[hidden] {
+  display: none;
+}
+.missing-match-comparison {
+  display: grid;
+  grid-template-columns: minmax(160px, 280px) minmax(180px, 1fr) minmax(160px, 280px);
+  align-items: center;
+  gap: clamp(18px, 4vw, 44px);
+}
+.missing-match-summary {
+  display: grid;
+  justify-items: center;
+  text-align: center;
+}
+.missing-match-summary strong {
+  font-family: "Laguna Bricolage", sans-serif;
+  color: #0c747c;
+  font-size: clamp(3rem, 7vw, 5.5rem);
+  line-height: 1;
+}
+.missing-match-summary span {
+  color: #4b6473;
+  font-weight: 750;
+}
+.missing-match-no-result {
+  padding: 24px;
+  border-radius: 14px;
+  background: #f6f9fa;
+}
+@media (max-width: 760px) {
+  .missing-match-workspace {
+    width: calc(100% - 28px);
+    margin-top: 14px;
+    padding-bottom: 78px;
+  }
+  .missing-match-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .missing-match-heading {
+    min-height: 0;
+    border-radius: 20px;
+  }
+  .missing-match-layout,
+  .missing-match-comparison {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .missing-match-comparison figure {
+    max-width: 260px;
+    justify-self: center;
+  }
+  .missing-match-summary {
+    padding: 8px 0;
+  }
+}
+@media (max-width: 430px) {
+  .missing-match-candidate {
+    grid-template-columns: 84px minmax(0, 1fr);
+  }
+  .missing-match-candidate img {
+    width: 84px;
+  }
+  .laguna-bottom-nav > :is(a, button) {
+    font-size: 10px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .missing-match-drop,
+  #missing-match-submit {
+    transition: none;
+  }
+}
+
+/* El verificador obtiene un espacio de tarea propio; la API conserva el control de permisos. */
+.verifier-workspace {
+  display: none;
+  width: min(1244px, calc(100% - 40px));
+  margin: 28px auto 60px;
+  color: #193644;
+}
+body[data-laguna-page="verifier"] .verifier-workspace {
+  display: block;
+}
+.verifier-heading {
+  padding: clamp(24px, 4vw, 48px);
+  border-radius: 24px;
+  background: #0c747c url("/laguna-assets/header-waves.svg") no-repeat center / cover;
+  color: #fff;
+}
+.verifier-heading .eyebrow,
+.verifier-heading p {
+  color: #eaf7f3;
+}
+.verifier-heading h1 {
+  margin: 8px 0;
+  font-family: "Laguna Bricolage", sans-serif;
+  font-size: clamp(1.9rem, 3.4vw, 3rem);
+}
+.verifier-disclaimer,
+.verifier-message {
+  padding: 14px 18px;
+  border: 1px solid #d5e4e6;
+  border-radius: 12px;
+  background: #eaf7f3;
+}
+.verifier-layout {
+  display: grid;
+  grid-template-columns: minmax(260px, 0.8fr) minmax(0, 1.5fr);
+  gap: 20px;
+}
+.verifier-list-panel,
+.verifier-detail-panel {
+  min-width: 0;
+  padding: clamp(18px, 2.5vw, 30px);
+  border: 1px solid #d5e4e6;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 12px 28px rgb(7 67 75 / 8%);
+}
+.verifier-layout h2 {
+  margin-top: 0;
+  font-family: "Laguna Bricolage", sans-serif;
+}
+.verifier-list-panel label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 700;
+}
+.verifier-list-panel input {
+  width: 100%;
+  min-height: 46px;
+  margin-bottom: 16px;
+  padding: 8px 12px;
+  border: 1px solid #9bb7c0;
+  border-radius: 10px;
+}
+.verifier-list {
+  display: grid;
+  gap: 10px;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+.verifier-report {
+  display: grid;
+  gap: 5px;
+  min-height: 64px;
+  padding: 12px 14px;
+  border: 1px solid #d5e4e6;
+  border-radius: 12px;
+  background: #f6f9fa;
+  color: #193644;
+  text-align: left;
+  cursor: pointer;
+}
+.verifier-report span {
+  color: #4b6473;
+}
+.verifier-report:hover,
+.verifier-report[aria-current="true"] {
+  border-color: #0c747c;
+  background: #eaf7f3;
+}
+.verifier-report:focus-visible,
+.verifier-account-link:focus-visible {
+  outline: 3px solid #f5c65e;
+  outline-offset: 2px;
+}
+.verifier-account-link {
+  display: inline-flex;
+  margin: 12px 0;
+  color: #0c747c;
+  font-weight: 700;
+}
+.verifier-account-link[hidden] {
+  display: none;
+}
+@media (max-width: 760px) {
+  .verifier-workspace {
+    width: calc(100% - 28px);
+    margin-top: 14px;
+    padding-bottom: 80px;
+  }
+  .verifier-layout {
+    grid-template-columns: 1fr;
+  }
+  .verifier-list {
+    max-height: 270px;
+  }
+}
+
+/* Cuenta usa la misma identidad Laguna que la cabecera, sin alterar el flujo
+   de sesión ni la validación existente. */
+#identity-dialog {
+  width: min(580px, calc(100% - 28px));
+  border-color: #d5e4e6;
+  border-radius: 20px;
+  color: #193644;
+  font-family: "Laguna Outfit", sans-serif;
+  box-shadow: 0 24px 65px rgb(7 55 60 / 24%);
+}
+#identity-dialog::backdrop {
+  background: rgb(8 42 49 / 50%);
+}
+#identity-dialog .identity-dialog-heading .eyebrow {
+  color: #0c747c;
+}
+#identity-dialog .identity-message {
+  border-left-color: #0c747c;
+  background: #eaf7f3;
+  color: #193644;
+}
+#identity-dialog .identity-message.is-error {
+  border-left-color: #9b6310;
+  background: #fff2d7;
+  color: #744c0d;
+}
+#identity-dialog #identity-close {
+  background: #eaf7f3;
+  color: #193644;
+}
+#identity-dialog .identity-panel > p:not(.identity-message, .identity-footnote),
+#identity-dialog .identity-footnote {
+  color: #4b6473;
+}
+#identity-dialog .identity-form input {
+  border-color: #9bb7c0;
+  color: #193644;
+}
+#identity-dialog .identity-submit {
+  background: #0c747c;
+  color: #fff;
+}
+#identity-dialog .identity-submit:hover {
+  background: #07545b;
+}
+#identity-dialog .identity-switch {
+  color: #0c747c;
+}
+#identity-dialog .identity-switch:hover {
+  color: #07545b;
+}
+
+.identity-access-options {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 22px;
+}
+.identity-access-options button {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 6px;
+  min-width: 0;
+  min-height: 94px;
+  padding: 12px;
+  border: 1px solid #d5e4e6;
+  border-radius: 12px;
+  background: #f6f9fa;
+  color: #193644;
+  text-align: left;
+  font-family: "Laguna Outfit", sans-serif;
+  cursor: pointer;
+}
+.identity-access-options button[aria-pressed="true"] {
+  border: 2px solid #0c747c;
+  background: #eaf7f3;
+}
+.identity-access-options strong {
+  font-size: 0.93rem;
+  line-height: 1.2;
+}
+.identity-access-options span {
+  color: #4b6473;
+  font-size: 0.78rem;
+  line-height: 1.3;
+}
+#identity-dialog .identity-access-help {
+  min-height: 36px;
+  margin: 12px 0 0;
+  color: #4b6473;
+  font-size: 0.88rem;
+  line-height: 1.4;
+}
+#identity-dialog .identity-registration-note {
+  padding: 10px 12px;
+  border-left: 3px solid #0c747c;
+  border-radius: 7px;
+  background: #eaf7f3;
+  font-size: 0.86rem;
+  line-height: 1.4;
+}
+@media (max-width: 520px) {
+  .identity-access-options {
+    grid-template-columns: 1fr;
+    gap: 7px;
+  }
+  .identity-access-options button {
+    min-height: 57px;
+    padding: 8px 12px;
+    gap: 2px;
+  }
+  .identity-access-options strong {
+    font-size: 0.88rem;
+  }
+  .identity-access-options span {
+    font-size: 0.77rem;
+  }
+}
+
+/* La etiqueta queda centrada y legible en los tres controles de la cabecera. */
+.site-header .header-action,
+.site-header .identity-trigger,
+.site-header #connection-indicator {
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+.site-header .header-action,
+.site-header .identity-trigger::after,
+.site-header #connection-indicator::after {
+  font-size: 15px;
+}
+
+/* Ondas Laguna: recurso vectorial detrás de la navegación, sin capturar clics. */
+.site-header::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 1;
+  background: url("/laguna-assets/header-waves.svg") center bottom / 100% 100% no-repeat;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .site-header::before {
+    animation: laguna-header-drift 16s ease-in-out infinite alternate;
+  }
+  .site-header::after {
+    animation: laguna-header-light 7s ease-in-out infinite alternate;
+  }
+}
+@keyframes laguna-header-drift {
+  to {
+    transform: translate(-14px, 8px);
+  }
+}
+@keyframes laguna-header-light {
+  to {
+    transform: translateX(22px);
+    opacity: 0.7;
+  }
+}
+
+/* Los marcadores y la leyenda comparten los pictogramas extraídos de Laguna. */
+.report-marker:not(.report-marker--group) {
+  display: grid;
+  place-items: center;
+  border: 2px solid #0c747c;
+  border-radius: 14px;
+  background: #fffaf6;
+  box-shadow: 0 4px 14px rgb(19 58 60 / 22%);
+}
+.report-marker--group {
+  display: grid;
+  place-items: center;
+  border: 3px solid #e8f6ee;
+  border-radius: 50%;
+  background: #0c747c;
+  box-shadow: 0 4px 14px rgb(19 58 60 / 28%);
+  color: #fffaf6;
+  font: 800 18px/1 var(--font-interface);
+}
+.report-marker--assistance {
+  border-color: #0c747c;
+  background: #e8f6ee;
+}
+.report-marker--road {
+  border-color: #b17a18;
+  background: #fff5df;
+}
+.report-marker--missing_person {
+  border-color: #766da6;
+  background: #f5eefa;
+}
+.report-marker--help_request {
+  border-color: #c45d50;
+  background: #fff0ed;
+}
+.report-marker img {
+  display: block;
+  width: 26px;
+  height: 26px;
+}
+.map-legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.map-legend img {
+  display: block;
+  flex: none;
+}
+
+/* Respuesta de puntero visible sin desplazar la navegación ni alterar el foco. */
+.site-header :is(.header-action, .identity-trigger, .header-content > nav a),
+.laguna-home-report,
+.identity-access-options button,
+#identity-dialog :is(.identity-submit, .identity-switch, #identity-close) {
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease,
+    background-color 180ms ease,
+    border-color 180ms ease,
+    color 180ms ease;
+}
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .site-header :is(.header-action, .identity-trigger):hover,
+  .laguna-home-report:hover,
+  #identity-dialog .identity-submit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 7px 17px rgb(5 55 61 / 20%);
+  }
+  .identity-access-options button:hover,
+  #identity-dialog #identity-close:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgb(5 55 61 / 12%);
+  }
+  .site-header .header-content > nav a:hover {
+    transform: translateY(-2px);
+  }
+}
+:is(
+  .site-header .header-action,
+  .site-header .identity-trigger,
+  .laguna-home-report,
+  .identity-access-options button,
+  #identity-dialog .identity-submit
+):active {
+  transform: translateY(0);
+}
+@media (prefers-reduced-motion: reduce) {
+  .site-header::before,
+  .site-header::after {
+    animation: none;
+  }
+  .site-header :is(.header-action, .identity-trigger, .header-content > nav a),
+  .laguna-home-report,
+  .identity-access-options button,
+  #identity-dialog :is(.identity-submit, .identity-switch, #identity-close) {
+    transition: none;
+  }
+}
+
+/* El quinto destino aparece tras comprobar el permiso vigente del modo elegido. */
+#operator-nav-link[hidden],
+#operator-mobile-link[hidden],
+#verifier-nav-link[hidden],
+#verifier-mobile-link[hidden] {
+  display: none !important;
+}
+@media (max-width: 1199px) {
+  .laguna-bottom-nav.has-role-destination {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+  .laguna-bottom-nav.has-role-destination > :is(a, button) {
+    font-size: clamp(0.65rem, 1.8vw, 0.78rem);
+  }
+}
+@media (min-width: 1200px) {
+  .site-header
+    .header-content
+    > nav:has(:is(#operator-nav-link, #verifier-nav-link):not([hidden])) {
+    width: 100%;
+  }
+  .site-header .header-content > nav :is(#operator-nav-link, #verifier-nav-link) {
+    position: relative;
+    width: auto;
+    min-height: 48px;
+    padding: 14px clamp(6px, 0.65vw, 12px) 0;
+  }
 }

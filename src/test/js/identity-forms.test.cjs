@@ -105,6 +105,7 @@ test("login y logout usan CSRF y actualizan sesión sin navegación completa", a
       requestSubmit: async () => listeners.get("submit")({ preventDefault() {}, submitter: null }),
     };
     const context = {
+      sessionStorage: { setItem() {}, removeItem() {} },
       document: {
         querySelectorAll: () => [form],
         getElementById: () => message,
@@ -163,5 +164,112 @@ test("login y logout usan CSRF y actualizan sesión sin navegación completa", a
     assert.equal(events[0].detail.authenticated, authenticated);
     assert.equal(message.hidden, true);
     assert.deepEqual(cleanupOrder, ["photos-cleared"]);
+  }
+});
+
+test("el acceso de auditor consulta el permiso real y no eleva una cuenta ciudadana", async () => {
+  for (const allowed of [false, true]) {
+    const listeners = new Map();
+    const events = [];
+    const visited = [];
+    const form = {
+      action: "http://localhost/login",
+      dataset: { csrfFresh: "true", loginAccess: "operator" },
+      addEventListener: (name, callback) => listeners.set(name, callback),
+      querySelector: () => null,
+      reset() {},
+    };
+    const context = {
+      sessionStorage: { setItem() {}, removeItem() {} },
+      document: {
+        querySelectorAll: () => [form],
+        getElementById: () => ({ textContent: "", hidden: true }),
+      },
+      window: {
+        location: { origin: "http://localhost", assign: (url) => visited.push(url) },
+        dispatchEvent: (event) => events.push(event.detail),
+      },
+      FormData: class {
+        [Symbol.iterator]() {
+          return [][Symbol.iterator]();
+        }
+      },
+      CustomEvent: class {
+        constructor(_type, options) {
+          this.detail = options.detail;
+        }
+      },
+      URL,
+      URLSearchParams,
+      fetch: async (url) =>
+        url === "/operator"
+          ? { ok: allowed, redirected: false }
+          : { ok: true, url: "http://localhost/?access=account" },
+    };
+    vm.runInNewContext(
+      fs.readFileSync(
+        path.join(__dirname, "../../main/resources/static/identity-forms.js"),
+        "utf8",
+      ),
+      context,
+    );
+    await listeners.get("submit")({ preventDefault() {} });
+    assert.deepEqual(visited, allowed ? ["/operator"] : []);
+    if (!allowed) assert.match(events[0].message, /no tiene permiso de auditoría/);
+  }
+});
+
+test("el acceso de verificador informa solo el permiso que confirma el servidor", async () => {
+  for (const allowed of [false, true]) {
+    const listeners = new Map();
+    const events = [];
+    let closed = false;
+    const form = {
+      action: "http://localhost/login",
+      dataset: { csrfFresh: "true", loginAccess: "verifier" },
+      addEventListener: (name, callback) => listeners.set(name, callback),
+      querySelector: () => null,
+      reset() {},
+    };
+    const context = {
+      sessionStorage: { setItem() {}, removeItem() {} },
+      document: {
+        querySelectorAll: () => [form],
+        getElementById: (id) =>
+          id === "identity-dialog" ? { close: () => (closed = true) } : { hidden: true },
+      },
+      window: {
+        location: { origin: "http://localhost" },
+        dispatchEvent: (event) => events.push(event.detail),
+      },
+      FormData: class {
+        [Symbol.iterator]() {
+          return [][Symbol.iterator]();
+        }
+      },
+      CustomEvent: class {
+        constructor(_type, options) {
+          this.detail = options.detail;
+        }
+      },
+      URL,
+      URLSearchParams,
+      fetch: async (url) =>
+        url === "/api/my/verification-permission"
+          ? { ok: true, json: async () => ({ canVerify: allowed }) }
+          : { ok: true, url: "http://localhost/?access=account" },
+    };
+    vm.runInNewContext(
+      fs.readFileSync(
+        path.join(__dirname, "../../main/resources/static/identity-forms.js"),
+        "utf8",
+      ),
+      context,
+    );
+    await listeners.get("submit")({ preventDefault() {} });
+    assert.equal(events[0].authenticated, true);
+    assert.match(events[0].message, allowed ? /espacio de verificación/ : /no tiene permiso/);
+    assert.equal(context.window.location.hash, allowed ? "#verifier-workspace" : undefined);
+    assert.equal(closed, allowed);
   }
 });

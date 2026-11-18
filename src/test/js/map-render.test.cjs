@@ -50,7 +50,8 @@ function createMapHarness() {
     }),
     layerGroup: () => layer,
     divIcon: (options) => options,
-    marker: () => ({
+    marker: (_center, options) => ({
+      icon: options.icon,
       open: false,
       bindPopup(popup) {
         this.popup = popup;
@@ -86,6 +87,9 @@ function createMapHarness() {
     (item) => selected.push(item),
     {
       ASSISTANCE: "Punto de asistencia",
+      ROAD: "Vía afectada",
+      MISSING_PERSON: "Persona desaparecida",
+      HELP_REQUEST: "Solicitud de ayuda",
     },
   );
   return {
@@ -108,6 +112,23 @@ const reports = [
   { id: 1, latitude: 10, longitude: 10, title: "Refugio", category: "ASSISTANCE" },
   { id: 5, latitude: 12, longitude: 12, title: "Refugio cerrado", category: "ASSISTANCE" },
 ];
+
+test("cada categoría usa su pictograma Laguna y los grupos conservan el conteo", () => {
+  const harness = createMapHarness();
+  harness.api.render([
+    { id: 1, latitude: 10, longitude: 10, title: "Refugio", category: "ASSISTANCE" },
+    { id: 2, latitude: 100, longitude: 100, title: "Vía", category: "ROAD" },
+    { id: 3, latitude: 200, longitude: 200, title: "Persona", category: "MISSING_PERSON" },
+    { id: 4, latitude: 300, longitude: 300, title: "Ayuda", category: "HELP_REQUEST" },
+  ]);
+  const html = [...harness.layers].map((marker) => marker.icon.html);
+  for (const name of ["shelter", "road", "person", "help"]) {
+    assert.ok(html.some((entry) => entry.includes(`/laguna-assets/marker-${name}.svg`)));
+  }
+  assert.ok(html.every((entry) => entry.includes('alt=""')));
+  harness.api.render(reports);
+  assert.equal([...harness.layers][0].icon.html, "2");
+});
 
 test("fin de carga conserva fallo cartográfico y mantiene los reportes utilizables", () => {
   const harness = createMapHarness();

@@ -175,11 +175,11 @@ function report(id) {
 
 test("consulta y detalle distinguen ejemplos, publicaciones y mezcla", async () => {
   for (const [items, expected, detailOrigin] of [
-    [[report(1)], "1 reporte ficticio encontrado.", "reporte ficticio"],
+    [[report(1)], "1 reporte de muestra encontrado.", "reporte de muestra"],
     [[report(1000000)], "1 publicación comunitaria encontrada.", "publicación comunitaria"],
     [
       [report(1), report(1000000)],
-      "1 reporte ficticio y 1 publicación comunitaria encontrados.",
+      "1 reporte de muestra y 1 publicación comunitaria encontrados.",
       "publicación comunitaria",
     ],
   ]) {
@@ -197,10 +197,8 @@ test("mapa y rótulos estáticos describen una consulta de origen mixto", () => 
     "utf8",
   );
   const map = readFileSync(join(__dirname, "../../main/resources/static/map.js"), "utf8");
-  assert.match(template, /Reportes visibles/u);
-  assert.match(template, /<section id="draft-section" class="draft-section"/u);
-  assert.match(template, /id="open-publication" class="header-action" href="#page-publish"/u);
-  assert.match(template, /Mapa de ejemplos ficticios y publicaciones comunitarias/u);
+  assert.match(template, /Ejemplos y publicaciones/u);
+  assert.match(template, /Mapa de reportes y publicaciones comunitarias/u);
   assert.match(map, /Ubicaciones de reportes\. El fondo cartográfico requiere conexión/u);
 });
 

@@ -73,6 +73,30 @@ class IdentitySecurityTests {
   }
 
   @Test
+  void bareLoginLinkDoesNotCoverPublicHomeButFeedbackStillOpensAccess() throws Exception {
+    String publicHome =
+        mvc.perform(get("/").param("access", "login"))
+            .andExpect(status().isOk())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+    String feedback =
+        mvc.perform(get("/").param("access", "login").param("error", ""))
+            .andExpect(status().isOk())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+
+    assertFalse(identityDialogTag(publicHome).contains(" open"));
+    assertTrue(identityDialogTag(feedback).contains(" open"));
+  }
+
+  private String identityDialogTag(String page) {
+    int start = page.indexOf("<dialog");
+    return page.substring(start, page.indexOf('>', start));
+  }
+
+  @Test
   void identityScriptsRemainPublicForAnonymousVisitors() throws Exception {
     mvc.perform(get("/identity-forms.js"))
         .andExpect(status().isOk())

@@ -11,7 +11,7 @@
   const account = document.getElementById("laguna-mobile-account");
   const existingAccountTrigger = document.getElementById("identity-open");
   const dialog = document.getElementById("identity-dialog");
-  if (tabs.length !== 4 || !account || !existingAccountTrigger || !dialog) return;
+  if (tabs.length !== 5 || !account || !existingAccountTrigger || !dialog) return;
 
   // Los accesos del Inicio reutilizan los filtros públicos existentes.
   for (const link of document.querySelectorAll("[data-home-category]")) {
@@ -23,6 +23,8 @@
   }
 
   function selectedByHash(hash) {
+    if (hash === "#verifier-workspace") return "verifier";
+    if (hash === "#missing-match-section") return "match";
     if (hash === "#draft-section") return "publish";
     if (hash === "#own-section") return "account";
     if (["#search-section", "#map-title", "#report-map", "#publications"].includes(hash))
@@ -49,6 +51,8 @@
       explore: "#search-section",
       publish: "#draft-section",
       account: window.location.hash === "#own-section" ? "#own-section" : null,
+      match: "#missing-match-section",
+      verifier: "#verifier-workspace",
     }[key];
     for (const link of desktopTabs) {
       if (desktopHref && link.getAttribute("href") === desktopHref)
@@ -75,4 +79,38 @@
     }
   });
   setActive(selectedByHash(window.location.hash));
+})();
+
+/** El tipo de acceso orienta el formulario; nunca concede permisos en el cliente. */
+(() => {
+  const options = [...document.querySelectorAll("[data-login-access][aria-pressed]")];
+  const form = document.querySelector('form[method="post"][data-login-access]');
+  const help = document.getElementById("identity-access-help");
+  if (options.length !== 3 || !form || !help) return;
+  const copy = {
+    citizen: ["Continuar como ciudadano", "Accede con tu correo y contraseña habituales."],
+    operator: [
+      "Continuar como auditor",
+      "Solo las cuentas con permiso de operador pueden usar el panel de auditoría.",
+    ],
+    verifier: [
+      "Continuar como verificador",
+      "La autorización permite verificar publicaciones; no verifica la identidad de la cuenta.",
+    ],
+  };
+  for (const option of options) {
+    option.addEventListener("click", () => {
+      const mode = option.dataset.loginAccess;
+      if (!Object.hasOwn(copy, mode)) return;
+      for (const item of options) item.setAttribute("aria-pressed", String(item === option));
+      form.dataset.loginAccess = mode;
+      form.querySelector('button[type="submit"]').textContent = copy[mode][0];
+      help.textContent = copy[mode][1];
+      // Un cambio de acceso inicia un intento nuevo: no conserva avisos del anterior.
+      for (const notice of document.querySelectorAll(
+        "#identity-action-message, #identity-csrf-message, [data-access-panel='login'] > .identity-message",
+      ))
+        notice.hidden = true;
+    });
+  }
 })();

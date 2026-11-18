@@ -77,7 +77,13 @@ if (typeof window !== "undefined") {
         map.getContainer().classList.remove("map-selecting-location");
         selected(latlng.lat, latlng.lng);
       });
-      const symbols = { ASSISTANCE: "⌂", ROAD: "↔", MISSING_PERSON: "?", HELP_REQUEST: "!" };
+      // Rutas fijas de los cuatro pictogramas Laguna; la categoría nunca entra como HTML.
+      const markerIcons = {
+        ASSISTANCE: "/laguna-assets/marker-shelter.svg",
+        ROAD: "/laguna-assets/marker-road.svg",
+        MISSING_PERSON: "/laguna-assets/marker-person.svg",
+        HELP_REQUEST: "/laguna-assets/marker-help.svg",
+      };
       function redraw() {
         // Conserva grupos con los mismos datos para no cerrar su popup al consultar tras autoPan.
         // Si cambian datos, miembros o agrupación por zoom, se reemplaza el marcador afectado.
@@ -136,7 +142,9 @@ if (typeof window !== "undefined") {
               className:
                 "report-marker report-marker--" +
                 (grouped ? "group" : first.category.toLowerCase()),
-              html: grouped ? String(group.length) : symbols[first.category],
+              html: grouped
+                ? String(group.length)
+                : '<img src="' + markerIcons[first.category] + '" alt="" width="26" height="26">',
               iconSize: [44, 44],
               iconAnchor: [22, 22],
             }),

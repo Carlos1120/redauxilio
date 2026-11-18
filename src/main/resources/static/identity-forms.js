@@ -21,6 +21,8 @@ async function submitIdentityFormWithoutReload(form) {
     // Una cuenta nueva no debe heredar fotos privadas del borrador anterior en este navegador.
     await window.RedAuxilioPublicationUI?.clearEvidenceDraft?.();
     let accessMessage = "Sesión iniciada.";
+    let verifierAuthorized = false;
+    let effectiveAccess = requestedAccess;
     // La elección visual no asigna roles: se consulta el permiso vigente en el servidor.
     if (requestedAccess === "operator") {
       try {
@@ -30,12 +32,15 @@ async function submitIdentityFormWithoutReload(form) {
           headers: { Accept: "text/html" },
         });
         if (permission.ok && !permission.redirected) {
+          sessionStorage.setItem("redauxilio:access-mode", "operator");
           window.location.assign("/operator");
           return;
         }
         accessMessage = "Sesión iniciada. Esta cuenta no tiene permiso de auditoría.";
+        effectiveAccess = "citizen";
       } catch {
         accessMessage = "Sesión iniciada. No se pudo comprobar el permiso de auditoría.";
+        effectiveAccess = "citizen";
       }
     } else if (requestedAccess === "verifier") {
       try {
@@ -44,20 +49,28 @@ async function submitIdentityFormWithoutReload(form) {
           cache: "no-store",
           headers: { Accept: "application/json" },
         });
-        accessMessage =
-          permission.ok && (await permission.json()).canVerify === true
-            ? "Sesión iniciada. Puedes verificar publicaciones autorizadas desde sus detalles."
-            : "Sesión iniciada. Esta cuenta no tiene permiso de verificación.";
+        verifierAuthorized = permission.ok && (await permission.json()).canVerify === true;
+        accessMessage = verifierAuthorized
+          ? "Sesión iniciada. Abriendo tu espacio de verificación."
+          : "Sesión iniciada. Esta cuenta no tiene permiso de verificación.";
+        if (!verifierAuthorized) effectiveAccess = "citizen";
       } catch {
         accessMessage = "Sesión iniciada. No se pudo comprobar el permiso de verificación.";
+        effectiveAccess = "citizen";
       }
     }
+    sessionStorage.setItem("redauxilio:access-mode", effectiveAccess);
     window.dispatchEvent(
       new CustomEvent("redauxilio:identity-action", {
         detail: { authenticated: true, message: accessMessage },
       }),
     );
+    if (verifierAuthorized) {
+      window.location.hash = "#verifier-workspace";
+      document.getElementById("identity-dialog")?.close();
+    }
   } else if (path === "/logout" && destination.searchParams.has("signedout") && response.ok) {
+    sessionStorage.removeItem("redauxilio:access-mode");
     // Retira fotos privadas antes de anunciar el cambio de sesión; mantiene el resto del borrador.
     await window.RedAuxilioPublicationUI?.clearEvidenceDraft?.();
     window.dispatchEvent(

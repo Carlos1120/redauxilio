@@ -605,8 +605,16 @@ window.addEventListener("redauxilio:identity-change", (event) => {
 window.addEventListener("redauxilio:identity-action", (event) => {
   const { authenticated, message } = event.detail;
   window.RedAuxilioIdentityStatus?.setAuthenticated(authenticated);
+  if (!authenticated && window.location.hash === "#verifier-workspace") {
+    window.location.hash = "#main-content";
+  }
+  for (const notice of identityDialog.querySelectorAll(
+    "#identity-csrf-message, [data-access-panel='login'] > .identity-message",
+  ))
+    notice.hidden = true;
   const status = getElement("identity-action-message");
   status.textContent = message;
+  status.classList.toggle("is-error", authenticated && message.includes("no tiene permiso"));
   status.hidden = false;
   if (!identityDialog.open) identityDialog.showModal();
   identityDialog

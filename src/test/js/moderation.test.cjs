@@ -740,8 +740,20 @@ test("CSS de operador se carga después del compartido y no se incorpora al serv
   );
   const sw = fs.readFileSync(path.join(__dirname, "../../main/resources/static/sw.js"), "utf8");
   assert.ok(html.indexOf('href="/app.css"') < html.indexOf('href="/moderation.css"'));
+  assert.ok(html.indexOf('href="/laguna.css"') < html.indexOf('href="/moderation.css"'));
+  assert.ok(html.indexOf('href="/moderation.css"') < html.indexOf('href="/moderation-laguna.css"'));
   assert.doesNotMatch(sw, /["']\/moderation\.(css|js)["']/);
+  assert.doesNotMatch(sw, /["']\/moderation-laguna\.css["']/);
   assert.match(html, /id="manual-review-form"/);
+});
+
+test("Laguna reduce solo el título y separa Auditorías de Publicar", () => {
+  const css = fs.readFileSync(
+    path.join(__dirname, "../../main/resources/static/moderation-laguna.css"),
+    "utf8",
+  );
+  assert.match(css, /\.operator-heading h1\s*\{[\s\S]*?font-size:\s*clamp\(30px, 3\.3vw, 44px\)/);
+  assert.match(css, /\.site-header \.header-action\s*\{[\s\S]*?margin:\s*20px 29px 0 16px/);
 });
 
 test("logout durante refresco posterior a una decisión no anuncia éxito ni repuebla contexto", async () => {

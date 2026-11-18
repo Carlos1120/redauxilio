@@ -115,6 +115,9 @@ class OperatorSecurityTests {
         encoder.encode(PASSWORD),
         email);
     MockHttpSession oldSession = login(email);
+    mvc.perform(get("/api/my/operator-permission").session(oldSession))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.canModerate").value(false));
     mvc.perform(get("/api/operator/publications").session(oldSession))
         .andExpect(status().isForbidden());
     String key = UUID.randomUUID().toString();
@@ -122,8 +125,14 @@ class OperatorSecurityTests {
     mvc.perform(get("/api/operator/publications").session(oldSession))
         .andExpect(status().isForbidden());
     MockHttpSession session = login(email);
+    mvc.perform(get("/api/my/operator-permission").session(session))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.canModerate").value(true));
     mvc.perform(get("/api/operator/publications").session(session)).andExpect(status().isOk());
     provision(email, "REVOKE", "Retiro controlado", UUID.randomUUID().toString());
+    mvc.perform(get("/api/my/operator-permission").session(session))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.canModerate").value(false));
     mvc.perform(get("/api/operator/publications").session(session))
         .andExpect(status().isForbidden());
     provision(email, "GRANT", "Alta controlada", key);

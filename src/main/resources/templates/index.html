@@ -15,6 +15,7 @@
     <script src="/map.js" defer></script>
     <script src="/identity-forms.js" defer></script>
     <script src="/identity-status.js" defer></script>
+    <script src="/operator-access-nav.js" defer></script>
     <script src="/freshness.js" defer></script>
     <script src="/missing-person.js" defer></script>
     <script src="/missing-person-sightings.js" defer></script>
@@ -26,6 +27,7 @@
     <script src="/confirmation.js" defer></script>
     <script src="/content-report.js" defer></script>
     <script src="/official-verification.js" defer></script>
+    <script src="/verifier-workspace.js" defer></script>
   </head>
   <body data-laguna-page="home">
     <a class="skip-link" href="#main-content">Saltar al contenido</a>
@@ -40,7 +42,7 @@
         <button id="identity-close" type="button" aria-label="Cerrar acceso">×</button>
       </div>
       <p id="identity-action-message" class="identity-message" role="status" hidden></p>
-      <p id="identity-csrf-message" class="identity-message" role="status" hidden></p>
+      <p id="identity-csrf-message" class="identity-message is-error" role="status" hidden></p>
       <section class="identity-panel" data-access-panel="login">
         <h2 id="identity-title">Inicia sesión</h2>
         <p>Elige cómo usarás tu cuenta. Los permisos se comprueban al entrar.</p>
@@ -58,7 +60,7 @@
         <p id="identity-access-help" class="identity-access-help" role="status">
           Accede con tu correo y contraseña habituales.
         </p>
-        <p class="identity-message" role="status" th:if="${param.error}">
+        <p class="identity-message is-error" role="status" th:if="${param.error}">
           No fue posible iniciar sesión. Revisa tus datos o intenta de nuevo más tarde.
         </p>
         <p class="identity-message" role="status" th:if="${param.signedout}">Cerraste la sesión.</p>
@@ -154,6 +156,13 @@
             <dd id="account-email">Cargando perfil…</dd>
           </div>
         </dl>
+        <a
+          id="verifier-workspace-link"
+          class="verifier-account-link"
+          href="#verifier-workspace"
+          hidden
+          >Ir a verificaciones</a
+        >
         <form th:action="@{/logout}" method="post" class="identity-form">
           <button class="identity-submit" type="submit">Cerrar sesión</button>
         </form>
@@ -173,7 +182,9 @@
         </label>
         <nav aria-label="Secciones">
           <a href="#main-content" aria-current="page">Inicio</a
-          ><a href="#search-section">Explorar</a><a href="#own-section">Mis reportes</a>
+          ><a href="#search-section">Explorar</a><a href="#own-section">Mis reportes</a
+          ><a id="operator-nav-link" href="/operator" hidden>Auditorías</a
+          ><a id="verifier-nav-link" href="#verifier-workspace" hidden>Verificaciones</a>
         </nav>
         <a class="header-action" href="#draft-section">＋ Publicar</a>
         <div class="identity-controls">
@@ -315,6 +326,38 @@
           </footer>
         </section>
       </div>
+      <section id="verifier-workspace" class="verifier-workspace" aria-labelledby="verifier-title">
+        <div class="verifier-heading">
+          <p class="eyebrow">REDAUXILIO · ESPACIO AUTORIZADO</p>
+          <h1 id="verifier-title">Verificaciones oficiales</h1>
+          <p>
+            Consulta una publicación y registra un respaldo solo cuando tengas información
+            comprobada.
+          </p>
+        </div>
+        <p class="verifier-disclaimer">
+          La verificación respalda la versión actual de una publicación; no convierte otros reportes
+          de la cuenta en oficiales.
+        </p>
+        <p id="verifier-message" class="verifier-message" role="status" aria-live="polite">
+          Comprobando permiso de verificación…
+        </p>
+        <div class="verifier-layout">
+          <section class="verifier-list-panel" aria-labelledby="verifier-list-title">
+            <h2 id="verifier-list-title">Publicaciones visibles</h2>
+            <label for="verifier-search">Buscar por título o lugar</label>
+            <input id="verifier-search" type="search" autocomplete="off" />
+            <div id="verifier-list" class="verifier-list"></div>
+          </section>
+          <section class="verifier-detail-panel" aria-labelledby="verifier-detail-title">
+            <h2 id="verifier-detail-title">Selecciona una publicación</h2>
+            <p id="verifier-detail-help">
+              Elige un reporte para consultar su estado y registrar una verificación.
+            </p>
+            <div id="verifier-official-verification"></div>
+          </section>
+        </div>
+      </section>
       <aside class="notice notice-demo" aria-label="Aviso de demostración">
         <span class="notice-icon" aria-hidden="true">!</span>
         <div>
@@ -911,6 +954,14 @@
         <img src="/laguna-assets/nav-account.svg" width="24" height="24" alt="" />
         <span>Cuenta</span>
       </button>
+      <a id="operator-mobile-link" href="/operator" hidden>
+        <img src="/laguna-assets/desktop-action-shield.svg" width="24" height="24" alt="" />
+        <span>Auditorías</span>
+      </a>
+      <a id="verifier-mobile-link" href="#verifier-workspace" hidden>
+        <img src="/laguna-assets/desktop-action-shield.svg" width="24" height="24" alt="" />
+        <span>Verificaciones</span>
+      </a>
     </nav>
     <footer>
       <span>RedAuxilio · Proyecto académico · Equipo 4</span

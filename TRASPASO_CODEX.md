@@ -1,6 +1,6 @@
 # RedAuxilio — traspaso Laguna
 
-Actualizado: 17 de noviembre de 2026 (Colombia). Carpeta verificada: `C:\Users\Santiago\.codex\worktrees\laguna-fidelidad\redauxilio`. Rama `codex/laguna-verifier`, HEAD base `8ce805a`, seguimiento `origin/codex/laguna-verifier`; `origin` apunta a `Carlos1120/redauxilio`. Hay cambios locales deliberados sin commit ni publicación. Preservarlos y comprobar GitHub nuevamente antes de integrar.
+Actualizado: 18 de noviembre de 2026 (Colombia). Carpeta verificada: `C:\Users\Santiago\.codex\worktrees\laguna-fidelidad\redauxilio`. La rama activa para corregir Docker es `codex/fix-render-docker-build`, HEAD `c8ec832`, PR #42 hacia `develop`; `origin` apunta a `Carlos1120/redauxilio`. El PR #41 ya está integrado en `develop` (`80baf5c`). No integrar el PR #42 hasta completar revisión/CI según el flujo del repositorio.
 
 ## Estado vigente
 
@@ -20,4 +20,4 @@ La vista aislada debe reiniciarse con H2 temporal para entregar la caché v42 y 
 
 ## Siguiente paso
 
-Revisar el mapa, filtros, tarjetas e imágenes de los nueve reportes. Para despliegue, mantener el monolito Spring Boot/Thymeleaf en un único servicio Render y conectarlo a PostgreSQL administrado; separar el frontend hacia Vercel solo requeriría una migración posterior de arquitectura, CORS, sesión, CSRF y PWA. Preparar commit/PR y recursos de Render únicamente cuando Santiago lo solicite.
+Revisar el mapa, filtros, tarjetas e imágenes de los nueve reportes. Para despliegue, mantener el monolito Spring Boot/Thymeleaf en un único servicio Render y conectarlo a PostgreSQL administrado; separar el frontend hacia Vercel solo requeriría una migración posterior de arquitectura, CORS, sesión, CSRF y PWA. El Dockerfile se corrigió tras comprobar que `eclipse-temurin:21-jre` fallaba con `exec format error` en Docker Desktop y que el wrapper Maven intentaba descargar una distribución innecesaria. El build `docker build --progress plain --platform linux/amd64 -t redauxilio:demo .` finalizó correctamente con Maven/Temurin 21 como build y runtime; `git diff --check` también pasó. La imagen local es `redauxilio:demo`. PR #42 contiene este ajuste; falta CI/revisión e integración. Después crear el Web Service de Render desde GitHub, configurar PostgreSQL y variables según README, desplegar y comprobar salud/rutas y publicación compartida en tiempo real. Aún no se creó ningún recurso ni se cargaron secretos en Render.

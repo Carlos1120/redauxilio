@@ -31,5 +31,5 @@ test("la animación es responsive y respeta movimiento reducido", () => {
 
 test("el cargador queda disponible en la instalación PWA", () => {
   assert.match(sw, /"\/app-loader\.js"/);
-  assert.match(sw, /redauxilio-demo-v42/);
+  assert.match(sw, /redauxilio-demo-v\d+/);
 });

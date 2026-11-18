@@ -41,8 +41,6 @@
       </div>
     </div>
     <script src="/laguna-ui.js" defer></script>
-  </head>
-  <body data-laguna-page="home">
     <a class="skip-link" href="#main-content">Saltar al contenido</a>
     <dialog
       id="identity-dialog"
@@ -239,11 +237,6 @@
             <span class="laguna-account-label">Cuenta</span>
           </button>
         </div>
-        <!-- app.js conserva el campo fuente y su manejador de búsqueda. -->
-        <label class="laguna-original-search" for="search-query" hidden>
-          <span class="sr-only">Buscar entre los reportes visibles</span>
-          <input id="search-query" type="search" placeholder="Buscar título o lugar…" />
-        </label>
       </div>
     </header>
     <main id="main-content" tabindex="-1">
@@ -484,143 +477,96 @@
             </button>
             <button type="button" data-category="HELP_REQUEST" aria-pressed="false">Ayuda</button>
           </div>
-        </aside>
-        <div class="workspace">
-          <section
-            id="search-section"
-            tabindex="-1"
-            class="search-section"
-            aria-labelledby="search-title"
-          >
-            <div class="section-heading">
-              <div>
-                <p class="eyebrow">CONSULTA PÚBLICA</p>
-                <h2 id="search-title">Reportes visibles</h2>
+          <details class="filter-drawer">
+            <summary>Filtros avanzados</summary>
+            <form id="query-form" class="query-controls" aria-label="Filtros de consulta">
+              <div class="field">
+                <label for="category">Tipo de reporte</label
+                ><select id="category">
+                  <option value="">Todas las categorías</option>
+                  <option value="ASSISTANCE">Puntos de asistencia</option>
+                  <option value="ROAD">Vías afectadas</option>
+                  <option value="MISSING_PERSON">Personas desaparecidas</option>
+                  <option value="HELP_REQUEST">Solicitudes de ayuda</option>
+                </select>
               </div>
-              <span class="section-caption">Ejemplos y publicaciones</span>
-            </div>
-            <div class="quick-filters" role="group" aria-label="Filtrar por tipo de reporte">
-              <button type="button" data-category="" aria-pressed="true">Todo</button>
-              <button type="button" data-category="ASSISTANCE" aria-pressed="false">
-                Asistencia
-              </button>
-              <button type="button" data-category="ROAD" aria-pressed="false">Vías</button>
-              <button type="button" data-category="MISSING_PERSON" aria-pressed="false">
-                Personas
-              </button>
-              <button type="button" data-category="HELP_REQUEST" aria-pressed="false">Ayuda</button>
-            </div>
-            <details class="filter-drawer">
-              <summary>Filtros avanzados</summary>
-              <form id="query-form" class="query-controls" aria-label="Filtros de consulta">
-                <div class="field">
-                  <label for="category">Tipo de reporte</label
-                  ><select id="category">
-                    <option value="">Todas las categorías</option>
-                    <option value="ASSISTANCE">Puntos de asistencia</option>
-                    <option value="ROAD">Vías afectadas</option>
-                    <option value="MISSING_PERSON">Personas desaparecidas</option>
-                    <option value="HELP_REQUEST">Solicitudes de ayuda</option>
-                  </select>
-                </div>
-                <div class="field">
-                  <label for="operational-status">Estado operativo</label>
-                  <select id="operational-status">
-                    <option value="">Todos los estados</option>
-                    <option>Disponible</option>
-                    <option>Capacidad limitada</option>
-                    <option>Lleno</option>
-                    <option>Cerrado</option>
-                    <option>Bloqueada</option>
-                    <option>Parcialmente habilitada</option>
-                    <option>Habilitada</option>
-                    <option>Sin localizar</option>
-                    <option>Desaparecida</option>
-                    <option>Caso cerrado</option>
-                    <option>Encontrada</option>
-                    <option>Abierta</option>
-                    <option>En atención</option>
-                    <option>Satisfecha</option>
-                  </select>
-                </div>
-                <div class="field">
-                  <label for="confidence-level">Confianza</label>
-                  <select id="confidence-level">
-                    <option value="">Todos los niveles</option>
-                    <option value="REPORTADA">Reportada · sin verificar</option>
-                    <option value="CONFIRMADA">Confirmada por la comunidad</option>
-                    <option value="VERIFICADA">Verificada oficialmente</option>
-                  </select>
-                </div>
-                <div class="field">
-                  <label for="freshness-status">Vigencia</label>
-                  <select id="freshness-status">
-                    <option value="">Cualquier vigencia</option>
-                    <option value="VIGENTE">Vigente</option>
-                    <option value="DESACTUALIZADA">Desactualizada</option>
-                  </select>
-                </div>
-                <div class="field">
-                  <label for="review-status">Revisión de contenido</label>
-                  <select id="review-status">
-                    <option value="">Cualquier estado de revisión</option>
-                    <option value="SIN_REVISION">Sin alerta de revisión</option>
-                    <option value="EN_REVISION">En revisión</option>
-                  </select>
-                </div>
-                <label class="closed-filter"
-                  ><input type="checkbox" id="include-closed" /> Incluir casos cerrados</label
-                >
-                <button id="clear-filters" type="button" class="secondary-button">
-                  Limpiar filtros
-                </button>
-                <button id="refresh" type="submit">
-                  Actualizar consulta <span aria-hidden="true">↻</span>
-                </button>
-              </form>
-            </details>
-            <p id="message" class="query-message" role="status" aria-live="polite">
-              Preparando consulta…
-            </p>
-            <div id="report-map" aria-label="Mapa de reportes y publicaciones comunitarias"></div>
-            <ul class="map-legend" aria-label="Leyenda del mapa">
-              <li>
-                <img src="/laguna-assets/marker-shelter.svg" alt="" width="22" height="22" />Punto
-                de asistencia
-              </li>
-              <li>
-                <img src="/laguna-assets/marker-road.svg" alt="" width="22" height="22" />Vía
-                afectada
-              </li>
-              <li>
-                <img src="/laguna-assets/marker-person.svg" alt="" width="22" height="22" />Persona
-                desaparecida
-              </li>
-              <li>
-                <img src="/laguna-assets/marker-help.svg" alt="" width="22" height="22" />Solicitud
-                de ayuda
-              </li>
-            </ul>
-            <p class="query-help">
-              Un reporte comunitario no equivale a una verificación oficial. Revisa siempre su
-              confianza y fecha.
-            </p>
-            <dialog id="report-detail" aria-labelledby="detail-title">
-              <div class="detail-top">
-                <p id="detail-kicker" class="eyebrow">REPORTE FICTICIO</p>
-                <button
-                  id="close-detail"
-                  type="button"
-                  class="secondary-button"
-                  aria-label="Cerrar detalle"
-                >
-                  ×
-                </button>
+              <div class="field">
+                <label for="operational-status">Estado operativo</label>
+                <select id="operational-status">
+                  <option value="">Todos los estados</option>
+                  <option>Disponible</option>
+                  <option>Capacidad limitada</option>
+                  <option>Lleno</option>
+                  <option>Cerrado</option>
+                  <option>Bloqueada</option>
+                  <option>Parcialmente habilitada</option>
+                  <option>Habilitada</option>
+                  <option>Sin localizar</option>
+                  <option>Desaparecida</option>
+                  <option>Caso cerrado</option>
+                  <option>Encontrada</option>
+                  <option>Abierta</option>
+                  <option>En atención</option>
+                  <option>Satisfecha</option>
+                </select>
               </div>
-              <h2 id="detail-title"></h2>
-              <div id="detail-content"></div>
-            </dialog>
-          </section>
+              <div class="field">
+                <label for="confidence-level">Confianza</label>
+                <select id="confidence-level">
+                  <option value="">Todos los niveles</option>
+                  <option value="REPORTADA">Reportada · sin verificar</option>
+                  <option value="CONFIRMADA">Confirmada por la comunidad</option>
+                  <option value="VERIFICADA">Verificada oficialmente</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="freshness-status">Vigencia</label>
+                <select id="freshness-status">
+                  <option value="">Cualquier vigencia</option>
+                  <option value="VIGENTE">Vigente</option>
+                  <option value="DESACTUALIZADA">Desactualizada</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="review-status">Revisión de contenido</label>
+                <select id="review-status">
+                  <option value="">Cualquier estado de revisión</option>
+                  <option value="SIN_REVISION">Sin alerta de revisión</option>
+                  <option value="EN_REVISION">En revisión</option>
+                </select>
+              </div>
+              <label class="closed-filter"
+                ><input type="checkbox" id="include-closed" /> Incluir casos cerrados</label
+              >
+              <button id="clear-filters" type="button" class="secondary-button">
+                Limpiar filtros
+              </button>
+              <button id="refresh" type="submit">
+                Actualizar consulta <span aria-hidden="true">↻</span>
+              </button>
+            </form>
+          </details>
+          <p id="message" class="query-message" role="status" aria-live="polite">
+            Preparando consulta…
+          </p>
+          <div id="report-map" aria-label="Mapa de reportes y publicaciones comunitarias"></div>
+          <ul class="map-legend" aria-label="Leyenda del mapa">
+            <li>
+              <img src="/laguna-assets/marker-shelter.svg" alt="" width="22" height="22" />Punto de
+              asistencia
+            </li>
+            <li>
+              <img src="/laguna-assets/marker-road.svg" alt="" width="22" height="22" />Vía afectada
+            </li>
+            <li>
+              <img src="/laguna-assets/marker-person.svg" alt="" width="22" height="22" />Persona
+              desaparecida
+            </li>
+            <li>
+              <img src="/laguna-assets/marker-help.svg" alt="" width="22" height="22" />Solicitud de
+              ayuda
+            </li>
+          </ul>
           <div id="publications" class="report-grid" aria-busy="true"></div>
           <p class="query-help">
             Un reporte comunitario no equivale a una verificación oficial. Revisa siempre su
@@ -893,7 +839,7 @@
             Guardar borrador no lo publica. La publicación necesita respuesta del servidor.
           </p>
         </section>
-      </section>
+      </div>
       <section
         id="page-own"
         class="app-page"

@@ -5,9 +5,9 @@ COPY pom.xml mvnw ./
 COPY .mvn .mvn
 RUN chmod +x mvnw
 COPY src src
-RUN ./mvnw -B -DskipTests package
+RUN mvn -B -DskipTests package
 
-FROM eclipse-temurin:21-jre
+FROM maven:3.9.11-eclipse-temurin-21
 WORKDIR /app
 RUN useradd --system --uid 10001 redauxilio
 COPY --from=build /workspace/target/redauxilio-*.jar /app/redauxilio.jar

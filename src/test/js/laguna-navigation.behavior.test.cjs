@@ -15,7 +15,7 @@ const script = fs.readFileSync(
  * Las acciones se disparan igual que un clic, cierre de diálogo o cambio de hash.
  */
 function loadNavigation(hash = "#main-content") {
-  const tabs = ["home", "explore", "publish", "account"].map((key) => ({
+  const tabs = ["home", "explore", "match", "publish", "account"].map((key) => ({
     dataset: { lagunaTab: key },
     attributes: new Map(),
     events: {},
@@ -29,7 +29,12 @@ function loadNavigation(hash = "#main-content") {
       this.events[name] = callback;
     },
   }));
-  const desktopTabs = ["#main-content", "#search-section", "#own-section"].map((href) => ({
+  const desktopTabs = [
+    "#main-content",
+    "#search-section",
+    "#missing-match-section",
+    "#own-section",
+  ].map((href) => ({
     href,
     attributes: new Map(),
     getAttribute(name) {
@@ -90,7 +95,7 @@ function loadNavigation(hash = "#main-content") {
     },
     getElementById(id) {
       if (id === "identity-access-help") return roleHelp;
-      if (id === "laguna-mobile-account") return tabs[3];
+      if (id === "laguna-mobile-account") return tabs[4];
       if (id === "identity-open") return existingTrigger;
       if (id === "identity-dialog") return dialog;
       return null;
@@ -129,6 +134,13 @@ test("Verificaciones abre su propia sección sin seleccionar un destino ciudadan
   assert.equal(view.page(), "verifier");
   assert.deepEqual(view.selected(), []);
   assert.deepEqual(view.desktopSelected(), []);
+});
+
+test("Encontrar personas abre una pantalla propia y conserva su navegación activa", () => {
+  const view = loadNavigation("#missing-match-section");
+  assert.equal(view.page(), "match");
+  assert.deepEqual(view.selected(), ["match"]);
+  assert.deepEqual(view.desktopSelected(), ["#missing-match-section"]);
 });
 
 test("la elección de acceso cambia la orientación, sin tocar la sesión", () => {

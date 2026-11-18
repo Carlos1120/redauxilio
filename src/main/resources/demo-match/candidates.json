@@ -1,0 +1,28 @@
+[
+  {
+    "code": "JESUS_PENA_01",
+    "referenceName": "Jesús Peña",
+    "ageRange": null,
+    "description": "Caso preparado para comparar fotografías de Jesús Peña.",
+    "score": 94,
+    "images": [
+      "classpath:demo-match/jesus-pena-reference-disaster.png",
+      "classpath:demo-match/jesus-pena-reference-left.jpeg",
+      "classpath:demo-match/jesus-pena-reference-right.jpeg"
+    ],
+    "comparisonImages": ["classpath:demo-match/jesus-pena-comparison.jpeg"]
+  },
+  {
+    "code": "SANTIAGO_ORTIZ_01",
+    "referenceName": "Santiago Ortiz",
+    "ageRange": null,
+    "description": "Caso preparado para comparar fotografías de Santiago Ortiz.",
+    "score": 91,
+    "images": [
+      "classpath:demo-match/santiago-ortiz-reference-disaster.png",
+      "classpath:demo-match/santiago-ortiz-reference-outdoor.png",
+      "classpath:demo-match/santiago-ortiz-reference-front-alt.png"
+    ],
+    "comparisonImages": ["classpath:demo-match/santiago-ortiz-comparison-disaster.png"]
+  }
+]

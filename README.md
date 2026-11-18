@@ -54,6 +54,18 @@ Una cuenta autenticada puede publicar un punto de asistencia o una vía afectada
 
 La instalación PWA depende del navegador y entorno seguro (localhost para desarrollo; HTTPS al desplegar). La base no demuestra el cumplimiento completo de RNF-03 ni de accesibilidad/usabilidad. Fallos de almacenamiento local se comunican. Borradores solo sobreviven cuando se pulsa Guardar; el autoguardado del formulario final queda pendiente.
 
+## Demo online de un día en Render
+
+La aplicación se despliega como un único servicio Docker: Spring Boot sirve Thymeleaf, recursos PWA y API desde el mismo origen. Vercel no forma parte de esta configuración. Para la demo se puede usar PostgreSQL gratuito de Render; su instancia vence a los 30 días, por lo que no debe contener datos que se necesiten conservar después.
+
+1. Publicar la rama que se quiere demostrar en GitHub y crear en Render un servicio **Web Service → Docker** conectado a esa rama. El Dockerfile está en la raíz.
+2. Crear una base **PostgreSQL Free** en la misma región. Copiar desde Render el host interno, nombre de base, usuario y contraseña; no usar el enlace externo.
+3. Configurar estas variables en el servicio web: `SPRING_PROFILES_ACTIVE=prod`, `DB_URL=jdbc:postgresql://HOST_INTERNO:5432/NOMBRE_BASE`, `DB_USERNAME`, `DB_PASSWORD`, `SESSION_COOKIE_SECURE=true`, `DEMO_REPORTS_ENABLED=true` y `GEOCODING_ENABLED=false`. Sustituir los valores de conexión en el panel, nunca en Git.
+4. Desplegar y abrir la URL HTTPS de Render. El esquema SQL se inicializa al arrancar y los reportes de demostración se cargan de manera idempotente. Los reportes creados por la sustentación quedan disponibles a todos los visitantes hasta que expire la base.
+5. Antes de presentar, abrir la URL para despertar el servicio gratuito y publicar un reporte de prueba. Después de 15 minutos sin tráfico Render puede dormir el servicio; su primer arranque toma cerca de un minuto. Compartir la URL únicamente con quienes participen en la demo.
+
+La configuración `prod` requiere PostgreSQL y HTTPS. Las imágenes de publicaciones se guardan en la base, no en el disco efímero del servicio. Las coordenadas y los reportes son visibles para cualquier visitante de la URL. Desactivar la búsqueda externa de lugares para esta demostración evita depender de Nominatim. Al terminar la exposición, suspender o eliminar los recursos desde Render; eliminar la base borra los reportes y cuentas de la demo.
+
 ## Calidad y colaboración
 
 Para continuar el diseño de las pantallas, leer [ESTANDARES_INTERFAZ.md](ESTANDARES_INTERFAZ.md): paleta, tipografía, componentes, adaptación, accesibilidad y lista de revisión. Reutilizar el CSS compartido; la guía refleja la dirección visual del PR #8 y requiere revisión del compañero.

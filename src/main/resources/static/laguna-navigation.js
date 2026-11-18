@@ -11,7 +11,7 @@
   const account = document.getElementById("laguna-mobile-account");
   const existingAccountTrigger = document.getElementById("identity-open");
   const dialog = document.getElementById("identity-dialog");
-  if (tabs.length !== 4 || !account || !existingAccountTrigger || !dialog) return;
+  if (tabs.length !== 5 || !account || !existingAccountTrigger || !dialog) return;
 
   // Los accesos del Inicio reutilizan los filtros públicos existentes.
   for (const link of document.querySelectorAll("[data-home-category]")) {
@@ -24,6 +24,7 @@
 
   function selectedByHash(hash) {
     if (hash === "#verifier-workspace") return "verifier";
+    if (hash === "#missing-match-section") return "match";
     if (hash === "#draft-section") return "publish";
     if (hash === "#own-section") return "account";
     if (["#search-section", "#map-title", "#report-map", "#publications"].includes(hash))
@@ -50,6 +51,7 @@
       explore: "#search-section",
       publish: "#draft-section",
       account: window.location.hash === "#own-section" ? "#own-section" : null,
+      match: "#missing-match-section",
       verifier: "#verifier-workspace",
     }[key];
     for (const link of desktopTabs) {

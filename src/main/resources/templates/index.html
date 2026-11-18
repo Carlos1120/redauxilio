@@ -19,6 +19,7 @@
     <script src="/freshness.js" defer></script>
     <script src="/missing-person.js" defer></script>
     <script src="/missing-person-sightings.js" defer></script>
+    <script src="/missing-person-match.js" defer></script>
     <script src="/authorized-contact.js" defer></script>
     <script src="/app.js" defer></script>
     <script src="/laguna-navigation.js" defer></script>
@@ -28,14 +29,22 @@
     <script src="/content-report.js" defer></script>
     <script src="/official-verification.js" defer></script>
     <script src="/verifier-workspace.js" defer></script>
+    <script src="/app-loader.js" defer></script>
   </head>
   <body data-laguna-page="home">
+    <div id="app-loader" class="app-loader" role="status" aria-label="Cargando RedAuxilio">
+      <div class="app-loader__content">
+        <img src="/laguna-assets/logo-desktop.svg" width="223" height="44" alt="RedAuxilio" />
+        <span class="app-loader__track" aria-hidden="true"></span>
+        <span class="sr-only">Cargando RedAuxilio</span>
+      </div>
+    </div>
     <a class="skip-link" href="#main-content">Saltar al contenido</a>
     <dialog
       id="identity-dialog"
       aria-labelledby="identity-title"
       th:attr="data-initial-view=${identityMode}"
-      th:open="${identityMode != 'none'}"
+      th:open="${identityMode == 'register' or identityMode == 'account' or param.error != null or param.signedout != null or registered != null}"
     >
       <div class="identity-dialog-heading">
         <p class="eyebrow">ACCESO A REDAUXILIO</p>
@@ -182,7 +191,9 @@
         </label>
         <nav aria-label="Secciones">
           <a href="#main-content" aria-current="page">Inicio</a
-          ><a href="#search-section">Explorar</a><a href="#own-section">Mis reportes</a
+          ><a href="#search-section">Explorar</a
+          ><a href="#missing-match-section">Encontrar personas</a
+          ><a href="#own-section">Mis reportes</a
           ><a id="operator-nav-link" href="/operator" hidden>Auditorías</a
           ><a id="verifier-nav-link" href="#verifier-workspace" hidden>Verificaciones</a>
         </nav>
@@ -317,15 +328,76 @@
               </a>
             </div>
           </div>
-          <footer class="laguna-home-footer" aria-label="Información sobre los reportes">
-            <p>
-              <img src="/laguna-assets/desktop-footer-shield.svg" width="23" height="23" alt="" />
-              Información comunitaria, no oficial. Verifica la fecha y la fuente antes de actuar.
-            </p>
-            <small>RedAuxilio / Prototipo conceptual</small>
-          </footer>
         </section>
       </div>
+      <section
+        id="missing-match-section"
+        class="missing-match-workspace"
+        aria-labelledby="missing-match-title"
+      >
+        <header class="missing-match-heading">
+          <div>
+            <p class="eyebrow">PERSONAS DESAPARECIDAS</p>
+            <h1 id="missing-match-title">Explora posibles coincidencias</h1>
+            <p>
+              Compara hasta tres fotos con los casos preparados y consulta posibles coincidencias.
+            </p>
+          </div>
+        </header>
+        <div class="missing-match-layout">
+          <section class="missing-match-catalog" aria-labelledby="missing-match-catalog-title">
+            <div class="missing-match-section-heading">
+              <div>
+                <p class="eyebrow">CASOS PREPARADOS</p>
+                <h2 id="missing-match-catalog-title">Casos disponibles</h2>
+              </div>
+              <span id="missing-match-count">0 casos</span>
+            </div>
+            <div id="missing-match-candidates" class="missing-match-candidates" aria-live="polite">
+              <p class="missing-match-empty">Cargando casos…</p>
+            </div>
+          </section>
+          <section class="missing-match-action" aria-labelledby="missing-match-action-title">
+            <p class="eyebrow">COMPARACIÓN LOCAL</p>
+            <h2 id="missing-match-action-title">Sube las fotos para comparar</h2>
+            <p>
+              Usa únicamente imágenes autorizadas. Las fotos se comparan en memoria y no se guardan.
+            </p>
+            <form id="missing-match-form" enctype="multipart/form-data">
+              <label class="missing-match-drop" for="missing-match-files">
+                <span class="missing-match-drop-icon" aria-hidden="true">＋</span>
+                <strong>Seleccionar de 1 a 3 fotos</strong>
+                <small>JPEG, PNG o WebP · máximo 5 MB cada una</small>
+                <input
+                  id="missing-match-files"
+                  name="files"
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  multiple
+                  required
+                />
+              </label>
+              <div id="missing-match-previews" class="missing-match-previews"></div>
+              <button id="missing-match-submit" type="submit">Simular coincidencia</button>
+            </form>
+            <p
+              id="missing-match-message"
+              class="missing-match-message"
+              role="status"
+              aria-live="polite"
+            >
+              Agrega los casos autorizados para habilitar la comparación.
+            </p>
+          </section>
+        </div>
+        <section id="missing-match-result" class="missing-match-result" hidden aria-live="polite">
+          <div class="missing-match-result-heading">
+            <p class="eyebrow">RESULTADO DE LA COMPARACIÓN</p>
+            <h2>Posible coincidencia</h2>
+          </div>
+          <div id="missing-match-result-content"></div>
+        </section>
+      </section>
       <section id="verifier-workspace" class="verifier-workspace" aria-labelledby="verifier-title">
         <div class="verifier-heading">
           <p class="eyebrow">REDAUXILIO · ESPACIO AUTORIZADO</p>
@@ -358,16 +430,6 @@
           </section>
         </div>
       </section>
-      <aside class="notice notice-demo" aria-label="Aviso de demostración">
-        <span class="notice-icon" aria-hidden="true">!</span>
-        <div>
-          <strong>DEMOSTRACIÓN · información comunitaria sin verificar</strong>
-          <p>
-            Los reportes iniciales son ficticios. Las publicaciones de cuentas son comunitarias y no
-            tienen verificación oficial. No la uses para tomar decisiones durante una emergencia.
-          </p>
-        </div>
-      </aside>
       <div class="workspace">
         <section
           id="search-section"
@@ -475,10 +537,7 @@
             <p id="map-status" class="query-help" role="status">
               Preparando mapa. La lista permite consultar sin fondo cartográfico.
             </p>
-            <div
-              id="report-map"
-              aria-label="Mapa de ejemplos ficticios y publicaciones comunitarias"
-            ></div>
+            <div id="report-map" aria-label="Mapa de reportes y publicaciones comunitarias"></div>
             <ul class="map-legend" aria-label="Leyenda del mapa">
               <li>
                 <img src="/laguna-assets/marker-shelter.svg" alt="" width="22" height="22" />Punto
@@ -509,7 +568,7 @@
           </p>
           <dialog id="report-detail" aria-labelledby="detail-title">
             <div class="detail-top">
-              <p id="detail-kicker" class="eyebrow">REPORTE FICTICIO</p>
+              <p id="detail-kicker" class="eyebrow">REPORTE</p>
               <button
                 id="close-detail"
                 type="button"
@@ -940,6 +999,10 @@
         <img src="/laguna-assets/nav-explore.svg" width="24" height="24" alt="" />
         <span>Explorar</span>
       </a>
+      <a href="#missing-match-section" data-laguna-tab="match">
+        <img src="/laguna-assets/map-person.svg" width="24" height="24" alt="" />
+        <span>Encontrar</span>
+      </a>
       <a href="#draft-section" data-laguna-tab="publish">
         <img src="/laguna-assets/nav-publish.svg" width="24" height="24" alt="" />
         <span>Publicar</span>
@@ -963,9 +1026,5 @@
         <span>Verificaciones</span>
       </a>
     </nav>
-    <footer>
-      <span>RedAuxilio · Proyecto académico · Equipo 4</span
-      ><span>Carlos Mario Peña y Santiago Ortiz Ochoa</span>
-    </footer>
   </body>
 </html>

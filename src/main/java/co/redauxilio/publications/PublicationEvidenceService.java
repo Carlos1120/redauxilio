@@ -124,12 +124,20 @@ class PublicationEvidenceService {
     if (file == null || file.isEmpty()) throw invalid("El archivo está vacío.");
     if (file.getSize() > MAX_IMAGE_BYTES) throw invalid("Cada imagen debe pesar máximo 5 MB.");
     try {
-      byte[] bytes = file.getBytes();
+      return validate(file.getOriginalFilename(), file.getContentType(), file.getBytes());
+    } catch (IOException failure) {
+      throw invalid("No se pudo leer una imagen válida.");
+    }
+  }
+
+  /** Valida recursos internos con la misma política aplicada a una carga multipart pública. */
+  static ValidatedImage validate(String filename, String declaredType, byte[] bytes) {
+    if (bytes == null || bytes.length == 0) throw invalid("El archivo está vacío.");
+    if (bytes.length > MAX_IMAGE_BYTES) throw invalid("Cada imagen debe pesar máximo 5 MB.");
+    try {
       String format = isPng(bytes) ? "png" : isJpeg(bytes) ? "jpeg" : isWebp(bytes) ? "webp" : null;
       if (format == null) throw invalid("El contenido no es una imagen JPEG, PNG o WebP válida.");
       String contentType = format.equals("jpeg") ? "image/jpeg" : "image/" + format;
-      String declaredType = file.getContentType();
-      String filename = file.getOriginalFilename();
       String extension =
           filename == null || filename.lastIndexOf('.') < 0
               ? ""
@@ -144,7 +152,7 @@ class PublicationEvidenceService {
       if (format.equals("webp")) return validateWebp(bytes);
       return decodeAndReencode(bytes, format, contentType);
     } catch (IOException failure) {
-      throw invalid("No se pudo leer una imagen válida.");
+      throw invalid("No se pudo decodificar una imagen válida.");
     } catch (RuntimeException failure) {
       if (failure instanceof ResponseStatusException response) throw response;
       throw invalid("No se pudo decodificar una imagen válida.");

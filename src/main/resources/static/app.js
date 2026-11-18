@@ -19,10 +19,12 @@ function describeReportCount(items) {
   const communityCount = items.filter(isCommunityPublication).length;
   const exampleCount = items.length - communityCount;
   if (items.length === 0) return "No se encontraron reportes.";
-  const examples = `${exampleCount} ${exampleCount === 1 ? "reporte ficticio" : "reportes ficticios"}`;
+  const examples = `${exampleCount} ${exampleCount === 1 ? "reporte de muestra" : "reportes de muestra"}`;
   const community = `${communityCount} ${communityCount === 1 ? "publicación comunitaria" : "publicaciones comunitarias"}`;
-  if (communityCount === 0) return `${examples} encontrados.`;
-  if (exampleCount === 0) return `${community} encontradas.`;
+  if (communityCount === 0)
+    return `${examples} ${exampleCount === 1 ? "encontrado" : "encontrados"}.`;
+  if (exampleCount === 0)
+    return `${community} ${communityCount === 1 ? "encontrada" : "encontradas"}.`;
   return `${examples} y ${community} encontrados.`;
 }
 let latestPublicationQueryId = 0;
@@ -41,7 +43,7 @@ function showReportDetail(item, trigger, initial = false) {
   if (trigger) detailTrigger = trigger;
   selectedReportId = item.id;
   getElement("detail-kicker").textContent =
-    `${categoryLabels[item.category]} · ${isCommunityPublication(item) ? "publicación comunitaria" : "reporte ficticio"}`;
+    `${categoryLabels[item.category]} · ${isCommunityPublication(item) ? "publicación comunitaria" : "reporte de muestra"}`;
   getElement("detail-title").textContent = item.title;
   const detail = getElement("detail-content");
   detail.replaceChildren();
@@ -591,6 +593,22 @@ setIdentityView(identityDialog.dataset.initialView);
 if (identityDialog.open) {
   identityDialog.close();
   identityDialog.showModal();
+}
+// Un enlace de acceso o un mensaje del servidor se consume una sola vez. Así una recarga,
+// un marcador o el relanzamiento de la PWA siempre vuelven al Inicio público.
+const initialParameters = new URLSearchParams(window.location?.search || "");
+let consumedIdentityParameter = false;
+for (const parameter of ["access", "error", "signedout"]) {
+  if (initialParameters.has(parameter)) consumedIdentityParameter = true;
+  initialParameters.delete(parameter);
+}
+if (consumedIdentityParameter) {
+  const remainingQuery = initialParameters.toString();
+  window.history?.replaceState?.(
+    {},
+    "",
+    `${window.location?.pathname || "/"}${remainingQuery ? `?${remainingQuery}` : ""}${window.location?.hash || ""}`,
+  );
 }
 getElement("identity-open").addEventListener("click", () => {
   setIdentityView(

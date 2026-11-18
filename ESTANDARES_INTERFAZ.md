@@ -10,7 +10,9 @@
 > visual humana no consta en esta guía. La ampliación de acceso incorpora tres
 > opciones, ondas vectoriales visibles en cabecera y respuesta al puntero, con
 > movimiento reducido respetado. Los pictogramas Laguna sustituyen los símbolos
-> anteriores del mapa. Registrar su revisión antes de integrar a `develop`.
+> anteriores del mapa. Las ondas recorren el ancho completo y el diálogo de acceso
+> se abre por acción explícita; los mensajes de error o sesión pueden abrirlo una vez.
+> Registrar su revisión antes de integrar a `develop`.
 
 Versión 1.0 · 6 de octubre de 2026. Dirección visual solicitada por Santiago Ortiz Ochoa y aplicada en el PR #8. Esta guía define cómo continuar ese diseño; no registra aprobación de Carlos ni sustituye ESTANDARES.md, los requisitos o las pruebas de aceptación.
 
@@ -143,6 +145,8 @@ La cabecera del operador conserva las medidas, el logotipo Laguna y los destinos
 El acceso Verificador autorizado abre una sección Laguna distinta de Auditorías y de las pantallas ciudadanas. Presenta publicaciones públicas, búsqueda y el formulario de respaldo existente; el servidor vuelve a comprobar el permiso al registrar cada verificación. Una misma cuenta puede tener ambos permisos, pero la elección de acceso solo determina el destino inicial y nunca concede privilegios. Los avisos de sesión usan teal para estados normales y ámbar para errores; no se repite un aviso al cambiar de modalidad.
 
 La cabecera y la navegación móvil muestran Verificaciones solo tras consultar su permiso vigente. Si una cuenta con ambos permisos entra en modo verificador, la navegación presenta Verificaciones y oculta Auditorías; en modo auditor ocurre lo inverso. Esta presentación no revoca permisos: la protección de cada ruta y operación sigue en el servidor.
+
+La navegación pública añade **Encontrar personas** como sección Laguna independiente. Debe distinguir de forma visible una coincidencia simulada de una identificación real, limitar la carga a tres fotos, exigir sesión al ejecutar y declarar que las imágenes comparadas no se guardan. El catálogo permanece vacío hasta que el equipo agregue casos ficticios autorizados. En escritorio conserva la cabecera común; en móvil ocupa un quinto destino con área táctil completa. Resultado positivo, negativo, carga, error, catálogo vacío y movimiento reducido son estados obligatorios. Nunca usar color, porcentaje o texto para afirmar que una persona fue identificada o encontrada.
 
 ## Laguna pública — incremento visual
 

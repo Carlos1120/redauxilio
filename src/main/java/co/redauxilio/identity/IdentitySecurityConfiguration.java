@@ -109,6 +109,7 @@ class IdentitySecurityConfiguration {
                         "/missing-person.js",
                         // Modulos del detalle publico, tambien antes de iniciar sesion.
                         "/missing-person-sightings.js",
+                        "/missing-person-match.js",
                         "/official-verification.js",
                         "/verifier-workspace.js",
                         "/authorized-contact.js",
@@ -126,7 +127,8 @@ class IdentitySecurityConfiguration {
                         "/manifest.webmanifest",
                         "/icon.svg",
                         "/vendor/**",
-                        "/api/publications/**")
+                        "/api/publications/**",
+                        "/api/missing-person-match/candidates/**")
                     .permitAll()
                     .requestMatchers(
                         HttpMethod.POST,

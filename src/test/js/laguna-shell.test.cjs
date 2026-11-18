@@ -24,12 +24,12 @@ test("Laguna conserva los ID de las funciones existentes", () => {
   }
 });
 
-test("La barra inferior móvil expone cuatro destinos y Cuenta una sola vez", () => {
+test("La barra inferior móvil expone cinco destinos y Cuenta una sola vez", () => {
   const block = html.match(/<nav class="laguna-bottom-nav"[\s\S]*?<\/nav>/)?.[0];
   assert.ok(block, "Se necesita navegación inferior");
   assert.deepEqual(
     [...block.matchAll(/data-laguna-tab="([^"]+)"/g)].map((m) => m[1]),
-    ["home", "explore", "publish", "account"],
+    ["home", "explore", "match", "publish", "account"],
   );
   assert.equal((block.match(/id="laguna-mobile-account"/g) || []).length, 1);
   assert.match(css, /\.site-header \.identity-trigger\s*\{\s*display: none;\s*\}/);
@@ -43,6 +43,20 @@ test("Inicio conserva el texto de cada dispositivo y el escudo original", () => 
     html,
     /class="laguna-home-seal"[\s\S]*?src="\/laguna-assets\/desktop-footer-shield\.svg"/,
   );
+});
+
+test("la vista de exposición no muestra avisos ni créditos técnicos", () => {
+  for (const text of [
+    "Prototipo conceptual",
+    "Proyecto académico",
+    "DEMOSTRACIÓN · información comunitaria sin verificar",
+    "Resultado orientativo y simulado",
+    "Carlos Mario Peña y Santiago Ortiz Ochoa",
+  ])
+    assert.doesNotMatch(html, new RegExp(text));
+  assert.doesNotMatch(html, /class="notice notice-demo"/);
+  assert.doesNotMatch(html, /class="laguna-home-footer"/);
+  assert.doesNotMatch(html, /class="missing-match-warning"/);
 });
 
 test("las categorías conservan pictogramas y acentos Laguna diferentes", () => {
@@ -67,6 +81,16 @@ test("CSS respeta mobile/tablet, safe-area y las funciones del mapa", () => {
   assert.match(css, /env\(safe-area-inset-bottom\)/);
 });
 
+test("las ondas del header recorren todo el ancho en escritorio", () => {
+  assert.match(css, /\.site-header::after\s*\{\s*clip-path:\s*none;/);
+  assert.doesNotMatch(css, /clip-path:\s*inset\(0 0 0 calc\(clamp/);
+});
+
+test("cada destino de escritorio contiene su propio indicador activo", () => {
+  assert.match(css, /\.site-header \.header-content > nav a\s*\{[\s\S]*?position:\s*relative;/);
+  assert.doesNotMatch(css, /nav a:nth-child\([^)]*\)\s*\{\s*position:\s*relative/);
+});
+
 test("Publicar y Mis publicaciones conservan el ancho disponible en tablet", () => {
   assert.match(html, /id="draft-section" class="draft-section"/);
   assert.match(html, /id="own-section" class="draft-section"/);
@@ -77,7 +101,10 @@ test("Publicar y Mis publicaciones conservan el ancho disponible en tablet", () 
 test("La PWA precarga los nuevos recursos Laguna", () => {
   assert.match(sw, /"\/laguna\.css"/);
   assert.match(sw, /"\/laguna-navigation\.js"/);
+  assert.match(sw, /"\/app-loader\.js"/);
+  assert.match(sw, /"\/missing-person-match\.js"/);
   assert.match(html, /href="\/laguna\.css"/);
+  assert.match(html, /src="\/app-loader\.js"/);
   assert.match(html, /src="\/laguna-navigation\.js"/);
 });
 

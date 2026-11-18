@@ -13,8 +13,16 @@
     <script src="/missing-person.js" defer></script>
     <script src="/moderation.js" defer></script>
     <script src="/account-restrictions.js" defer></script>
+    <script src="/app-loader.js" defer></script>
   </head>
   <body class="operator-page">
+    <div id="app-loader" class="app-loader" role="status" aria-label="Cargando RedAuxilio">
+      <div class="app-loader__content">
+        <img src="/laguna-assets/logo-desktop.svg" width="223" height="44" alt="RedAuxilio" />
+        <span class="app-loader__track" aria-hidden="true"></span>
+        <span class="sr-only">Cargando RedAuxilio</span>
+      </div>
+    </div>
     <a class="skip-link" href="#moderation-workspace">Saltar a moderación</a>
     <header class="site-header">
       <div class="header-content">

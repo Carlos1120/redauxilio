@@ -5,13 +5,14 @@
  * No almacena borradores, operaciones de escritura, bibliotecas CDN ni cartografía externa.
  */
 // RA-10/13 renuevan recursos públicos; contacto, fotos e historiales siguen fuera de caché.
-// RA-14: renueva el shell para distribuir advertencia y control de justificacion.
-const CACHE = "redauxilio-demo-v35";
+// Laguna: renueva el shell para distribuir la vista limpia de exposición.
+const CACHE = "redauxilio-demo-v43";
 const SHELL = [
   "/",
   "/app.css",
   "/laguna.css",
   "/laguna-navigation.js",
+  "/app-loader.js",
   "/operator-access-nav.js",
   // Recursos públicos originales de Inicio; ninguna imagen privada se precarga.
   "/laguna-assets/home-illustration-mobile.svg",
@@ -47,6 +48,7 @@ const SHELL = [
   "/app.js",
   "/missing-person.js",
   "/missing-person-sightings.js",
+  "/missing-person-match.js",
   "/authorized-contact.js",
   "/freshness.js",
   "/identity-forms.js",

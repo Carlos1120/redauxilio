@@ -693,7 +693,7 @@ html.app-loading {
 }
 .site-header .header-content > nav a[aria-current="page"] {
   background: transparent;
-  color: #fff;
+  color: #f5c65e;
   box-shadow: none;
 }
 .site-header .header-content > nav .laguna-desktop-publish {
@@ -1199,9 +1199,9 @@ html.app-loading {
   }
   .site-header .header-content {
     display: grid;
-    grid-template-columns: 223px minmax(0, 1fr) 135px 126px;
+    grid-template-columns: 223px minmax(0, 1fr) 135px calc(192px + clamp(10px, 1.3333vw, 20px));
     align-items: flex-start;
-    column-gap: clamp(10px, 1.3vw, 22px);
+    column-gap: clamp(10px, 1.3333vw, 20px);
     height: 89px;
     padding: 0 clamp(24px, 4vw, 58px);
   }
@@ -1233,14 +1233,7 @@ html.app-loading {
     white-space: nowrap;
   }
   .site-header .header-content > nav a[aria-current="page"]::after {
-    content: "";
-    position: absolute;
-    top: 64px;
-    left: 0;
-    width: 61px;
-    height: 3px;
-    border-radius: 2px;
-    background: #fff;
+    content: none;
   }
   .site-header .header-action {
     position: static;
@@ -1249,9 +1242,9 @@ html.app-loading {
   .site-header .identity-controls {
     position: static;
     justify-content: flex-end;
-    width: 126px;
+    width: calc(192px + clamp(10px, 1.3333vw, 20px));
     margin-top: 20px;
-    gap: 0;
+    gap: clamp(10px, 1.3333vw, 20px);
   }
   .site-header #connection-indicator {
     display: none;
@@ -1269,11 +1262,11 @@ html.app-loading {
 }
 @media (min-width: 1500px) {
   .site-header .header-content {
-    grid-template-columns: 223px minmax(0, 1fr) 135px 299px;
+    grid-template-columns: 223px minmax(0, 1fr) 135px 283px;
   }
   .site-header .identity-controls {
-    width: 299px;
-    gap: 36px;
+    width: 283px;
+    gap: 20px;
   }
   .site-header #connection-indicator {
     display: inline-flex;
@@ -1284,23 +1277,20 @@ html.app-loading {
 }
 /* En escritorio compacto conserva Cuenta y el estado sin envolver ni solaparse. */
 @media (min-width: 1200px) and (max-width: 1499px) {
+  .site-header .header-content {
+    grid-template-columns: 223px minmax(0, 1fr) 135px calc(192px + clamp(10px, 1.3333vw, 20px));
+  }
   .site-header .identity-controls {
-    width: 126px;
-    gap: 8px;
+    width: calc(192px + clamp(10px, 1.3333vw, 20px));
+    gap: clamp(10px, 1.3333vw, 20px);
   }
   .site-header #connection-indicator {
-    display: block;
-    width: 10px;
-    min-width: 10px;
-    height: 10px;
-    padding: 0;
-    border: 2px solid #fff;
-    border-radius: 50%;
-    background: #16704b;
-    box-shadow: 0 0 0 1px #d5e4e6;
+    display: inline-flex;
+    width: 96px;
+    min-width: 96px;
+    height: 36px;
+    margin-top: 7px;
   }
-  .site-header #connection-indicator::before,
-  .site-header #connection-indicator::after,
   .site-header .laguna-connection {
     display: none;
   }

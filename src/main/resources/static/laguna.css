@@ -307,9 +307,7 @@ html.app-loading {
   background: #fff;
   color: #0c747c;
 }
-.site-header .identity-trigger::after {
-  content: "Cuenta";
-  margin-left: 6px;
+.site-header .laguna-account-label {
   font-size: 0.87rem;
   font-weight: 750;
 }
@@ -695,7 +693,7 @@ html.app-loading {
 }
 .site-header .header-content > nav a[aria-current="page"] {
   background: transparent;
-  color: #fff;
+  color: #f5c65e;
   box-shadow: none;
 }
 .site-header .header-content > nav .laguna-desktop-publish {
@@ -1145,6 +1143,12 @@ html.app-loading {
     font-size: 11px;
   }
 }
+/* La navegación inferior sustituye la acción de escritorio hasta 1199 px. */
+@media (min-width: 1100px) and (max-width: 1199px) {
+  .site-header .header-action {
+    display: none;
+  }
+}
 @media (min-width: 1100px) and (max-width: 1199px) {
   .site-header .header-action {
     display: none;
@@ -1268,25 +1272,57 @@ html.app-loading {
   .site-header .identity-trigger svg {
     display: none;
   }
-  .site-header .identity-trigger::after {
-    margin: 0;
+  .site-header .laguna-account-label {
     font-size: 15px;
   }
 }
 
 @media (min-width: 1500px) {
   .site-header .header-content {
-    grid-template-columns: 223px minmax(0, 1fr) 135px 299px;
+    grid-template-columns: 223px minmax(0, 1fr) 135px 283px;
   }
   .site-header .identity-controls {
-    width: 299px;
-    gap: 36px;
+    width: 283px;
+    gap: 20px;
   }
   .site-header #connection-indicator {
     display: inline-flex;
     width: 137px;
     height: 36px;
     margin-top: 7px;
+  }
+}
+/* En escritorio compacto conserva Cuenta y el estado sin envolver ni solaparse. */
+@media (min-width: 1200px) and (max-width: 1499px) {
+  .site-header .header-content {
+    grid-template-columns: 223px minmax(0, 1fr) 135px calc(192px + clamp(10px, 1.3333vw, 20px));
+  }
+  .site-header .identity-controls {
+    width: calc(192px + clamp(10px, 1.3333vw, 20px));
+    gap: clamp(10px, 1.3333vw, 20px);
+  }
+  .site-header #connection-indicator {
+    display: inline-flex;
+    width: 96px;
+    min-width: 96px;
+    height: 36px;
+    margin-top: 7px;
+  }
+  .site-header .laguna-connection {
+    display: none;
+  }
+  .site-header .identity-trigger {
+    width: 96px;
+    min-width: 96px;
+    height: 44px;
+  }
+  .site-header .identity-trigger svg {
+    display: none;
+  }
+}
+@media (min-width: 1500px) {
+  .site-header .laguna-connection {
+    display: none;
   }
 }
 /* Adaptaciones de los frames oficiales 4:248 y 6:311; conserva sus componentes. */
@@ -2524,7 +2560,6 @@ body[data-laguna-page="verifier"] .verifier-workspace {
   text-align: center;
 }
 .site-header .header-action,
-.site-header .identity-trigger::after,
 .site-header #connection-indicator::after {
   font-size: 15px;
 }

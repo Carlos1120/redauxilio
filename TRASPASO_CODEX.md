@@ -1,8 +1,8 @@
-# RedAuxilio — traspaso Laguna
+# RedAuxilio — traspaso de trabajo
 
 Actualizado: 19 de noviembre de 2026 (Colombia). Carpeta: C:\Users\Santiago\.codex\worktrees\laguna-fidelidad\redauxilio. Rama codex/render-live-work, PR borrador #44 hacia develop. La versión de respaldo está aislada en codex/backup-redauxilio-2026-11-18 y PR #43; no modificarla. No se requiere autorización de Carlos para revisar. Verificar el estado remoto antes de integrar.
 
-## Estado vigente
+## Estado de producto
 
 La aplicación Spring Boot entrega Thymeleaf, JavaScript y CSS desde un único servicio. El backend de Render está activo con PostgreSQL de Render; Vercel sigue como posibilidad futura. La copia local está en http://localhost:8091/ con H2 persistente en ./data/redauxilio_preview.mv.db. Se inicia con PORT=8091 y DB_URL=jdbc:h2:file:./data/redauxilio_preview;MODE=PostgreSQL. La base local es distinta de PostgreSQL en Render: sus cuentas y reportes no se comparten automáticamente.
 

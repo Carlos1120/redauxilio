@@ -582,31 +582,61 @@
           </ol>
           <div class="publish-layout">
             <form id="draft-form" aria-describedby="draft-help">
+              <div class="publish-step-heading" data-publish-step="0">
+                <h3>¿Qué quieres compartir?</h3>
+                <p>Elige la opción que mejor describe tu situación.</p>
+              </div>
               <div class="publish-step-heading" data-publish-step="1">
                 <h3>¿Qué está pasando?</h3>
                 <p>Selecciona una opción. Después cuéntanos lo que sabes.</p>
               </div>
               <div
                 class="publish-categories"
-                data-publish-step="1"
+                data-publish-step="0"
                 role="group"
                 aria-label="Tipo de publicación"
               >
                 <button type="button" data-publish-category="ASSISTANCE">
-                  <img src="/laguna-assets/map-shelter.svg" alt="" /><strong>Refugio</strong
-                  ><small>Apoyo o acopio</small>
+                  <img src="/laguna-assets/map-shelter.svg" alt="" /><strong>Puntos de ayuda</strong
+                  ><small>Refugios, acopio y atención</small><em>Continuar con esta categoría ›</em>
                 </button>
                 <button type="button" data-publish-category="ROAD">
                   <img src="/laguna-assets/map-road.svg" alt="" /><strong>Vía afectada</strong
-                  ><small>Cierre o daño</small>
+                  ><small>Cierres o daños en calles</small><em>Continuar con esta categoría ›</em>
+                </button>
+                <button type="button" data-publish-category="HELP_REQUEST">
+                  <img src="/laguna-assets/map-help.svg" alt="" /><strong>Solicitud de ayuda</strong
+                  ><small>Agua, comida u otra necesidad</small
+                  ><em>Continuar con esta categoría ›</em>
                 </button>
                 <button type="button" data-publish-category="MISSING_PERSON">
                   <img src="/laguna-assets/map-person.svg" alt="" /><strong
                     >Persona desaparecida</strong
+                  ><small>Compartir una búsqueda</small><em>Continuar con esta categoría ›</em>
+                </button>
+              </div>
+              <div
+                class="publish-categories publish-categories-inline"
+                data-publish-step="1"
+                role="group"
+                aria-label="Tipo de publicación seleccionado"
+              >
+                <button type="button" data-publish-category="ASSISTANCE">
+                  <img src="/laguna-assets/publish-shelter.svg" alt="" /><strong>Refugio</strong
+                  ><small>Apoyo o acopio</small>
+                </button>
+                <button type="button" data-publish-category="ROAD">
+                  <img src="/laguna-assets/publish-road.svg" alt="" /><strong>Vía afectada</strong
+                  ><small>Cierre o daño</small>
+                </button>
+                <button type="button" data-publish-category="MISSING_PERSON">
+                  <img src="/laguna-assets/publish-person.svg" alt="" /><strong
+                    >Persona desaparecida</strong
                   ><small>Búsqueda de persona</small>
                 </button>
                 <button type="button" data-publish-category="HELP_REQUEST">
-                  <img src="/laguna-assets/map-help.svg" alt="" /><strong>Solicitud de ayuda</strong
+                  <img src="/laguna-assets/publish-help.svg" alt="" /><strong
+                    >Solicitud de ayuda</strong
                   ><small>Necesidad de apoyo</small>
                 </button>
               </div>
@@ -750,8 +780,8 @@
                 </div>
               </fieldset>
               <div class="publish-step-heading" data-publish-step="2">
-                <h3>Encuentra el lugar del reporte</h3>
-                <p>Busca un sitio o señala un punto en el mapa.</p>
+                <h3>Ubica tu publicación en el mapa</h3>
+                <p>Elige un lugar aproximado. No es necesario compartir una dirección privada.</p>
               </div>
               <fieldset class="publication-group location-fields" data-publish-step="2">
                 <legend>Ubicación de la publicación</legend>
@@ -767,7 +797,7 @@
                     Usar mi ubicación
                   </button>
                 </div>
-                <div class="field">
+                <div class="field place-search-field">
                   <label for="place-query">Buscar lugar o dirección pública</label>
                   <div class="location-search">
                     <input id="place-query" type="search" maxlength="160" />
@@ -824,8 +854,8 @@
                 </div>
               </fieldset>
               <div class="publish-step-heading" data-publish-step="3">
-                <h3>Revisa tu publicación</h3>
-                <p>Comprueba la información antes de compartirla.</p>
+                <h3>Revisa la información</h3>
+                <p>Puedes volver a cualquier paso para corregir algo.</p>
               </div>
               <div class="publish-review" data-publish-step="3" aria-live="polite"></div>
               <fieldset
@@ -851,6 +881,7 @@
                 <div id="evidence-preview" class="evidence-preview" aria-live="polite"></div>
               </fieldset>
               <div class="publish-step-actions">
+                <p id="publish-step-error" role="alert" hidden></p>
                 <button type="button" id="publish-save-draft" class="secondary-button">
                   Guardar borrador</button
                 ><button type="button" id="publish-back" class="secondary-button" hidden>

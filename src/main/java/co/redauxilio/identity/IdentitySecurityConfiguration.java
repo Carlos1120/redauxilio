@@ -118,6 +118,7 @@ class IdentitySecurityConfiguration {
                         "/identity-status.js",
                         "/operator-access-nav.js",
                         "/publication-form.js",
+                        "/publish-steps.js",
                         "/my-publications.js",
                         "/confirmation.js",
                         "/content-report.js",

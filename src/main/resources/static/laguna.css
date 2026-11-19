@@ -1506,6 +1506,7 @@ body[data-laguna-page="publish"] #draft-form {
   border-radius: 20px;
   background: #fff;
 }
+#draft-form[data-publish-step="0"] > [data-publish-step]:not([data-publish-step="0"]),
 #draft-form[data-publish-step="1"] > [data-publish-step]:not([data-publish-step="1"]),
 #draft-form[data-publish-step="2"] > [data-publish-step]:not([data-publish-step="2"]),
 #draft-form[data-publish-step="3"] > [data-publish-step]:not([data-publish-step="3"]) {
@@ -1513,6 +1514,9 @@ body[data-laguna-page="publish"] #draft-form {
 }
 #draft-form [data-publish-step][hidden] {
   display: none !important;
+}
+#draft-form[data-publish-step="0"] > .publish-step-actions {
+  display: none;
 }
 .publish-step-heading h3 {
   margin: 0 0 6px;
@@ -1527,6 +1531,7 @@ body[data-laguna-page="publish"] #draft-form {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px 24px;
+  max-width: 727px;
   margin-bottom: 18px;
 }
 .publish-categories button {
@@ -1559,6 +1564,48 @@ body[data-laguna-page="publish"] #draft-form {
   color: #607886;
   font-size: 11px;
 }
+.publish-categories em {
+  grid-column: 1 / -1;
+  color: #0c747c;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 700;
+}
+#draft-form[data-publish-step="0"] .publish-categories button {
+  min-height: 125px;
+  padding: 18px;
+}
+#draft-form[data-publish-step="0"] .publish-categories {
+  gap: 21px 31px;
+  margin-top: 44px;
+}
+#draft-form[data-publish-step="0"] {
+  min-height: 501px;
+}
+#draft-form[data-publish-step="0"] .publish-categories img {
+  display: none;
+}
+#draft-form[data-publish-step="0"] .publish-categories strong,
+#draft-form[data-publish-step="0"] .publish-categories small {
+  grid-column: 1 / -1;
+}
+#draft-form[data-publish-step="0"] .publish-categories strong {
+  font-size: 18px;
+}
+.publish-categories-inline {
+  margin-top: 20px;
+}
+.publish-categories-inline button {
+  min-height: 73px;
+}
+.publish-categories-inline img {
+  width: 32px;
+  height: 32px;
+}
+.publish-categories-inline button[aria-pressed="true"] {
+  border-color: #0c747c;
+  background: #eaf7f3;
+}
 body[data-laguna-page="publish"] #draft-form > .publication-fields {
   display: block;
 }
@@ -1574,9 +1621,19 @@ body[data-laguna-page="publish"] #draft-form > :is(fieldset, .publication-fields
 }
 body[data-laguna-page="publish"] .publish-step-actions {
   display: flex;
+  flex-wrap: wrap;
   gap: 12px;
   justify-content: flex-end;
   margin-top: 20px;
+}
+#publish-step-error {
+  flex-basis: 100%;
+  margin: 0;
+  color: #9a4e14;
+  font-size: 13px;
+}
+#publish-step-error[hidden] {
+  display: none;
 }
 .publish-step-actions button {
   min-height: 48px;
@@ -1623,31 +1680,274 @@ body[data-laguna-page="publish"] .publish-step-actions {
   background: #f8fafc;
   overflow-wrap: anywhere;
 }
+.publish-review h4 {
+  padding-bottom: 12px;
+  margin: 0 0 12px;
+  border-bottom: 1px solid #dee7ec;
+  font-size: 17px;
+}
+.publish-review div {
+  margin: 0 0 16px;
+}
+.publish-review small {
+  color: #607886;
+  font-size: 11px;
+  font-weight: 700;
+}
+.publish-review p {
+  margin: 4px 0 0;
+  font-size: 14px;
+}
+.publish-review button {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #0c747c;
+  font-weight: 700;
+}
 @media (max-width: 800px) {
+  body[data-laguna-page="publish"] .draft-section {
+    isolation: isolate;
+    position: relative;
+    width: calc(100% - 40px);
+    margin-top: 7px;
+  }
+  body[data-laguna-page="publish"] .draft-section::before {
+    position: absolute;
+    z-index: -1;
+    top: -7px;
+    left: 50%;
+    width: 100vw;
+    height: 65px;
+    background: #117c83;
+    content: "";
+    transform: translateX(-50%);
+  }
+  body[data-laguna-page="publish"] #draft-title {
+    color: #fff;
+    font-size: 22px;
+  }
+  body[data-laguna-page="publish"] #draft-help {
+    color: #fff;
+    font-size: 13px;
+  }
+  body[data-laguna-page="publish"] .publish-progress {
+    position: relative;
+    gap: 9px;
+    margin: 15px 0 8px;
+    padding-top: 25px;
+  }
+  body[data-laguna-page="publish"] .publish-progress::before {
+    position: absolute;
+    top: 0;
+    left: 0;
+    color: #0c747c;
+    content: "PASO " attr(data-current) " DE 3";
+    font-size: 12px;
+    font-weight: 700;
+  }
+  body[data-laguna-page="publish"] .publish-progress li {
+    display: block;
+    width: 100%;
+    height: 5px;
+    overflow: hidden;
+    border-radius: 5px;
+    background: #dce6eb;
+    color: transparent;
+    font-size: 0;
+  }
+  body[data-laguna-page="publish"] .publish-progress li[data-active="true"],
+  body[data-laguna-page="publish"] .publish-progress li[data-complete="true"] {
+    background: #0c747c;
+  }
+  body[data-laguna-page="publish"] .publish-progress span {
+    display: none;
+  }
+  body[data-laguna-page="publish"] #draft-form {
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+  }
+  body[data-laguna-page="publish"] #draft-form[data-publish-step="0"] {
+    padding: 16px;
+    border: 1px solid #dee7ec;
+    border-radius: 20px;
+    background: #fff;
+  }
+  body[data-laguna-page="publish"] .publish-step-heading h3 {
+    font-size: 25px;
+  }
+  body[data-laguna-page="publish"] #draft-form[data-publish-step="1"] {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+  body[data-laguna-page="publish"] #draft-form[data-publish-step="1"] > .publish-step-heading {
+    order: 1;
+  }
+  body[data-laguna-page="publish"] #draft-form[data-publish-step="1"] > .publish-categories-inline {
+    order: 2;
+  }
+  body[data-laguna-page="publish"] #draft-form[data-publish-step="1"] > .description-fields {
+    order: 3;
+  }
+  body[data-laguna-page="publish"] #draft-form[data-publish-step="1"] > .publication-fields {
+    order: 4;
+  }
+  body[data-laguna-page="publish"]
+    #draft-form[data-publish-step="1"]
+    > :is(#help-fields, #missing-fields) {
+    order: 5;
+  }
+  body[data-laguna-page="publish"] #draft-form[data-publish-step="1"] > .publish-step-actions {
+    order: 6;
+  }
+  body[data-laguna-page="publish"] .publish-step-actions {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+  body[data-laguna-page="publish"] .publish-step-actions #publish-next {
+    order: -1;
+    width: 100%;
+    background: #0c747c;
+    color: #fff;
+  }
+  body[data-laguna-page="publish"] .publish-step-actions .secondary-button {
+    padding: 0;
+    background: transparent;
+    color: #0c747c;
+  }
+  body[data-laguna-page="publish"] .publish-categories-inline {
+    margin-top: 7px;
+  }
+  body[data-laguna-page="publish"] .description-fields {
+    padding: 0;
+    border: 0;
+  }
+  body[data-laguna-page="publish"] .description-fields legend {
+    display: none;
+  }
+  body[data-laguna-page="publish"] .description-fields textarea {
+    min-height: 100px;
+  }
+  body[data-laguna-page="publish"] .location-fields {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+  }
+  body[data-laguna-page="publish"] .location-fields legend {
+    display: none;
+  }
+  body[data-laguna-page="publish"] .location-fields > .field:first-of-type {
+    order: 1;
+    margin-bottom: 0;
+  }
+  body[data-laguna-page="publish"] .location-fields > .location-actions {
+    order: 2;
+    display: block;
+    margin: 0;
+  }
+  body[data-laguna-page="publish"] .location-actions #select-location {
+    display: none;
+  }
+  body[data-laguna-page="publish"] .location-actions #use-device-location {
+    width: 100%;
+    min-height: 48px;
+    padding: 0 16px;
+    border: 1px solid #dee7ec;
+    background: #fff;
+    color: #0c747c;
+    text-align: left;
+  }
+  body[data-laguna-page="publish"] .location-fields > .publication-location-preview {
+    order: 3;
+    margin: 0;
+  }
+  body[data-laguna-page="publish"] .publication-location-map {
+    height: 170px;
+    border: 0;
+    border-radius: 13px;
+  }
+  body[data-laguna-page="publish"] .location-fields > .place-search-field {
+    order: 4;
+  }
+  body[data-laguna-page="publish"] .location-fields > #place-results {
+    order: 5;
+  }
+  body[data-laguna-page="publish"] .location-fields > #location-message {
+    order: 6;
+  }
+  body[data-laguna-page="publish"] .location-fields > .coordinate-fields {
+    order: 7;
+  }
+  body[data-laguna-page="publish"] .publish-review {
+    padding: 14px 16px;
+    border: 1px solid #dee7ec;
+    border-radius: 16px;
+    background: #fff;
+  }
+  body[data-laguna-page="publish"] .draft-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  body[data-laguna-page="publish"] .draft-actions #publish-report {
+    order: 1;
+    width: 100%;
+    background: #0c747c;
+    color: #fff;
+  }
+  body[data-laguna-page="publish"] .draft-actions button[type="submit"] {
+    border: 0;
+    background: transparent;
+    color: #0c747c;
+    text-align: left;
+  }
   .publish-layout {
     grid-template-columns: 1fr;
   }
   .publish-guidance {
-    min-height: 0;
-  }
-  .publish-progress {
-    justify-content: space-between;
-    gap: 8px;
-  }
-  .publish-progress li {
-    font-size: 12px;
-  }
-  .publish-progress span {
-    width: 27px;
-    height: 27px;
+    display: none;
   }
 }
 @media (max-width: 430px) {
+  #draft-form[data-publish-step="0"] .publish-categories {
+    gap: 10px;
+    margin-top: 22px;
+  }
+  #draft-form[data-publish-step="0"] .publish-categories button {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    min-height: 90px;
+    padding: 10px;
+  }
+  #draft-form[data-publish-step="0"] .publish-categories img {
+    display: none;
+  }
+  #draft-form[data-publish-step="0"] .publish-categories strong {
+    font-size: 13px;
+  }
+  #draft-form[data-publish-step="0"] .publish-categories small {
+    font-size: 11px;
+  }
+  #draft-form[data-publish-step="0"] .publish-categories em {
+    display: none;
+  }
   .publish-categories {
     gap: 10px;
   }
   .publish-categories button {
     padding: 7px;
+  }
+  .publish-categories-inline button {
+    grid-template-columns: 32px minmax(0, 1fr);
+    gap: 3px 5px;
   }
   .publish-categories strong {
     font-size: 11px;

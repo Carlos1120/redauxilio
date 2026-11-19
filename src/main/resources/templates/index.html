@@ -187,11 +187,6 @@
             <source media="(max-width: 1099px)" srcset="/laguna-assets/logo-mobile.svg" />
             <img src="/laguna-assets/logo-desktop.svg" width="223" height="44" alt="" /></picture
         ></a>
-        <label class="header-search" for="search-query">
-          <span class="search-icon" aria-hidden="true">⌕</span>
-          <span class="sr-only">Buscar entre los reportes visibles</span>
-          <input id="search-query" type="search" placeholder="Buscar título o lugar…" />
-        </label>
         <nav aria-label="Secciones">
           <a href="#main-content" aria-current="page">Inicio</a
           ><a href="#search-section">Explorar</a
@@ -440,25 +435,41 @@
           class="search-section"
           aria-labelledby="search-title"
         >
-          <div class="section-heading">
-            <div>
-              <p class="eyebrow">CONSULTA PÚBLICA</p>
-              <h2 id="search-title">Reportes comunitarios</h2>
-            </div>
-            <span class="section-caption">Vistos por fecha de publicación</span>
+          <div class="explore-intro">
+            <h1 id="search-title" class="explore-title-desktop">Explora información de tu zona</h1>
+            <h1 class="explore-title-mobile">¿Qué ocurre cerca?</h1>
+            <p class="explore-subtitle-desktop">
+              Busca por lugar o categoría. Revisa cuándo se compartió cada reporte.
+            </p>
+            <p class="explore-subtitle-mobile">Reportes compartidos por la comunidad</p>
           </div>
+          <label class="explore-search" for="search-query">
+            <span aria-hidden="true">⌕</span>
+            <span class="sr-only">Buscar entre los reportes visibles</span>
+            <input id="search-query" type="search" placeholder="Buscar barrio, lugar o reporte" />
+          </label>
+          <button
+            class="explore-filter-trigger"
+            type="button"
+            aria-controls="explore-filter-panel"
+            aria-expanded="false"
+          >
+            ⚙ <span>Todos los tipos de reporte</span>
+          </button>
           <div class="quick-filters" role="group" aria-label="Filtrar por tipo de reporte">
-            <button type="button" data-category="" aria-pressed="true">Todo</button>
-            <button type="button" data-category="ASSISTANCE" aria-pressed="false">
-              Asistencia
-            </button>
+            <button type="button" data-category="" aria-pressed="true">Todos</button>
+            <button type="button" data-category="ASSISTANCE" aria-pressed="false">Refugios</button>
             <button type="button" data-category="ROAD" aria-pressed="false">Vías</button>
-            <button type="button" data-category="MISSING_PERSON" aria-pressed="false">
-              Personas
+            <button
+              type="button"
+              class="explore-more-filters"
+              aria-controls="explore-filter-panel"
+              aria-expanded="false"
+            >
+              Más filtros
             </button>
-            <button type="button" data-category="HELP_REQUEST" aria-pressed="false">Ayuda</button>
           </div>
-          <details class="filter-drawer">
+          <details class="filter-drawer" id="explore-filter-panel">
             <summary>Filtros avanzados</summary>
             <form id="query-form" class="query-controls" aria-label="Filtros de consulta">
               <div class="field">
@@ -527,10 +538,30 @@
               </button>
             </form>
           </details>
+          <div class="explore-list-heading">
+            <h2>Reportes comunitarios</h2>
+            <p>Vistos por fecha de publicación</p>
+          </div>
+          <div class="explore-map-heading"><h2>Vista de mapa</h2></div>
           <p id="message" class="query-message" role="status" aria-live="polite">
             Preparando consulta…
           </p>
-          <div id="report-map" aria-label="Mapa de reportes y publicaciones comunitarias"></div>
+          <div class="explore-map-panel">
+            <img class="explore-map-art" src="/laguna-assets/explore-map-desktop.svg" alt="" />
+            <div
+              class="explore-map-live"
+              id="report-map"
+              aria-label="Mapa de reportes y publicaciones comunitarias"
+            ></div>
+            <div class="explore-view-switch" role="group" aria-label="Vista de resultados">
+              <button type="button" data-explore-view="map" aria-pressed="true">Mapa</button
+              ><button type="button" data-explore-view="list" aria-pressed="false">Lista</button>
+            </div>
+            <span class="explore-map-location">⌖ &nbsp; Ejemplo · Villavicencio, Meta</span>
+            <button type="button" class="explore-live-toggle" aria-pressed="false">
+              Abrir mapa interactivo
+            </button>
+          </div>
           <ul class="map-legend" aria-label="Leyenda del mapa">
             <li>
               <img src="/laguna-assets/marker-shelter.svg" alt="" width="22" height="22" />Punto de
@@ -550,8 +581,7 @@
           </ul>
           <div id="publications" class="report-grid" aria-busy="true"></div>
           <p class="query-help">
-            Un reporte comunitario no equivale a una verificación oficial. Revisa siempre su
-            confianza y fecha.
+            Los reportes comunitarios pueden no estar verificados; comprueba fecha y fuente.
           </p>
           <dialog id="report-detail" aria-labelledby="detail-title">
             <div class="detail-top">

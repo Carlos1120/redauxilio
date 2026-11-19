@@ -16,4 +16,4 @@ La falta de respuesta al pulsar categorías se debió a que la ruta `/publish-st
 
 ## Pendiente inmediato
 
-Completar cotejo visual a 390 y 1366 px, especialmente campos de ubicación y revisión, y verificar una publicación de extremo a extremo con sesión. Revisar CI del HEAD del PR #44. No fusionar ni desplegar el PR antes de terminar esa revisión. Mantener las credenciales solo en Render; nunca copiarlas a Git ni a evidencias.
+Completar cotejo visual a 390 y 1366 px, especialmente campos de ubicación y revisión, y verificar una publicación de extremo a extremo con sesión. El primer CI del PR #44 falló en Prettier por `map.js`; se aplicó formato y `npm run format:check` pasó localmente. Revisar CI del nuevo HEAD. No fusionar ni desplegar el PR antes de terminar esa revisión. Mantener las credenciales solo en Render; nunca copiarlas a Git ni a evidencias.

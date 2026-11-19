@@ -28,7 +28,8 @@ if (typeof window !== "undefined") {
       if (!window.L) {
         if (status) {
           status.dataset.error = "true";
-          status.textContent = "El mapa no pudo cargarse. Puedes consultar los reportes en la lista.";
+          status.textContent =
+            "El mapa no pudo cargarse. Puedes consultar los reportes en la lista.";
         }
         return null;
       }

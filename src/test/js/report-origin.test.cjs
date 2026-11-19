@@ -197,7 +197,7 @@ test("mapa y rótulos estáticos describen una consulta de origen mixto", () => 
     "utf8",
   );
   const map = readFileSync(join(__dirname, "../../main/resources/static/map.js"), "utf8");
-  assert.match(template, /Ejemplos y publicaciones/u);
+  assert.match(template, /Reportes comunitarios/u);
   assert.match(template, /Mapa de reportes y publicaciones comunitarias/u);
   assert.match(map, /Ubicaciones de reportes\. El fondo cartográfico requiere conexión/u);
 });

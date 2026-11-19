@@ -1609,6 +1609,21 @@ body[data-laguna-page="publish"] #draft-form {
 body[data-laguna-page="publish"] #draft-form > .publication-fields {
   display: block;
 }
+#draft-form[data-publish-step="1"]:is(
+    [data-publish-category="ASSISTANCE"],
+    [data-publish-category="ROAD"]
+  )
+  > .publication-fields {
+  display: none !important;
+}
+body[data-laguna-page="publish"] .description-fields {
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+body[data-laguna-page="publish"] .description-fields legend {
+  display: none;
+}
 body[data-laguna-page="publish"] #draft-form > .publication-fields > .field:first-child {
   position: absolute;
   width: 1px;

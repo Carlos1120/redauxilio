@@ -102,6 +102,13 @@
   }
 
   function syncCategory() {
+    form.dataset.publishCategory = category.value;
+    const description = document.getElementById("draft-text");
+    if (category.value === "ASSISTANCE" || category.value === "ROAD") {
+      description.labels[0].textContent = "¿Qué sabes sobre el lugar?";
+      description.placeholder =
+        "Ej.: Describe lo que viste y cualquier dato útil para la comunidad.";
+    }
     for (const card of cards)
       card.setAttribute(
         "aria-pressed",
@@ -121,9 +128,16 @@
     if (step === 1) {
       const title = document.getElementById("publication-title");
       const description = document.getElementById("draft-text");
-      const missing = [title, description].find((field) => !field.value.trim());
+      const general = category.value === "ASSISTANCE" || category.value === "ROAD";
+      // En las categorías generales, el primer resumen escrito completa el título técnico del reporte.
+      if (general) title.value = description.value.trim().replace(/\s+/gu, " ").slice(0, 120);
+      const missing = (general ? [description] : [title, description]).find(
+        (field) => !field.value.trim(),
+      );
       if (missing) {
-        stepError.textContent = "Completa el nombre o tramo y la descripción antes de continuar.";
+        stepError.textContent = general
+          ? "Describe lo que sabes antes de continuar."
+          : "Completa el nombre o referencia y la descripción antes de continuar.";
         stepError.hidden = false;
         missing.focus();
         return;
@@ -155,7 +169,15 @@
     showStep(step + 1);
   });
   back.addEventListener("click", () => showStep(step - 1));
-  save.addEventListener("click", () => form.requestSubmit());
+  save.addEventListener("click", () => {
+    if (category.value === "ASSISTANCE" || category.value === "ROAD")
+      document.getElementById("publication-title").value = document
+        .getElementById("draft-text")
+        .value.trim()
+        .replace(/\s+/gu, " ")
+        .slice(0, 120);
+    form.requestSubmit();
+  });
   showStep(0);
   syncCategory();
 })();

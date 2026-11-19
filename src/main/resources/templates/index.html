@@ -179,43 +179,35 @@
         </form>
       </section>
     </dialog>
+    <!-- Una sola marca, navegación pública y acción mantienen una cabecera coherente en cada ancho. -->
     <header class="site-header" id="laguna-site-header">
       <div class="header-content">
-        <a class="brand" href="#laguna-home" aria-label="RedAuxilio, ir al inicio">
-          <img src="/icon.svg?v=6" width="36" height="36" alt="" />
-          <span>RedAuxilio</span>
+        <a class="brand" href="#main-content" aria-label="RedAuxilio, ir al inicio">
+          <picture>
+            <source media="(max-width: 1099px)" srcset="/laguna-assets/logo-mobile.svg" />
+            <img src="/laguna-assets/logo-desktop.svg" width="223" height="44" alt="" />
+          </picture>
         </a>
         <nav class="laguna-desktop-nav" aria-label="Navegación principal">
-          <a href="#laguna-home" data-laguna-nav="inicio">Inicio</a>
+          <a href="#main-content" data-laguna-nav="inicio">Inicio</a>
           <a href="#search-section" data-laguna-nav="explorar">Explorar</a>
+          <a href="#missing-match-section" data-laguna-nav="personas">Encontrar personas</a>
           <a href="#own-section" data-laguna-nav="cuenta">Mis reportes</a>
+          <a id="operator-nav-link" href="/operator" hidden>Auditorías</a>
+          <a id="verifier-nav-link" href="#verifier-workspace" hidden>Verificaciones</a>
         </nav>
-        <a class="header-action" href="#draft-section" data-laguna-nav="publicar">＋ Publicar</a>
-        <a class="brand" href="#main-content" aria-label="RedAuxilio · Inicio"
-          ><picture>
-            <source media="(max-width: 1099px)" srcset="/laguna-assets/logo-mobile.svg" />
-            <img src="/laguna-assets/logo-desktop.svg" width="223" height="44" alt="" /></picture
-        ></a>
+        <a
+          id="open-publication"
+          class="header-action"
+          href="#draft-section"
+          data-laguna-nav="publicar"
+          >＋ Publicar</a
+        >
         <label class="header-search" for="search-query">
           <span class="search-icon" aria-hidden="true">⌕</span>
           <span class="sr-only">Buscar entre los reportes visibles</span>
           <input id="search-query" type="search" placeholder="Buscar título o lugar…" />
         </label>
-        <nav aria-label="Secciones">
-          <a href="#main-content" aria-current="page">Inicio</a
-          ><a href="#search-section">Explorar</a
-          ><a href="#missing-match-section">Encontrar personas</a
-          ><a href="#own-section">Mis reportes</a
-          ><a id="operator-nav-link" href="/operator" hidden>Auditorías</a
-          ><a id="verifier-nav-link" href="#verifier-workspace" hidden>Verificaciones</a>
-        </nav>
-        <a class="header-action" href="#draft-section">＋ Publicar</a>
-        <nav aria-label="Secciones principales">
-          <a href="#page-map" data-app-page-link="map" aria-current="page">Mapa</a>
-          <a href="#page-publish" data-app-page-link="publish">Publicar</a>
-          <a href="#page-own" data-app-page-link="own">Mis reportes</a>
-        </nav>
-        <a id="open-publication" class="header-action" href="#page-publish">Publicar un reporte</a>
         <div class="identity-controls">
           <span id="connection-indicator" class="connection-indicator" aria-hidden="true"></span>
           <span id="connection" class="sr-only" role="status" aria-live="polite"></span>

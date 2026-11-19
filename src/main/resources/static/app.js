@@ -23,6 +23,8 @@ function setAppPage(page, { updateHistory = false, focus = false } = {}) {
   if (focus) document.querySelector(`[data-app-page="${selected}"]`)?.focus();
 }
 function appPageFromHash() {
+  if (window.location.hash === "#draft-section") return "publish";
+  if (window.location.hash === "#own-section") return "own";
   const match = window.location.hash.match(/^#page-(map|publish|own)$/);
   return match ? match[1] : "map";
 }
@@ -265,8 +267,11 @@ window.RedAuxilioPublicationUI = {
   },
   clearDraft: () => executeDraftOperation("readwrite", (store) => store.delete("current")),
 };
-getElement("reset-map").disabled = !reportMap;
-getElement("reset-map").addEventListener("click", () => reportMap?.reset());
+const resetMapButton = getElement("reset-map");
+if (resetMapButton) {
+  resetMapButton.disabled = !reportMap;
+  resetMapButton.addEventListener("click", () => reportMap?.reset());
+}
 function createReportElement(tag, className, text) {
   const element = document.createElement(tag);
   element.className = className;

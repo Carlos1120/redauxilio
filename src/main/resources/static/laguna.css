@@ -1388,7 +1388,16 @@ body[data-laguna-page="own"] .workspace {
     border-radius: 17px;
     box-shadow: none;
   }
-  body[data-laguna-page="explore"] .search-section > :is(.section-heading, .quick-filters, .filter-drawer, .query-message, #publications, .query-help) {
+  body[data-laguna-page="explore"]
+    .search-section
+    > :is(
+      .section-heading,
+      .quick-filters,
+      .filter-drawer,
+      .query-message,
+      #publications,
+      .query-help
+    ) {
     width: 450px;
   }
   body[data-laguna-page="explore"] .map-section {
@@ -1428,6 +1437,222 @@ body[data-laguna-page="own"] .workspace {
 }
 
 /* Comparación de personas: espacio independiente y responsive. */
+/* Publicar: pasos Laguna 38:839–38:1121; los campos conservan sus ID y controladores. */
+body[data-laguna-page="publish"] .draft-section {
+  width: min(calc(100% - 40px), 1248px);
+  margin: 30px auto 60px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  color: #193644;
+  font-family: "Laguna Outfit", sans-serif;
+}
+body[data-laguna-page="publish"] .draft-section > .eyebrow {
+  display: none;
+}
+body[data-laguna-page="publish"] #draft-title {
+  margin: 0 0 4px;
+  font-size: clamp(25px, 3vw, 34px);
+}
+body[data-laguna-page="publish"] #draft-help {
+  margin: 0;
+  color: #607886;
+  font-size: 15px;
+}
+.publish-progress {
+  display: flex;
+  gap: clamp(16px, 4vw, 60px);
+  padding: 0;
+  margin: 36px 0 26px;
+  list-style: none;
+}
+.publish-progress li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #607886;
+  font-size: 14px;
+  font-weight: 600;
+}
+.publish-progress span {
+  display: grid;
+  place-items: center;
+  width: 33px;
+  height: 33px;
+  border-radius: 50%;
+  background: #e6ecf0;
+  color: #8b9ca6;
+}
+.publish-progress [data-active="true"] {
+  color: #193644;
+}
+.publish-progress [data-active="true"] span,
+.publish-progress [data-complete="true"] span {
+  background: #0c747c;
+  color: #fff;
+}
+.publish-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 803px) minmax(280px, 417px);
+  gap: 28px;
+  align-items: start;
+}
+body[data-laguna-page="publish"] #draft-form {
+  display: block;
+  min-width: 0;
+  padding: 28px;
+  border: 1px solid #dee7ec;
+  border-radius: 20px;
+  background: #fff;
+}
+#draft-form[data-publish-step="1"] > [data-publish-step]:not([data-publish-step="1"]),
+#draft-form[data-publish-step="2"] > [data-publish-step]:not([data-publish-step="2"]),
+#draft-form[data-publish-step="3"] > [data-publish-step]:not([data-publish-step="3"]) {
+  display: none !important;
+}
+#draft-form [data-publish-step][hidden] {
+  display: none !important;
+}
+.publish-step-heading h3 {
+  margin: 0 0 6px;
+  font-size: 24px;
+}
+.publish-step-heading p {
+  margin: 0 0 16px;
+  color: #607886;
+  font-size: 14px;
+}
+.publish-categories {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px 24px;
+  margin-bottom: 18px;
+}
+.publish-categories button {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr);
+  column-gap: 8px;
+  align-items: center;
+  min-height: 73px;
+  padding: 10px;
+  border: 1px solid #dee7ec;
+  border-radius: 14px;
+  background: #fff;
+  text-align: left;
+}
+.publish-categories button[aria-pressed="true"] {
+  border-color: #0c747c;
+  background: #eaf7f3;
+}
+.publish-categories img {
+  grid-row: span 2;
+  width: 36px;
+  height: 36px;
+  object-fit: cover;
+}
+.publish-categories strong {
+  color: #193644;
+  font-size: 13px;
+}
+.publish-categories small {
+  color: #607886;
+  font-size: 11px;
+}
+body[data-laguna-page="publish"] #draft-form > .publication-fields {
+  display: block;
+}
+body[data-laguna-page="publish"] #draft-form > .publication-fields > .field:first-child {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+body[data-laguna-page="publish"] #draft-form > :is(fieldset, .publication-fields) {
+  margin: 0 0 18px;
+}
+body[data-laguna-page="publish"] .publish-step-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 20px;
+}
+.publish-step-actions button {
+  min-height: 48px;
+  padding: 0 20px;
+  border: 0;
+  border-radius: 12px;
+  background: #f5c65e;
+  color: #193644;
+  font-weight: 700;
+}
+.publish-step-actions .secondary-button {
+  background: #eaf7f3;
+}
+.publish-step-actions [hidden] {
+  display: none;
+}
+.publish-guidance {
+  min-height: 491px;
+  padding: 30px 25px;
+  border-radius: 20px;
+  background: #eaf7f3;
+}
+.publish-guidance h3 {
+  margin: 0 0 20px;
+  font-size: 26px;
+}
+.publish-guidance p {
+  color: #607886;
+}
+.publish-guidance div {
+  display: grid;
+  gap: 5px;
+  padding: 16px;
+  margin-top: 13px;
+  border-radius: 12px;
+  background: #fff;
+}
+.publish-guidance small {
+  color: #607886;
+}
+.publish-review {
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: #f8fafc;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 800px) {
+  .publish-layout {
+    grid-template-columns: 1fr;
+  }
+  .publish-guidance {
+    min-height: 0;
+  }
+  .publish-progress {
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .publish-progress li {
+    font-size: 12px;
+  }
+  .publish-progress span {
+    width: 27px;
+    height: 27px;
+  }
+}
+@media (max-width: 430px) {
+  .publish-categories {
+    gap: 10px;
+  }
+  .publish-categories button {
+    padding: 7px;
+  }
+  .publish-categories strong {
+    font-size: 11px;
+  }
+}
 .missing-match-workspace {
   display: none;
   width: min(1244px, calc(100% - 40px));

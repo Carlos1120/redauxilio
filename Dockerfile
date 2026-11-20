@@ -7,10 +7,12 @@ RUN chmod +x mvnw
 COPY src src
 RUN mvn -B -DskipTests package
 
-FROM maven:3.9.11-eclipse-temurin-21
+# La imagen de ejecución solo necesita Java; Maven queda en la etapa de compilación.
+FROM eclipse-temurin:21-jre
 WORKDIR /app
 RUN useradd --system --uid 10001 redauxilio
 COPY --from=build /workspace/target/redauxilio-*.jar /app/redauxilio.jar
 USER redauxilio
 EXPOSE 8080
-ENTRYPOINT ["java", "-XX:MaxRAMPercentage=70", "-jar", "/app/redauxilio.jar"]
+# En Render Free (512 MB), reservar RAM para metadatos, hilos y memoria nativa.
+ENTRYPOINT ["java", "-XX:MaxRAMPercentage=45", "-jar", "/app/redauxilio.jar"]

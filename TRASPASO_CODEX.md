@@ -18,4 +18,4 @@ Explorar usa directamente Leaflet en lugar de la ilustración SVG y del botón p
 
 ## Verificación y siguiente paso
 
-`npm test`: 184/184; `mvnw test -q` y `npm run format:check`: correctos tras la corrección. Revisar el CI del nuevo HEAD. Conservar las credenciales fuera del repositorio y solicitar revisión visual humana del PR #44.
+Las pruebas anteriores pasaron. Render reinició el servicio web por superar 512 MB de RAM; el 18,17 % de 1 GB corresponde al almacenamiento de PostgreSQL. Dockerfile propone JRE y heap de 45 %. Docker Desktop está pausado: faltan construcción, despliegue y métricas para confirmar el arreglo. Revisar CI y no subir credenciales.

@@ -15,6 +15,55 @@
   const progress = document.querySelector(".publish-progress");
   const mobile = window.matchMedia("(max-width: 800px)");
   let step = 0;
+  const requiredChoices = {
+    ASSISTANCE: ["assistance-subtype", "assistance-status"],
+    ROAD: ["road-impact", "road-status"],
+    HELP_REQUEST: ["help-need-type", "help-urgency"],
+    MISSING_PERSON: [],
+  };
+  const groups = new Map();
+  /* La selección accesible actualiza el mismo select que usa la petición al servidor. */
+  for (const id of [...new Set(Object.values(requiredChoices).flat())]) {
+    const select = document.getElementById(id);
+    const holder = document.createElement("div");
+    holder.className = "publish-choice-options";
+    holder.setAttribute("role", "group");
+    holder.setAttribute("aria-label", select.labels?.[0]?.textContent || id);
+    select.classList.add("publish-choice-native");
+    select.tabIndex = -1;
+    select.setAttribute("aria-hidden", "true");
+    for (const option of select.options) {
+      if (!option.value) continue;
+      const button = document.createElement("button");
+      button.type = "button";
+      button.textContent = option.textContent.toLocaleLowerCase("es").replace(/^./u, x => x.toLocaleUpperCase("es"));
+      button.dataset.choiceValue = option.value;
+      button.setAttribute("aria-pressed", "false");
+      button.addEventListener("click", () => {
+        select.value = option.value;
+        select.dispatchEvent(new Event("change", { bubbles: true }));
+        refreshChoices();
+      });
+      holder.append(button);
+    }
+    select.after(holder);
+    groups.set(id, holder);
+  }
+  function refreshChoices() {
+    for (const [id, holder] of groups)
+      for (const button of holder.querySelectorAll("button"))
+        button.setAttribute("aria-pressed", String(button.dataset.choiceValue === document.getElementById(id).value));
+  }
+  function validateChoice() {
+    for (const id of requiredChoices[category.value] || []) {
+      if (document.getElementById(id).value) continue;
+      stepError.textContent = "Selecciona una respuesta para " + document.querySelector('label[for="' + id + '"]').textContent + ".";
+      stepError.hidden = false;
+      groups.get(id)?.querySelector("button")?.focus();
+      return false;
+    }
+    return true;
+  }
 
   /** Recibe un paso válido y muestra solo sus campos; conserva los valores al volver. */
   function showStep(value) {
@@ -71,34 +120,48 @@
     next.hidden = step === 0 || step === 3;
     save.hidden = step === 0 || step === 3;
     if (step === 3) {
-      const location = document.getElementById("publication-location").value.trim();
-      const description = document.getElementById("draft-text").value.trim();
       review.replaceChildren();
       const heading = document.createElement("h4");
-      heading.textContent = "Tu reporte";
+      heading.textContent = "Así aparecerá tu reporte";
       review.append(heading);
-      for (const [label, value] of [
-        ["TIPO", category.selectedOptions[0]?.textContent || ""],
-        ["LUGAR", location],
-        ["INFORMACIÓN", description],
-      ]) {
+      const value = (id) => document.getElementById(id).value.trim();
+      const selected = (id) => document.getElementById(id).selectedOptions[0]?.textContent?.trim() || "";
+      const rows = [
+        ["CATEGORÍA", selected("publication-category")],
+        ["IDENTIFICACIÓN", value("publication-title")],
+        ["INFORMACIÓN", value("draft-text")],
+        ["UBICACIÓN", value("publication-location")],
+      ];
+      if (category.value === "ASSISTANCE") rows.push(["TIPO DE PUNTO", selected("assistance-subtype")], ["DISPONIBILIDAD DECLARADA", selected("assistance-status")]);
+      if (category.value === "ROAD") rows.push(["AFECTACIÓN", selected("road-impact")], ["TRANSITABILIDAD DECLARADA", selected("road-status")]);
+      if (category.value === "HELP_REQUEST") {
+        rows.push(["NECESIDAD", selected("help-need-type")], ["URGENCIA DECLARADA (NO OFICIAL)", selected("help-urgency")], ["ALIAS O COMUNIDAD", value("help-requester")]);
+        if (value("help-quantity")) rows.push(["CANTIDAD APROXIMADA", value("help-quantity")]);
+      }
+      if (category.value === "MISSING_PERSON") {
+        rows.push(["ÚLTIMA VEZ VISTA", value("missing-seen").replace("T", " ")]);
+        if (value("missing-age")) rows.push(["RANGO DE EDAD", value("missing-age")]);
+      }
+      for (const [label, data] of rows) {
         const row = document.createElement("div");
         const caption = document.createElement("small");
         const content = document.createElement("p");
         caption.textContent = label;
-        content.textContent = value || "Pendiente";
+        content.textContent = data || "Pendiente";
         row.append(caption, content);
         review.append(row);
       }
-      const edit = document.createElement("button");
-      edit.type = "button";
-      edit.textContent = "✎ Cambiar información";
-      edit.addEventListener("click", () => showStep(1));
-      review.append(edit);
+      for (const [label, target] of [["Corregir datos", 1], ["Corregir ubicación", 2]]) {
+        const edit = document.createElement("button");
+        edit.type = "button";
+        edit.textContent = "✎ " + label;
+        edit.addEventListener("click", () => showStep(target));
+        review.append(edit);
+      }
     }
     if (step === 2) window.RedAuxilioPublicationUI?.refreshLocationPreview?.();
     syncCategory();
-    if (step > 0) document.getElementById("draft-section")?.scrollIntoView({ block: "start" });
+    // No desplazar automáticamente: la cabecera y el progreso conservan su posición.
   }
 
   function syncCategory() {
@@ -114,6 +177,7 @@
         "aria-pressed",
         String(step > 0 && card.dataset.publishCategory === category.value),
       );
+    refreshChoices();
   }
   for (const card of cards)
     card.addEventListener("click", () => {
@@ -128,20 +192,14 @@
     if (step === 1) {
       const title = document.getElementById("publication-title");
       const description = document.getElementById("draft-text");
-      const general = category.value === "ASSISTANCE" || category.value === "ROAD";
-      // En las categorías generales, el primer resumen escrito completa el título técnico del reporte.
-      if (general) title.value = description.value.trim().replace(/\s+/gu, " ").slice(0, 120);
-      const missing = (general ? [description] : [title, description]).find(
-        (field) => !field.value.trim(),
-      );
+      const missing = [title, description].find((field) => !field.value.trim());
       if (missing) {
-        stepError.textContent = general
-          ? "Describe lo que sabes antes de continuar."
-          : "Completa el nombre o referencia y la descripción antes de continuar.";
+        stepError.textContent = "Completa la identificación y la descripción antes de continuar.";
         stepError.hidden = false;
         missing.focus();
         return;
       }
+      if (!validateChoice()) return;
       const specific = form.querySelector(
         category.value === "HELP_REQUEST"
           ? "#help-fields"
@@ -170,14 +228,10 @@
   });
   back.addEventListener("click", () => showStep(step - 1));
   save.addEventListener("click", () => {
-    if (category.value === "ASSISTANCE" || category.value === "ROAD")
-      document.getElementById("publication-title").value = document
-        .getElementById("draft-text")
-        .value.trim()
-        .replace(/\s+/gu, " ")
-        .slice(0, 120);
     form.requestSubmit();
   });
+  window.RedAuxilioPublishSteps = { reset: () => showStep(0), refresh: refreshChoices };
+  window.addEventListener("redauxilio:draft-restored", refreshChoices);
   showStep(0);
   syncCategory();
 })();

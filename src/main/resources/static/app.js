@@ -255,6 +255,13 @@ window.RedAuxilioPublicationUI = {
     if (selected) showReportDetail(selected, null, true);
   },
   loadPublications: () => loadPublications(),
+  /** Abre el detalle del elemento confirmado por el servidor, incluso si los filtros lo excluyen. */
+  openPublishedReport: (item) => {
+    if (!item?.id) return;
+    window.location.hash = "#search-section";
+    setAppPage("map", { focus: true });
+    showReportDetail(item, null, false);
+  },
   saveDraft: () => saveDraft(),
   // Al cerrar sesión elimina blobs privados de fotos y conserva el resto del borrador offline.
   clearEvidenceDraft: async () => {
@@ -646,10 +653,10 @@ executeDraftOperation("readonly", (store) => store.get("current"))
       getElement("longitude").value = draft.longitude;
       getElement("publication-category").value = draft.category || "ASSISTANCE";
       getElement("publication-title").value = draft.title || "";
-      getElement("assistance-subtype").value = draft.assistanceSubtype || "SHELTER";
-      getElement("assistance-status").value = draft.assistanceStatus || "DISPONIBLE";
-      getElement("road-impact").value = draft.roadImpact || "DERRUMBE";
-      getElement("road-status").value = draft.roadStatus || "BLOQUEADA";
+      getElement("assistance-subtype").value = draft.assistanceSubtype || "";
+      getElement("assistance-status").value = draft.assistanceStatus || "";
+      getElement("road-impact").value = draft.roadImpact || "";
+      getElement("road-status").value = draft.roadStatus || "";
       getElement("publication-location").value = draft.location || "";
       getElement("help-need-type").value = draft.needType || "";
       getElement("help-quantity").value = draft.approximateQuantity || "";
@@ -662,6 +669,7 @@ executeDraftOperation("readonly", (store) => store.get("current"))
       getElement("publication-category").dispatchEvent(new Event("change"));
       window.RedAuxilioPublicationUI?.refreshLocationPreview?.();
       window.RedAuxilioPublicationUI?.refreshPublicationProgress?.();
+      window.dispatchEvent(new Event("redauxilio:draft-restored"));
       getElement("draft-message").textContent = "Borrador local recuperado; no está publicado.";
     }
   })

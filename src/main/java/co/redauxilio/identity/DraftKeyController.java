@@ -44,7 +44,8 @@ class DraftKeyController {
         jdbc.update(
             "INSERT INTO citizen_draft_key(account_id,key_base64) VALUES (?,?)", id, generated);
       } catch (DuplicateKeyException concurrentCreation) {
-        // No sustituir la clave creada por otra petición; los borradores dependen de ella.
+        // Una petición concurrente pudo crearla antes: si no existe, propaga el error.
+        if (existingKeys(id).isEmpty()) throw concurrentCreation;
       }
       keys = existingKeys(id);
     }

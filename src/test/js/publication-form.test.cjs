@@ -119,7 +119,7 @@ function setup(status = 201, candidates = [], precheckGate = null) {
     context,
   );
   vm.runInNewContext(source, context);
-  return { get, requests, stats };
+  return { get, requests, stats, ui };
 }
 test("HELP_REQUEST envía datos propios, ABIERTA y CSRF; cambiar tipo desactiva campos ocultos", async () => {
   const h = setup();
@@ -230,7 +230,7 @@ test("seleccion en mapa invalida advertencia y motivo anteriores", async () => {
   await h.get("publish-report").listeners.click();
   h.get("duplicate-justification").value = "Motivo anterior";
   h.get("select-location").listeners.click();
-  h.stats.selectLocation(4.2, -73.7);
+  h.ui.chooseInlineMapPoint(4.2, -73.7, null);
   assert.equal(h.get("duplicate-warning").hidden, true);
   assert.equal(h.get("duplicate-justification").value, "");
   assert.equal(h.stats.cleared, 0);
@@ -245,7 +245,7 @@ test("cambio programatico pendiente impide POST con coordenadas antiguas", async
   const pending = h.get("publish-report").listeners.click();
   await new Promise(setImmediate);
   h.get("select-location").listeners.click();
-  h.stats.selectLocation(4.25, -73.75);
+  h.ui.chooseInlineMapPoint(4.25, -73.75, null);
   release();
   await pending;
   assert.equal(

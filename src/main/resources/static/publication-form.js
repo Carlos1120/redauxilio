@@ -206,10 +206,11 @@ for (const id of ["latitude", "longitude", "publication-location"]) {
 }
 updateLocationPreview();
 
+publicationUI.chooseInlineMapPoint = proposeLocation;
 publicationField("select-location").addEventListener("click", () => {
   locationMessage.textContent =
     "Marca un punto en el mapa de este formulario o arrastra el marcador para ajustarlo.";
-  publicationField("publication-location-map")?.scrollIntoView({ block: "nearest" });
+  publicationField("publication-location-map")?.scrollIntoView?.({ block: "nearest" });
 });
 publicationField("publication-coordinates-toggle").addEventListener("click", (event) => {
   const fields = publicationField("publication-coordinate-fields");
@@ -282,6 +283,7 @@ publicationField("search-place").addEventListener("click", async () => {
 /** Confirma éxito únicamente al recibir 201 del servidor; un fallo conserva el borrador. */
 publicationField("publish-report").addEventListener("click", async () => {
   const button = publicationField("publish-report");
+  if (lastCreatedPublication) return;
   if (publicationField("identity-open").dataset.authenticated !== "true") {
     publicationMessage.textContent =
       "Inicia sesión para publicar. Tu borrador permanece en este navegador.";
@@ -471,7 +473,7 @@ publicationField("publish-report").addEventListener("click", async () => {
     lastCreatedPublication = result;
     publicationField("publish-success").hidden = false;
     draftForm.hidden = true;
-    publicationMessage.textContent = `Publicación confirmada por el servidor.${draftWarning}`;
+    publicationMessage.textContent = `Publicación creada y confirmada por el servidor.${draftWarning}`;
   } catch (error) {
     const reason =
       error instanceof TypeError ||

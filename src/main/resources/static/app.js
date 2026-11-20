@@ -628,7 +628,7 @@ function restoreCurrentDraft() {
         getElement("publication-category").dispatchEvent(new Event("change"));
         window.RedAuxilioPublicationUI?.refreshLocationPreview?.();
         window.RedAuxilioPublicationUI?.refreshPublicationProgress?.();
-        window.dispatchEvent(new Event("redauxilio:draft-restored"));
+        window.dispatchEvent?.(new Event("redauxilio:draft-restored"));
         getElement("draft-message").textContent = "Borrador local recuperado; no está publicado.";
       }
     })

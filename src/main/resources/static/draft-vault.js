@@ -149,6 +149,8 @@
     if (epoch !== started || (owner.slot.startsWith("account:") && !authenticated()))
       throw new Error("La sesión cambió. No se guardó el borrador.");
     await transaction("readwrite", (store) => store.put(record, owner.slot));
+    if (epoch !== started || (owner.slot.startsWith("account:") && !authenticated()))
+      throw new Error("La sesión cambió mientras se guardaba el borrador.");
   }
 
   async function read() {
@@ -160,11 +162,16 @@
     if (!record) return null;
     // Se rechazan incluso los registros anónimos antiguos almacenados sin cifrar.
     if (!record.protected) throw new Error("El borrador no está cifrado y no puede abrirse.");
+    let draft;
     try {
-      return await unpack(record, owner.key);
+      draft = await unpack(record, owner.key);
     } catch {
       throw new Error("No se pudo recuperar el borrador: la sesión o la clave cambió.");
     }
+    // El descifrado es asíncrono: puede terminar después de cerrar o cambiar de cuenta.
+    if (epoch !== started || (owner.slot.startsWith("account:") && !authenticated()))
+      throw new Error("La sesión cambió mientras se recuperaba el borrador.");
+    return draft;
   }
 
   async function clear() {

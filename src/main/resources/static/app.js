@@ -603,9 +603,12 @@ getElement("open-publication")?.addEventListener("click", (event) => {
   event.preventDefault();
   setAppPage("publish", { updateHistory: true, focus: true });
 });
+let draftDisplayVersion = 0;
 function restoreCurrentDraft() {
+  const version = ++draftDisplayVersion;
   return window.RedAuxilioDraftVault.read()
     .then((draft) => {
+      if (version !== draftDisplayVersion) return;
       if (draft) {
         getElement("draft-text").value = draft.text;
         getElement("latitude").value = draft.latitude;
@@ -633,11 +636,14 @@ function restoreCurrentDraft() {
       }
     })
     .catch(() => {
-      getElement("draft-message").textContent = "Almacenamiento local no disponible.";
+      if (version === draftDisplayVersion)
+        getElement("draft-message").textContent =
+          "No se pudo recuperar el borrador. Comprueba la sesión y la conexión.";
     });
 }
 
 function clearLocalFormOnSessionChange() {
+  draftDisplayVersion++;
   getElement("draft-form").reset();
   getElement("draft-form").hidden = false;
   getElement("publish-success").hidden = true;

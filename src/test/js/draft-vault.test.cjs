@@ -14,7 +14,7 @@ const script = fs.readFileSync(
   "utf8",
 );
 
-function environment(storage = new Map(), session = new Map()) {
+function environment(storage = new Map(), session = new Map(), cryptoApi = webcrypto) {
   const state = { active: false, owner: "101", connected: true };
   const callbacks = new Map();
   const keys = new Map([
@@ -71,7 +71,7 @@ function environment(storage = new Map(), session = new Map()) {
     window,
     indexedDB: db,
     sessionStorage: localSession,
-    crypto: webcrypto,
+    crypto: cryptoApi,
     TextEncoder,
     TextDecoder,
     File,
@@ -166,4 +166,35 @@ test("la cuenta autenticada no obtiene su clave por primera vez sin conexión", 
   view.state.connected = false;
   await assert.rejects(view.vault.save({ text: "Prueba" }), /Conéctate/);
   assert.equal(view.storage.size, 0);
+});
+
+test("descifrado tardío no devuelve datos de otra sesión", async () => {
+  let resumeDecrypt;
+  let enteredDecrypt;
+  const entered = new Promise((resolve) => {
+    enteredDecrypt = resolve;
+  });
+  const delayedCrypto = {
+    getRandomValues: (bytes) => webcrypto.getRandomValues(bytes),
+    subtle: {
+      importKey: (...args) => webcrypto.subtle.importKey(...args),
+      encrypt: (...args) => webcrypto.subtle.encrypt(...args),
+      decrypt: async (...args) => {
+        await new Promise((resolve) => {
+          resumeDecrypt = resolve;
+          enteredDecrypt();
+        });
+        return webcrypto.subtle.decrypt(...args);
+      },
+    },
+  };
+  const view = environment(new Map(), new Map(), delayedCrypto);
+  view.state.active = true;
+  await view.vault.save({ text: "Privado de cuenta A", evidence: [] });
+  const pendingRead = view.vault.read();
+  await entered;
+  view.state.active = false;
+  view.update();
+  resumeDecrypt();
+  await assert.rejects(pendingRead, /La sesión cambió/);
 });

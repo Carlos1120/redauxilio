@@ -23,7 +23,7 @@ jobs:
       - run: npm ci
       - run: npm install --no-save --package-lock=false playwright
       - run: npx playwright install --with-deps chromium
-      - run: ./mvnw -B -q -DskipTests package
+      - run: chmod +x mvnw && ./mvnw -B -q -DskipTests package
       - name: Start isolated H2 service
         shell: bash
         run: |

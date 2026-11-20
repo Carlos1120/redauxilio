@@ -263,24 +263,12 @@ window.RedAuxilioPublicationUI = {
     showReportDetail(item, null, false);
   },
   saveDraft: () => saveDraft(),
-  // Al cerrar sesión elimina blobs privados de fotos y conserva el resto del borrador offline.
+  // El borrador de cuenta conserva fotos cifradas; solo se retiran los blobs en memoria.
   clearEvidenceDraft: async () => {
     window.RedAuxilioEvidenceDraft?.clear();
     window.__redauxilioDraftEvidence = [];
-    const db = await database;
-    await new Promise((resolve, reject) => {
-      const transaction = db.transaction("drafts", "readwrite");
-      const store = transaction.objectStore("drafts");
-      const request = store.get("current");
-      request.onsuccess = () => {
-        if (request.result) store.put({ ...request.result, evidence: [] }, "current");
-      };
-      transaction.oncomplete = resolve;
-      transaction.onerror = () => reject(transaction.error);
-      transaction.onabort = () => reject(transaction.error);
-    });
   },
-  clearDraft: () => executeDraftOperation("readwrite", (store) => store.delete("current")),
+  clearDraft: () => window.RedAuxilioDraftVault.clear(),
 };
 const resetMap = getElement("reset-map");
 if (resetMap) {
@@ -566,57 +554,28 @@ getElement("clear-filters").addEventListener("click", () => {
   syncQuickFilters();
   loadPublications();
 });
-// IndexedDB es almacenamiento de este navegador, separado de la caché HTTP y del servidor.
-// Se guarda un único borrador bajo la clave "current"; nunca se publica mediante esta operación.
-const database = new Promise((resolve, reject) => {
-  const request = indexedDB.open("redauxilio-demo", 1);
-  request.onupgradeneeded = () => request.result.createObjectStore("drafts");
-  request.onsuccess = () => resolve(request.result);
-  request.onerror = () => reject(request.error);
-});
-/** Ejecuta lectura/escritura local y solo confirma éxito cuando termina toda la transacción. */
-async function executeDraftOperation(mode, operation) {
-  const db = await database;
-  return new Promise((resolve, reject) => {
-    const transaction = db.transaction("drafts", mode);
-    const request = operation(transaction.objectStore("drafts"));
-    let result;
-    request.onsuccess = () => {
-      result = request.result;
-    };
-    // Éxito de la petición no basta: la transacción aún podría abortarse antes de confirmar cambios.
-    transaction.oncomplete = () => resolve(result);
-    transaction.onerror = () => reject(transaction.error);
-    transaction.onabort = () => reject(transaction.error);
-  });
-}
-/** Guarda todos los campos al confirmar la transacción local, incluso si el formulario está parcial. */
+/** El almacén cifra cada borrador de cuenta y separa los de visitantes. */
 function saveDraft() {
-  return executeDraftOperation("readwrite", (store) =>
-    store.put(
-      {
-        text: getElement("draft-text").value,
-        latitude: getElement("latitude").value,
-        longitude: getElement("longitude").value,
-        category: getElement("publication-category").value,
-        title: getElement("publication-title").value,
-        assistanceSubtype: getElement("assistance-subtype").value,
-        assistanceStatus: getElement("assistance-status").value,
-        roadImpact: getElement("road-impact").value,
-        roadStatus: getElement("road-status").value,
-        location: getElement("publication-location").value,
-        needType: getElement("help-need-type").value,
-        approximateQuantity: getElement("help-quantity").value,
-        declaredUrgency: getElement("help-urgency").value,
-        requesterReference: getElement("help-requester").value,
-        evidence:
-          window.RedAuxilioEvidenceDraft?.serialize() || window.__redauxilioDraftEvidence || [],
-        missingAge: getElement("missing-age").value,
-        missingSeen: getElement("missing-seen").value,
-      },
-      "current",
-    ),
-  );
+  return window.RedAuxilioDraftVault.save({
+text: getElement("draft-text").value,
+    latitude: getElement("latitude").value,
+    longitude: getElement("longitude").value,
+    category: getElement("publication-category").value,
+    title: getElement("publication-title").value,
+    assistanceSubtype: getElement("assistance-subtype").value,
+    assistanceStatus: getElement("assistance-status").value,
+    roadImpact: getElement("road-impact").value,
+    roadStatus: getElement("road-status").value,
+    location: getElement("publication-location").value,
+    needType: getElement("help-need-type").value,
+    approximateQuantity: getElement("help-quantity").value,
+    declaredUrgency: getElement("help-urgency").value,
+    requesterReference: getElement("help-requester").value,
+    evidence:
+      window.RedAuxilioEvidenceDraft?.serialize() || window.__redauxilioDraftEvidence || [],
+    missingAge: getElement("missing-age").value,
+    missingSeen: getElement("missing-seen").value,
+  });
 }
 getElement("draft-form").addEventListener("submit", async (event) => {
   event.preventDefault();
@@ -631,7 +590,7 @@ getElement("draft-form").addEventListener("submit", async (event) => {
 });
 getElement("discard").addEventListener("click", async () => {
   try {
-    await executeDraftOperation("readwrite", (store) => store.delete("current"));
+    await window.RedAuxilioDraftVault.clear();
     getElement("draft-form").reset();
     window.RedAuxilioEvidenceDraft?.clear();
     window.__redauxilioDraftEvidence = [];
@@ -645,7 +604,8 @@ getElement("open-publication")?.addEventListener("click", (event) => {
   event.preventDefault();
   setAppPage("publish", { updateHistory: true, focus: true });
 });
-executeDraftOperation("readonly", (store) => store.get("current"))
+function restoreCurrentDraft() {
+  return window.RedAuxilioDraftVault.read()
   .then((draft) => {
     if (draft) {
       getElement("draft-text").value = draft.text;
@@ -676,6 +636,22 @@ executeDraftOperation("readonly", (store) => store.get("current"))
   .catch(() => {
     getElement("draft-message").textContent = "Almacenamiento local no disponible.";
   });
+}
+
+function clearLocalFormOnSessionChange() {
+  getElement("draft-form").reset();
+  getElement("draft-form").hidden = false;
+  getElement("publish-success").hidden = true;
+  window.RedAuxilioEvidenceDraft?.clear();
+  window.__redauxilioDraftEvidence = [];
+  getElement("publication-category").dispatchEvent(new Event("change", { bubbles: true }));
+  window.RedAuxilioPublishSteps?.reset?.();
+  getElement("draft-message").textContent = "Se cambió de sesión. Solo se recuperarán los borradores autorizados.";
+  void restoreCurrentDraft();
+}
+void restoreCurrentDraft();
+window.addEventListener("redauxilio:identity-change", clearLocalFormOnSessionChange);
+window.addEventListener("redauxilio:draft-session-invalidated", clearLocalFormOnSessionChange);
 const identityDialog = getElement("identity-dialog");
 function setIdentityView(view) {
   const allowedViews = ["login", "register", "account"];

@@ -58,7 +58,7 @@
     }
     if (!response.ok) throw new Error("No se pudo verificar tu cuenta para proteger el borrador.");
     const data = await response.json();
-    if (!/^\\d+$/u.test(String(data.owner)) || !/^[A-Za-z0-9_-]{43}$/u.test(data.key || ""))
+    if (!/^\d+$/u.test(String(data.owner)) || !/^[A-Za-z0-9_-]{43}$/u.test(data.key || ""))
       throw new Error("Respuesta de seguridad no válida.");
     const base64 = data.key.replace(/-/gu, "+").replace(/_/gu, "/") + "=";
     const bytes = Uint8Array.from(atob(base64), (character) => character.charCodeAt(0));

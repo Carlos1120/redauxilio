@@ -103,6 +103,9 @@ class IdentitySecurityConfiguration {
                         // API.
                         "/laguna.css",
                         "/laguna-navigation.js",
+                        "/draft-vault.js",
+                        "/app-loader.js",
+                        "/laguna-ui.js",
                         // Solo recursos estaticos de Laguna; no contiene datos privados.
                         "/laguna-assets/**",
                         "/app.js",

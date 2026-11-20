@@ -100,22 +100,14 @@
     renderOverview();
   }
 
-  /** Lee solo el borrador de este navegador; nunca lo presenta como publicación del servidor. */
+  /** Recupera solo el borrador protegido del titular autenticado actual. */
   async function readLocalDraft() {
-    if (typeof indexedDB === "undefined") return null;
-    return new Promise((resolve) => {
-      const opening = indexedDB.open("redauxilio-demo", 1);
-      opening.onupgradeneeded = () => opening.result.createObjectStore("drafts");
-      opening.onerror = () => resolve(null);
-      opening.onsuccess = () => {
-        const db = opening.result;
-        const transaction = db.transaction("drafts", "readonly");
-        const request = transaction.objectStore("drafts").get("current");
-        request.onsuccess = () => resolve(request.result || null);
-        request.onerror = () => resolve(null);
-        transaction.oncomplete = () => db.close();
-      };
-    });
+    if (!authenticated()) return null;
+    try {
+      return await window.RedAuxilioDraftVault.read();
+    } catch {
+      return null;
+    }
   }
 
   /** Construye las tarjetas Laguna con texto seguro y acciones que abren la gestión existente. */

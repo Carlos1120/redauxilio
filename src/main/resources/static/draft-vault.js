@@ -49,7 +49,8 @@
       // Una visita anónima no tiene identidad comprobable: su clave solo dura la sesión
       // de esta pestaña. El borrador puede recuperarse offline durante esa sesión.
       if (visitorScope) return visitorScope;
-      if (!crypto?.subtle) throw new Error("Se necesita una conexión segura para guardar borradores.");
+      if (!crypto?.subtle)
+        throw new Error("Se necesita una conexión segura para guardar borradores.");
       let encoded = sessionStorage.getItem("redauxilio:visitor-draft-key");
       if (!encoded) {
         const generated = crypto.getRandomValues(new Uint8Array(32));
@@ -169,7 +170,8 @@
   async function clear() {
     const started = epoch;
     const owner = await scope();
-    if (epoch !== started || (owner.slot.startsWith("account:") && !authenticated())) throw new Error("La sesión cambió.");
+    if (epoch !== started || (owner.slot.startsWith("account:") && !authenticated()))
+      throw new Error("La sesión cambió.");
     await transaction("readwrite", (store) => store.delete(owner.slot));
   }
 

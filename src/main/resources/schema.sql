@@ -8,6 +8,13 @@ CREATE TABLE IF NOT EXISTS citizen_account (
   created_at TIMESTAMP WITH TIME ZONE NOT NULL
 );
 
+-- Clave AES asociada a cada cuenta; no se conserva en IndexedDB ni en la caché HTTP.
+CREATE TABLE IF NOT EXISTS citizen_draft_key (
+  account_id BIGINT PRIMARY KEY REFERENCES citizen_account(id),
+  key_base64 VARCHAR(64) NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
 -- RA-16 conserva el estado administrativo separado del bloqueo temporal por intentos fallidos.
 CREATE TABLE IF NOT EXISTS account_restriction (
   account_id BIGINT PRIMARY KEY REFERENCES citizen_account(id),

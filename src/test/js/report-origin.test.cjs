@@ -197,7 +197,7 @@ test("mapa y rótulos estáticos describen una consulta de origen mixto", () => 
     "utf8",
   );
   const map = readFileSync(join(__dirname, "../../main/resources/static/map.js"), "utf8");
-  assert.match(template, /Ejemplos y publicaciones/u);
+  assert.match(template, /Reportes comunitarios/u);
   assert.match(template, /Mapa de reportes y publicaciones comunitarias/u);
   assert.match(map, /Ubicaciones de reportes\. El fondo cartográfico requiere conexión/u);
 });
@@ -464,6 +464,7 @@ test("movimiento sin copia conserva consulta previa y online vuelve a consultar 
   assert.match(ui.element("message").textContent, /almacenada/i);
   let requested;
   vm.runInContext("reportMap.bounds = () => ({south:4,west:-74,north:5,east:-73})", ui.context);
+  ui.element("report-map").dispatchEvent({ type: "pointerdown" });
   ui.context.fetch = async (url) => {
     if (url.startsWith("/api/publications?")) requested = url;
     return { ok: true, json: async () => [report(1000001)], headers: { get: () => null } };

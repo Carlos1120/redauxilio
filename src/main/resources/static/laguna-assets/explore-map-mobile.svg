@@ -1,0 +1,77 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="350" height="277" viewBox="0 0 350 277" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Mapa de contexto ilustrativo &#226;&#128;&#148; no es mapa real">
+<g clip-path="url(#clip0_0_121)">
+<rect width="350" height="277" rx="18" fill="#EDF1EF"/>
+<g id="Calle 0">
+<rect width="350" height="9" transform="translate(0 44.32)" fill="white"/>
+</g>
+<g id="Calle 1">
+<rect width="350" height="8" transform="translate(0 119.11)" fill="white"/>
+</g>
+<g id="Calle 2">
+<rect width="350" height="9" transform="translate(0 191.13)" fill="white"/>
+</g>
+<g id="Calle 3">
+<rect width="10" height="277" transform="translate(56)" fill="white"/>
+</g>
+<g id="Calle 4">
+<rect width="10" height="277" transform="translate(147)" fill="white"/>
+</g>
+<g id="Calle 5">
+<rect width="9" height="277" transform="translate(252)" fill="white"/>
+</g>
+<g id="Calle 6">
+<rect width="8" height="277" transform="translate(318.5)" fill="white"/>
+</g>
+<g id="Zona verde 1">
+<rect x="161" y="13.85" width="80.5" height="74.79" rx="15" fill="#CFE6DA"/>
+</g>
+<g id="Zona verde 2">
+<rect x="14" y="138.5" width="98" height="80.33" rx="16" fill="#D7EAD9"/>
+</g>
+<g id="R&#195;&#173;o &#194;&#183; vector cartogr&#195;&#161;fico" clip-path="url(#clip1_0_121)">
+<path id="Vector" opacity="0.85" d="M-20 227.14C51.6667 193.9 108.5 196.67 150.5 235.45C192.5 274.23 265.667 240.067 370 132.96" stroke-width="17" stroke-linecap="round" stroke="#B0D9E6"/>
+</g>
+<circle id="Marcador" cx="109.5" cy="79.44" r="18.5" fill="#E45E62"/>
+<g id="Icono de l&#195;&#173;nea &#194;&#183; pin" clip-path="url(#clip2_0_121)">
+<g id="ECO RITMO &#194;&#183; locate">
+<path id="Vector_2" d="M114.5 77.94C114.5 80.9776 112.038 83.44 109 83.44C105.962 83.44 103.5 80.9776 103.5 77.94C103.5 74.9024 105.962 72.44 109 72.44C112.038 72.44 114.5 74.9024 114.5 77.94Z" stroke-width="1.69583" stroke-linecap="round" stroke-linejoin="round" stroke="#203547"/>
+<path id="Vector_3" d="M109 68.7733V72.44M109 83.44V87.1067M99.8333 77.94H103.5M114.5 77.94H118.167" stroke-width="1.69583" stroke-linecap="round" stroke-linejoin="round" stroke="#203547"/>
+<path id="Vector_4" d="M109 79.7733C110.013 79.7733 110.833 78.9525 110.833 77.94C110.833 76.9275 110.013 76.1067 109 76.1067C107.987 76.1067 107.167 76.9275 107.167 77.94C107.167 78.9525 107.987 79.7733 109 79.7733Z" fill="#D7262E"/>
+</g>
+</g>
+<circle id="Marcador_2" cx="243.5" cy="168.35" r="16" fill="#117C83"/>
+<g id="Icono de l&#195;&#173;nea &#194;&#183; route" clip-path="url(#clip3_0_121)">
+<g id="ECO RITMO &#194;&#183; road">
+<path id="Vector_5" d="M239.833 159.725L237.458 173.975M246.167 159.725L248.542 173.975M243 161.308V163.683M243 166.85V169.225M243 172.392V173.975" stroke-width="1.46458" stroke-linecap="round" stroke-linejoin="round" stroke="#203547"/>
+<path id="Vector_6" d="M238.25 171.6H247.75" stroke-width="1.74167" stroke-linecap="round" stroke-linejoin="round" stroke="#D7262E"/>
+</g>
+</g>
+<circle id="Marcador_3" cx="288" cy="78.71" r="15" fill="#2A9A84"/>
+<g id="Icono de l&#195;&#173;nea &#194;&#183; home" clip-path="url(#clip4_0_121)">
+<g id="ECO RITMO &#194;&#183; shelter">
+<path id="Vector_7" d="M281.25 76.21L288 70.96L294.75 76.21V83.71C294.75 83.9089 294.671 84.0997 294.53 84.2403C294.39 84.381 294.199 84.46 294 84.46H282C281.801 84.46 281.61 84.381 281.47 84.2403C281.329 84.0997 281.25 83.9089 281.25 83.71V76.21Z" stroke-width="1.3875" stroke-linecap="round" stroke-linejoin="round" stroke="#203547"/>
+<path id="Vector_8" d="M284.25 82.21V78.46M291.75 82.21V78.46M284.25 79.96H291.75" stroke-width="1.3875" stroke-linecap="round" stroke-linejoin="round" stroke="#203547"/>
+<path id="Vector_9" d="M284.25 82.21H291.75" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" stroke="#D7262E"/>
+</g>
+</g>
+</g>
+</g>
+<defs>
+<clipPath id="clip0_0_121">
+<rect width="350" height="277" rx="18" fill="white"/>
+</clipPath>
+<clipPath id="clip1_0_121">
+<rect width="350" height="277" fill="white"/>
+</clipPath>
+<clipPath id="clip2_0_121">
+<rect width="22" height="22" fill="white" transform="translate(98 66.94)"/>
+</clipPath>
+<clipPath id="clip3_0_121">
+<rect width="19" height="19" fill="white" transform="translate(233.5 157.35)"/>
+</clipPath>
+<clipPath id="clip4_0_121">
+<rect width="18" height="18" fill="white" transform="translate(279 68.71)"/>
+</clipPath>
+</defs>
+</svg>

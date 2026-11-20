@@ -16,7 +16,7 @@ function setAppPage(page, { updateHistory = false, focus = false } = {}) {
     if (link.dataset.appPageLink === selected) link.setAttribute("aria-current", "page");
     else link.removeAttribute("aria-current");
   }
-  getElement("search-query").closest(".header-search").hidden = selected !== "map";
+  getElement("search-query").closest(".explore-search").hidden = selected !== "map";
   if (updateHistory) history.pushState({ appPage: selected }, "", `#page-${selected}`);
   if (selected === "map") reportMap?.invalidateSize?.();
   if (selected === "publish") window.RedAuxilioPublicationUI?.refreshLocationPreview?.();
@@ -60,6 +60,13 @@ let hasValidPublicQuery = false;
 let currentQueryMessage = "";
 let currentSourceMessage = "";
 let suppressFocusReturn = false;
+let exploreMapMovedByUser = false;
+// Solo una interacción explícita con Leaflet activa el filtro geográfico.
+for (const type of ["pointerdown", "wheel", "keydown"]) {
+  getElement("report-map")?.addEventListener(type, () => {
+    exploreMapMovedByUser = true;
+  });
+}
 /** El panel usa el objeto ya consultado; en ancho estrecho conserva el diálogo modal. */
 function showReportDetail(item, trigger, initial = false) {
   window.RedAuxilioAuthorizedContact?.clear();
@@ -222,6 +229,7 @@ getElement("report-detail").addEventListener("close", () => {
 });
 const reportMap = window.RedAuxilioMap?.create(
   () => {
+    if (document.querySelector(".explore-map-panel") && !exploreMapMovedByUser) return;
     // Debounce: espera 250 ms tras el último movimiento para no consultar por cada desplazamiento.
     clearTimeout(mapQueryTimer);
     mapQueryTimer = setTimeout(loadPublications, 250);
@@ -267,10 +275,10 @@ window.RedAuxilioPublicationUI = {
   },
   clearDraft: () => executeDraftOperation("readwrite", (store) => store.delete("current")),
 };
-const resetMapButton = getElement("reset-map");
-if (resetMapButton) {
-  resetMapButton.disabled = !reportMap;
-  resetMapButton.addEventListener("click", () => reportMap?.reset());
+const resetMap = getElement("reset-map");
+if (resetMap) {
+  resetMap.disabled = !reportMap;
+  resetMap.addEventListener("click", () => reportMap?.reset());
 }
 function createReportElement(tag, className, text) {
   const element = document.createElement(tag);
@@ -278,6 +286,16 @@ function createReportElement(tag, className, text) {
   // Trata los datos como texto, no como HTML ejecutable que pudiera introducir un reporte.
   element.textContent = text;
   return element;
+}
+/** Resume la fecha del servidor en la tarjeta; la fecha completa sigue disponible en el detalle. */
+function describeRelativeDate(value) {
+  const minutes = Math.max(0, Math.floor((Date.now() - new Date(value).getTime()) / 60000));
+  if (!Number.isFinite(minutes)) return "Fecha no disponible";
+  if (minutes < 60) return `Hace ${Math.max(1, minutes)} min`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `Hace ${hours} ${hours === 1 ? "hora" : "horas"}`;
+  const days = Math.floor(hours / 24);
+  return `Hace ${days} ${days === 1 ? "día" : "días"}`;
 }
 /** Actualiza mapa y tarjetas con el mismo subconjunto visible, después de filtros y búsqueda local. */
 function renderPublications(items) {
@@ -298,6 +316,7 @@ function renderPublications(items) {
   for (const item of items) {
     const card = createReportElement("article", "card", "");
     card.dataset.reportId = String(item.id);
+    card.dataset.category = item.category;
     const header = createReportElement("div", "report-header", "");
     header.append(
       createReportElement("span", "tag", categoryLabels[item.category]),
@@ -367,6 +386,15 @@ function renderPublications(items) {
       facts,
       date,
     );
+    const status = createReportElement(
+      "span",
+      "explore-card-status",
+      item.confidenceLevel === "VERIFICADA" ? "Verificado" : "Sin verificar",
+    );
+    card.append(status);
+    card.append(
+      createReportElement("span", "explore-card-time", describeRelativeDate(item.updatedAt)),
+    );
     const detail = createReportElement("button", "secondary-button", "Ver detalle");
     detail.type = "button";
     detail.setAttribute("aria-label", `Ver detalle de ${item.title}`);
@@ -374,7 +402,9 @@ function renderPublications(items) {
     card.append(detail);
     getElement("publications").append(card);
   }
-  const selected = items.find((item) => item.id === selectedReportId) ?? items[0];
+  const selected =
+    items.find((item) => item.id === selectedReportId) ??
+    (document.querySelector(".explore-map-panel") ? undefined : items[0]);
   if (selected) showReportDetail(selected, null, true);
   else {
     selectedReportId = undefined;
@@ -404,18 +434,37 @@ function renderSearchResults() {
 getElement("search-query").addEventListener("input", renderSearchResults);
 /** Mantiene las pastillas rápidas sincronizadas con el filtro avanzado de categoría. */
 function syncQuickFilters() {
-  for (const button of document.querySelectorAll(".quick-filters button")) {
+  for (const button of document.querySelectorAll(".quick-filters button[data-category]")) {
     button.setAttribute(
       "aria-pressed",
       String(button.dataset.category === getElement("category").value),
     );
   }
 }
-for (const button of document.querySelectorAll(".quick-filters button")) {
+for (const button of document.querySelectorAll(".quick-filters button[data-category]")) {
   button.addEventListener("click", () => {
     getElement("category").value = button.dataset.category;
     syncQuickFilters();
     loadPublications();
+  });
+}
+/** Abre el formulario existente desde los controles compactos de Figma. */
+for (const trigger of document.querySelectorAll(".explore-filter-trigger, .explore-more-filters")) {
+  trigger.addEventListener("click", () => {
+    const panel = getElement("explore-filter-panel");
+    panel.open = !panel.open;
+    document
+      .querySelectorAll(".explore-filter-trigger, .explore-more-filters")
+      .forEach((button) => button.setAttribute("aria-expanded", String(panel.open)));
+  });
+}
+for (const button of document.querySelectorAll("[data-explore-view]")) {
+  button.addEventListener("click", () => {
+    const view = button.dataset.exploreView;
+    document.querySelector(".search-section").dataset.exploreView = view;
+    document
+      .querySelectorAll("[data-explore-view]")
+      .forEach((control) => control.setAttribute("aria-pressed", String(control === button)));
   });
 }
 /** Combina filtros independientes de confianza/revisión y área; comunica carga, error o caché. */
@@ -433,7 +482,7 @@ async function loadPublications() {
       reviewStatus: getElement("review-status").value,
       freshnessStatus: getElement("freshness-status").value,
       includeClosed: String(getElement("include-closed").checked),
-      ...reportMap?.bounds(),
+      ...(exploreMapMovedByUser ? reportMap?.bounds() : {}),
     });
     const response = await fetch(`/api/publications?${parameters}`);
     if (!response.ok) throw new Error("Consulta rechazada");
@@ -449,7 +498,8 @@ async function loadPublications() {
         (item) =>
           !getElement("freshness-status").value ||
           item.freshnessStatus === getElement("freshness-status").value,
-      );
+      )
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
     currentSourceMessage = savedAt
       ? `Consulta almacenada el ${new Date(savedAt).toLocaleString("es-CO")}; puede estar desactualizada.`
       : "Datos obtenidos del servidor.";
@@ -584,7 +634,7 @@ getElement("discard").addEventListener("click", async () => {
     getElement("draft-message").textContent = "No se pudo descartar el borrador.";
   }
 });
-getElement("open-publication").addEventListener("click", (event) => {
+getElement("open-publication")?.addEventListener("click", (event) => {
   event.preventDefault();
   setAppPage("publish", { updateHistory: true, focus: true });
 });

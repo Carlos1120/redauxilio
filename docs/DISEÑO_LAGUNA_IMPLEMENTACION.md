@@ -78,10 +78,29 @@ El filtro «Refugios» abrió Explorar, activó asistencia y mostró un resultad
 del servidor. Pruebas JS dirigidas Laguna: 11/11. Esta revisión automatizada
 no representa aceptación visual humana.
 
-Se identificaron los frames oficiales de Explorar Laguna `8:559` (390×844)
-y `8:648` (1366×880). Su mapa es ilustrativo; la implementación deberá
-conservar Leaflet y la geografía real. La comparación de ese módulo sigue
-pendiente y no se atribuye fidelidad a sus pantallas actuales.
+Explorar toma los frames Laguna `8:559` (390×844) y `8:648` (1366×880).
+La vista conserva la búsqueda, filtros y tarjetas compactas de Figma, pero
+muestra Leaflet directamente por petición del usuario. La lista sigue
+consultando la API: búsqueda y filtros modifican los reportes visibles, y
+cada tarjeta abre su detalle. El filtro por área solo se activa tras una
+interacción del usuario con el mapa. La
+cabecera compartida conserva «Encontrar personas» y la barra móvil conserva
+sus cinco destinos, añadidos después de esos frames. En 390 px se observaron
+mapa en `y=282`, primera tarjeta en `y=625` y ancho documental de 390 px;
+en 1366 px, el mapa comienza en `x=540, y=354`. El contenido de las tarjetas
+procede del servidor y cambia con las publicaciones; las capturas oficiales
+contienen datos de ejemplo fijos.
+
+Mis reportes toma los frames `30:389` (390×844) y `30:439` (1366×880).
+Reutiliza la cabecera global, presenta filtros Todos/Activos/Borradores,
+tarjetas con los pictogramas SVG originales y el panel lateral de consejos
+en escritorio. Las tarjetas usan publicaciones propias reales de la API y
+el único borrador IndexedDB del navegador; no se generan casos ficticios
+como si pertenecieran a la cuenta. Editar, cerrar/reabrir e historial abren
+los formularios privados existentes, cuya autorización sigue en el servidor.
+Se verificaron el inicio de sesión ciudadano local, la vista vacía y la
+composición a 390 y 1366 px. El quinto acceso «Encontrar personas» permanece
+en la navegación compartida, incorporado después de los frames originales.
 
 Inicio usa los SVG y fuentes originales de 4:248 y 6:311 guardados en `static/laguna-assets/`. En 360 y 768 px conserva la tarjeta blanca para reportar, la ilustración, las cuatro categorías ilustradas y la tarjeta de apoyo. Ajusta dimensiones y espacios sin adoptar los botones de texto ni la barra verde de 09C. Los accesos siguen activando los filtros públicos.
 

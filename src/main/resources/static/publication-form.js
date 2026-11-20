@@ -13,9 +13,10 @@ const locationPreviewStatus = publicationField("publication-location-status");
 let locationPreviewMap = null;
 let locationPreviewMarker = null;
 if (publicationField("publication-location-map") && window.L) {
+  // La vista previa comienza en Villavicencio para que el lugar pueda marcarse sin navegar a otro módulo.
   locationPreviewMap = window.L.map("publication-location-map", { scrollWheelZoom: false }).setView(
     [4.145, -73.625],
-    5,
+    13,
   );
   window.L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     maxZoom: 19,

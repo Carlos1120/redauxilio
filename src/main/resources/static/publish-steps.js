@@ -163,6 +163,8 @@
         rows.push(["ÚLTIMA VEZ VISTA", value("missing-seen").replace("T", " ")]);
         if (value("missing-age")) rows.push(["RANGO DE EDAD", value("missing-age")]);
       }
+      const attached = window.RedAuxilioEvidenceDraft?.serialize?.().length || 0;
+      if (attached) rows.push(["FOTOGRAFÍAS ADJUNTAS", String(attached)]);
       for (const [label, data] of rows) {
         const row = document.createElement("div");
         const caption = document.createElement("small");

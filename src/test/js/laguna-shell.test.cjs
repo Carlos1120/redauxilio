@@ -134,3 +134,10 @@ test("Los recursos visuales públicos de Inicio existen y están disponibles sin
     assert.ok(sw.includes(`"${asset}"`), `Falta ${asset} en la PWA`);
   }
 });
+
+test("enlaces compartidos activan Explorar antes de mostrar el detalle", () => {
+  assert.match(
+    app,
+    /El enlace compartido debe activar Explorar antes de abrir el detalle\.[\s\S]*?window\.location\.hash = "#search-section";[\s\S]*?setAppPage\("map", \{ focus: false \}\);[\s\S]*?showReportDetail\(item, getElement\("search-query"\)\)/,
+  );
+});

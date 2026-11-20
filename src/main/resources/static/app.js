@@ -744,7 +744,12 @@ if (linkedPublication && /^[1-9][0-9]*$/.test(linkedPublication)) {
       if (!response.ok) throw new Error("Caso no disponible");
       return response.json();
     })
-    .then((item) => showReportDetail(item, getElement("search-query")))
+    .then((item) => {
+      // El enlace compartido debe activar Explorar antes de abrir el detalle.
+      window.location.hash = "#search-section";
+      setAppPage("map", { focus: false });
+      showReportDetail(item, getElement("search-query"));
+    })
     .catch(() => {
       getElement("message").textContent = "La publicacion enlazada ya no esta disponible.";
     });

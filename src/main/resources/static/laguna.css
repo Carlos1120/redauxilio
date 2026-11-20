@@ -1619,7 +1619,11 @@ body[data-laguna-page="publish"] #draft-form {
 #draft-form[data-publish-step="0"] {
   min-height: 501px;
 }
-#draft-form[data-publish-step="0"] .publish-categories img { display: block; width: 38px; height: 38px; }
+#draft-form[data-publish-step="0"] .publish-categories img {
+  display: block;
+  width: 38px;
+  height: 38px;
+}
 #draft-form[data-publish-step="0"] .publish-categories strong {
   font-size: 18px;
 }
@@ -1891,7 +1895,9 @@ body[data-laguna-page="publish"] .publish-step-actions {
     display: block;
     margin: 0;
   }
-  body[data-laguna-page="publish"] .location-actions #select-location { display: inline-flex; }
+  body[data-laguna-page="publish"] .location-actions #select-location {
+    display: inline-flex;
+  }
   body[data-laguna-page="publish"] .location-actions #use-device-location {
     width: 100%;
     min-height: 48px;
@@ -1965,7 +1971,12 @@ body[data-laguna-page="publish"] .publish-step-actions {
     min-height: 90px;
     padding: 10px;
   }
-  #draft-form[data-publish-step="0"] .publish-categories img { display: block; width: 34px; height: 34px; object-fit: contain; }
+  #draft-form[data-publish-step="0"] .publish-categories img {
+    display: block;
+    width: 34px;
+    height: 34px;
+    object-fit: contain;
+  }
   #draft-form[data-publish-step="0"] .publish-categories strong {
     font-size: 13px;
   }
@@ -3562,19 +3573,98 @@ body[data-laguna-page="own"] #own-workspace {
 }
 
 /* Publicar Laguna: selección clara, accesible y coherente en todos los pasos. */
-#draft-form[data-publish-step="0"] .publish-categories em { display: none; }
-.publish-categories button:focus-visible { outline: 3px solid #f5c65e; outline-offset: 2px; }
-.publish-choice-native { position: absolute !important; width: 1px !important; height: 1px !important; overflow: hidden; clip-path: inset(50%); opacity: 0; pointer-events: none; }
-.publish-choice-options { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin: 9px 0 4px; }
-.publish-choice-options button { min-height: 50px; border: 1px solid #ccdce3; border-radius: 12px; background: #fff; color: #193644; padding: 10px 8px; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; overflow-wrap: anywhere; }
-.publish-choice-options button[aria-pressed="true"] { border: 2px solid #0c747c; background: #eaf7f3; }
-.publish-choice-options button:focus-visible { outline: 3px solid #f5c65e; outline-offset: 2px; }
-body[data-laguna-page="publish"] #publication-coordinate-fields:not(.is-open) { display: none; }
-#publication-coordinates-toggle { width: fit-content; min-height: 42px; }
-#draft-form[hidden], #publish-success[hidden] { display: none !important; }
-.publish-success { border: 1px solid #cde7dd; border-radius: 20px; background: #eaf7f3; padding: clamp(18px,3vw,34px); }
-.publish-success h3 { color: #0c747c; }
-.publish-success-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 18px; }
-.publish-success-actions button { padding: 12px 20px; min-height: 48px; border-radius: 12px; border: 0; background: #0c747c; color: #fff; font: inherit; font-weight: 700; }
-.publish-success-actions .secondary-button { background: #fff; color: #0c747c; border: 1px solid #0c747c; }
-@media (max-width: 430px) { .publish-choice-options { grid-template-columns: repeat(2, minmax(0, 1fr)); } .publish-choice-options button { font-size: 12px; } #draft-form[data-publish-step="0"] .publish-categories button { min-height: 125px; } }
+#draft-form[data-publish-step="0"] .publish-categories em {
+  display: none;
+}
+.publish-categories button:focus-visible {
+  outline: 3px solid #f5c65e;
+  outline-offset: 2px;
+}
+.publish-choice-native {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  overflow: hidden;
+  clip-path: inset(50%);
+  opacity: 0;
+  pointer-events: none;
+}
+.publish-choice-options {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin: 9px 0 4px;
+}
+.publish-choice-options button {
+  min-height: 50px;
+  border: 1px solid #ccdce3;
+  border-radius: 12px;
+  background: #fff;
+  color: #193644;
+  padding: 10px 8px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+.publish-choice-options button[aria-pressed="true"] {
+  border: 2px solid #0c747c;
+  background: #eaf7f3;
+}
+.publish-choice-options button:focus-visible {
+  outline: 3px solid #f5c65e;
+  outline-offset: 2px;
+}
+body[data-laguna-page="publish"] #publication-coordinate-fields:not(.is-open) {
+  display: none;
+}
+#publication-coordinates-toggle {
+  width: fit-content;
+  min-height: 42px;
+}
+#draft-form[hidden],
+#publish-success[hidden] {
+  display: none !important;
+}
+.publish-success {
+  border: 1px solid #cde7dd;
+  border-radius: 20px;
+  background: #eaf7f3;
+  padding: clamp(18px, 3vw, 34px);
+}
+.publish-success h3 {
+  color: #0c747c;
+}
+.publish-success-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 18px;
+}
+.publish-success-actions button {
+  padding: 12px 20px;
+  min-height: 48px;
+  border-radius: 12px;
+  border: 0;
+  background: #0c747c;
+  color: #fff;
+  font: inherit;
+  font-weight: 700;
+}
+.publish-success-actions .secondary-button {
+  background: #fff;
+  color: #0c747c;
+  border: 1px solid #0c747c;
+}
+@media (max-width: 430px) {
+  .publish-choice-options {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .publish-choice-options button {
+    font-size: 12px;
+  }
+  #draft-form[data-publish-step="0"] .publish-categories button {
+    min-height: 125px;
+  }
+}

@@ -30,10 +30,9 @@ class DraftKeyController {
   ResponseEntity<Map<String, String>> key(@AuthenticationPrincipal UserDetails citizen) {
     if (citizen == null) throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
     String email = citizen.getUsername().trim().toLowerCase(Locale.ROOT);
-    List<Long> ids = jdbc.query(
-        "SELECT id FROM citizen_account WHERE email = ?",
-        (rs, row) -> rs.getLong(1),
-        email);
+    List<Long> ids =
+        jdbc.query(
+            "SELECT id FROM citizen_account WHERE email = ?", (rs, row) -> rs.getLong(1), email);
     if (ids.isEmpty()) throw new ResponseStatusException(HttpStatus.NOT_FOUND);
     long id = ids.get(0);
     List<String> keys = existingKeys(id);

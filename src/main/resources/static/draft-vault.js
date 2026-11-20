@@ -29,7 +29,9 @@
       const tx = db.transaction(STORE, mode);
       const request = run(tx.objectStore(STORE));
       let value;
-      request.onsuccess = () => { value = request.result; };
+      request.onsuccess = () => {
+        value = request.result;
+      };
       tx.oncomplete = () => resolve(value);
       tx.onerror = () => reject(tx.error);
       tx.onabort = () => reject(tx.error);
@@ -54,7 +56,9 @@
         headers: { Accept: "application/json" },
       });
     } catch {
-      throw new Error("No se pudo verificar tu cuenta. Conéctate para guardar el borrador privado.");
+      throw new Error(
+        "No se pudo verificar tu cuenta. Conéctate para guardar el borrador privado.",
+      );
     }
     if (!response.ok) throw new Error("No se pudo verificar tu cuenta para proteger el borrador.");
     const data = await response.json();
@@ -63,7 +67,8 @@
     const base64 = data.key.replace(/-/gu, "+").replace(/_/gu, "/") + "=";
     const bytes = Uint8Array.from(atob(base64), (character) => character.charCodeAt(0));
     const key = await crypto.subtle.importKey("raw", bytes, { name: "AES-GCM" }, false, [
-      "encrypt", "decrypt",
+      "encrypt",
+      "decrypt",
     ]);
     bytes.fill(0);
     if (epoch !== expectedEpoch || !authenticated()) throw new Error("La sesión cambió.");
@@ -147,9 +152,10 @@
     await transaction("readwrite", (store) => store.delete(owner.slot));
   }
 
-  const channel = typeof BroadcastChannel === "function"
-    ? new BroadcastChannel("redauxilio-draft-session")
-    : null;
+  const channel =
+    typeof BroadcastChannel === "function"
+      ? new BroadcastChannel("redauxilio-draft-session")
+      : null;
   channel?.addEventListener("message", () => {
     forgetSession();
     window.dispatchEvent(new Event("redauxilio:draft-session-invalidated"));

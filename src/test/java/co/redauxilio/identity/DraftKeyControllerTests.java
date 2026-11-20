@@ -29,12 +29,24 @@ class DraftKeyControllerTests {
     accounts.create(a, "A", "hash", Instant.now());
     accounts.create(b, "B", "hash", Instant.now());
     mvc.perform(get("/api/my/draft-key")).andExpect(status().isUnauthorized());
-    String first = mvc.perform(get("/api/my/draft-key").with(user(a)))
-        .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
-    String again = mvc.perform(get("/api/my/draft-key").with(user(a)))
-        .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
-    String other = mvc.perform(get("/api/my/draft-key").with(user(b)))
-        .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+    String first =
+        mvc.perform(get("/api/my/draft-key").with(user(a)))
+            .andExpect(status().isOk())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+    String again =
+        mvc.perform(get("/api/my/draft-key").with(user(a)))
+            .andExpect(status().isOk())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+    String other =
+        mvc.perform(get("/api/my/draft-key").with(user(b)))
+            .andExpect(status().isOk())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
     assertEquals(mapper.readTree(first).get("key"), mapper.readTree(again).get("key"));
     assertNotEquals(mapper.readTree(first).get("key"), mapper.readTree(other).get("key"));
     assertNotEquals(mapper.readTree(first).get("owner"), mapper.readTree(other).get("owner"));

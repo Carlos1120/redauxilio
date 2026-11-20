@@ -557,7 +557,7 @@ getElement("clear-filters").addEventListener("click", () => {
 /** El almacén cifra cada borrador de cuenta y separa los de visitantes. */
 function saveDraft() {
   return window.RedAuxilioDraftVault.save({
-text: getElement("draft-text").value,
+    text: getElement("draft-text").value,
     latitude: getElement("latitude").value,
     longitude: getElement("longitude").value,
     category: getElement("publication-category").value,
@@ -571,8 +571,7 @@ text: getElement("draft-text").value,
     approximateQuantity: getElement("help-quantity").value,
     declaredUrgency: getElement("help-urgency").value,
     requesterReference: getElement("help-requester").value,
-    evidence:
-      window.RedAuxilioEvidenceDraft?.serialize() || window.__redauxilioDraftEvidence || [],
+    evidence: window.RedAuxilioEvidenceDraft?.serialize() || window.__redauxilioDraftEvidence || [],
     missingAge: getElement("missing-age").value,
     missingSeen: getElement("missing-seen").value,
   });
@@ -606,36 +605,36 @@ getElement("open-publication")?.addEventListener("click", (event) => {
 });
 function restoreCurrentDraft() {
   return window.RedAuxilioDraftVault.read()
-  .then((draft) => {
-    if (draft) {
-      getElement("draft-text").value = draft.text;
-      getElement("latitude").value = draft.latitude;
-      getElement("longitude").value = draft.longitude;
-      getElement("publication-category").value = draft.category || "ASSISTANCE";
-      getElement("publication-title").value = draft.title || "";
-      getElement("assistance-subtype").value = draft.assistanceSubtype || "";
-      getElement("assistance-status").value = draft.assistanceStatus || "";
-      getElement("road-impact").value = draft.roadImpact || "";
-      getElement("road-status").value = draft.roadStatus || "";
-      getElement("publication-location").value = draft.location || "";
-      getElement("help-need-type").value = draft.needType || "";
-      getElement("help-quantity").value = draft.approximateQuantity || "";
-      getElement("help-urgency").value = draft.declaredUrgency || "";
-      getElement("help-requester").value = draft.requesterReference || "";
-      window.__redauxilioDraftEvidence = Array.isArray(draft.evidence) ? draft.evidence : [];
-      window.RedAuxilioEvidenceDraft?.restore(window.__redauxilioDraftEvidence);
-      getElement("missing-age").value = draft.missingAge || "";
-      getElement("missing-seen").value = draft.missingSeen || "";
-      getElement("publication-category").dispatchEvent(new Event("change"));
-      window.RedAuxilioPublicationUI?.refreshLocationPreview?.();
-      window.RedAuxilioPublicationUI?.refreshPublicationProgress?.();
-      window.dispatchEvent(new Event("redauxilio:draft-restored"));
-      getElement("draft-message").textContent = "Borrador local recuperado; no está publicado.";
-    }
-  })
-  .catch(() => {
-    getElement("draft-message").textContent = "Almacenamiento local no disponible.";
-  });
+    .then((draft) => {
+      if (draft) {
+        getElement("draft-text").value = draft.text;
+        getElement("latitude").value = draft.latitude;
+        getElement("longitude").value = draft.longitude;
+        getElement("publication-category").value = draft.category || "ASSISTANCE";
+        getElement("publication-title").value = draft.title || "";
+        getElement("assistance-subtype").value = draft.assistanceSubtype || "";
+        getElement("assistance-status").value = draft.assistanceStatus || "";
+        getElement("road-impact").value = draft.roadImpact || "";
+        getElement("road-status").value = draft.roadStatus || "";
+        getElement("publication-location").value = draft.location || "";
+        getElement("help-need-type").value = draft.needType || "";
+        getElement("help-quantity").value = draft.approximateQuantity || "";
+        getElement("help-urgency").value = draft.declaredUrgency || "";
+        getElement("help-requester").value = draft.requesterReference || "";
+        window.__redauxilioDraftEvidence = Array.isArray(draft.evidence) ? draft.evidence : [];
+        window.RedAuxilioEvidenceDraft?.restore(window.__redauxilioDraftEvidence);
+        getElement("missing-age").value = draft.missingAge || "";
+        getElement("missing-seen").value = draft.missingSeen || "";
+        getElement("publication-category").dispatchEvent(new Event("change"));
+        window.RedAuxilioPublicationUI?.refreshLocationPreview?.();
+        window.RedAuxilioPublicationUI?.refreshPublicationProgress?.();
+        window.dispatchEvent(new Event("redauxilio:draft-restored"));
+        getElement("draft-message").textContent = "Borrador local recuperado; no está publicado.";
+      }
+    })
+    .catch(() => {
+      getElement("draft-message").textContent = "Almacenamiento local no disponible.";
+    });
 }
 
 function clearLocalFormOnSessionChange() {
@@ -646,7 +645,8 @@ function clearLocalFormOnSessionChange() {
   window.__redauxilioDraftEvidence = [];
   getElement("publication-category").dispatchEvent(new Event("change", { bubbles: true }));
   window.RedAuxilioPublishSteps?.reset?.();
-  getElement("draft-message").textContent = "Se cambió de sesión. Solo se recuperarán los borradores autorizados.";
+  getElement("draft-message").textContent =
+    "Se cambió de sesión. Solo se recuperarán los borradores autorizados.";
   void restoreCurrentDraft();
 }
 void restoreCurrentDraft();

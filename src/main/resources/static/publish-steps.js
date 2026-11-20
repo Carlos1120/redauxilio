@@ -36,7 +36,9 @@
       if (!option.value) continue;
       const button = document.createElement("button");
       button.type = "button";
-      button.textContent = option.textContent.toLocaleLowerCase("es").replace(/^./u, x => x.toLocaleUpperCase("es"));
+      button.textContent = option.textContent
+        .toLocaleLowerCase("es")
+        .replace(/^./u, (x) => x.toLocaleUpperCase("es"));
       button.dataset.choiceValue = option.value;
       button.setAttribute("aria-pressed", "false");
       button.addEventListener("click", () => {
@@ -52,12 +54,18 @@
   function refreshChoices() {
     for (const [id, holder] of groups)
       for (const button of holder.querySelectorAll("button"))
-        button.setAttribute("aria-pressed", String(button.dataset.choiceValue === document.getElementById(id).value));
+        button.setAttribute(
+          "aria-pressed",
+          String(button.dataset.choiceValue === document.getElementById(id).value),
+        );
   }
   function validateChoice() {
     for (const id of requiredChoices[category.value] || []) {
       if (document.getElementById(id).value) continue;
-      stepError.textContent = "Selecciona una respuesta para " + document.querySelector('label[for="' + id + '"]').textContent + ".";
+      stepError.textContent =
+        "Selecciona una respuesta para " +
+        document.querySelector('label[for="' + id + '"]').textContent +
+        ".";
       stepError.hidden = false;
       groups.get(id)?.querySelector("button")?.focus();
       return false;
@@ -125,17 +133,30 @@
       heading.textContent = "Así aparecerá tu reporte";
       review.append(heading);
       const value = (id) => document.getElementById(id).value.trim();
-      const selected = (id) => document.getElementById(id).selectedOptions[0]?.textContent?.trim() || "";
+      const selected = (id) =>
+        document.getElementById(id).selectedOptions[0]?.textContent?.trim() || "";
       const rows = [
         ["CATEGORÍA", selected("publication-category")],
         ["IDENTIFICACIÓN", value("publication-title")],
         ["INFORMACIÓN", value("draft-text")],
         ["UBICACIÓN", value("publication-location")],
       ];
-      if (category.value === "ASSISTANCE") rows.push(["TIPO DE PUNTO", selected("assistance-subtype")], ["DISPONIBILIDAD DECLARADA", selected("assistance-status")]);
-      if (category.value === "ROAD") rows.push(["AFECTACIÓN", selected("road-impact")], ["TRANSITABILIDAD DECLARADA", selected("road-status")]);
+      if (category.value === "ASSISTANCE")
+        rows.push(
+          ["TIPO DE PUNTO", selected("assistance-subtype")],
+          ["DISPONIBILIDAD DECLARADA", selected("assistance-status")],
+        );
+      if (category.value === "ROAD")
+        rows.push(
+          ["AFECTACIÓN", selected("road-impact")],
+          ["TRANSITABILIDAD DECLARADA", selected("road-status")],
+        );
       if (category.value === "HELP_REQUEST") {
-        rows.push(["NECESIDAD", selected("help-need-type")], ["URGENCIA DECLARADA (NO OFICIAL)", selected("help-urgency")], ["ALIAS O COMUNIDAD", value("help-requester")]);
+        rows.push(
+          ["NECESIDAD", selected("help-need-type")],
+          ["URGENCIA DECLARADA (NO OFICIAL)", selected("help-urgency")],
+          ["ALIAS O COMUNIDAD", value("help-requester")],
+        );
         if (value("help-quantity")) rows.push(["CANTIDAD APROXIMADA", value("help-quantity")]);
       }
       if (category.value === "MISSING_PERSON") {
@@ -151,7 +172,10 @@
         row.append(caption, content);
         review.append(row);
       }
-      for (const [label, target] of [["Corregir datos", 1], ["Corregir ubicación", 2]]) {
+      for (const [label, target] of [
+        ["Corregir datos", 1],
+        ["Corregir ubicación", 2],
+      ]) {
         const edit = document.createElement("button");
         edit.type = "button";
         edit.textContent = "✎ " + label;

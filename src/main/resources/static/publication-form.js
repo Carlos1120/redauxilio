@@ -181,7 +181,9 @@ function updateLocationPreview() {
   if (locationPreviewMap) {
     if (locationPreviewMarker) locationPreviewMarker.setLatLng([latitude, longitude]);
     else {
-      locationPreviewMarker = window.L.marker([latitude, longitude], { draggable: true }).addTo(locationPreviewMap);
+      locationPreviewMarker = window.L.marker([latitude, longitude], { draggable: true }).addTo(
+        locationPreviewMap,
+      );
       locationPreviewMarker.on("dragend", () => {
         const point = locationPreviewMarker.getLatLng();
         proposeLocation(point.lat, point.lng, null);
@@ -205,7 +207,8 @@ for (const id of ["latitude", "longitude", "publication-location"]) {
 updateLocationPreview();
 
 publicationField("select-location").addEventListener("click", () => {
-  locationMessage.textContent = "Marca un punto en el mapa de este formulario o arrastra el marcador para ajustarlo.";
+  locationMessage.textContent =
+    "Marca un punto en el mapa de este formulario o arrastra el marcador para ajustarlo.";
   publicationField("publication-location-map")?.scrollIntoView({ block: "nearest" });
 });
 publicationField("publication-coordinates-toggle").addEventListener("click", (event) => {
@@ -350,12 +353,13 @@ publicationField("publish-report").addEventListener("click", async () => {
         }
       : {}),
   };
-  const requiredSelections = {
-    ASSISTANCE: ["assistance-subtype", "assistance-status"],
-    ROAD: ["road-impact", "road-status"],
-    HELP_REQUEST: ["help-need-type", "help-urgency"],
-    MISSING_PERSON: [],
-  }[publicationCategory.value] || [];
+  const requiredSelections =
+    {
+      ASSISTANCE: ["assistance-subtype", "assistance-status"],
+      ROAD: ["road-impact", "road-status"],
+      HELP_REQUEST: ["help-need-type", "help-urgency"],
+      MISSING_PERSON: [],
+    }[publicationCategory.value] || [];
   if (requiredSelections.some((id) => !publicationField(id).value)) {
     publicationMessage.textContent = "Selecciona las opciones específicas antes de publicar.";
     return;
@@ -436,7 +440,9 @@ publicationField("publish-report").addEventListener("click", async () => {
     if (response.status === 401) throw new Error("La sesión terminó. Inicia sesión otra vez.");
     const result = await response.json().catch(() => ({}));
     if (response.status === 429)
-      throw new Error("Alcanzaste el límite de cinco publicaciones por hora. Tu borrador se conserva.");
+      throw new Error(
+        "Alcanzaste el límite de cinco publicaciones por hora. Tu borrador se conserva.",
+      );
     if (response.status !== 201)
       throw new Error(
         result.message ||
@@ -468,7 +474,8 @@ publicationField("publish-report").addEventListener("click", async () => {
     publicationMessage.textContent = `Publicación confirmada por el servidor.${draftWarning}`;
   } catch (error) {
     const reason =
-      error instanceof TypeError || /Failed to fetch|NetworkError|Load failed/i.test(error.message || "")
+      error instanceof TypeError ||
+      /Failed to fetch|NetworkError|Load failed/i.test(error.message || "")
         ? "No pudimos comunicarnos con el servidor. Comprueba la conexión e inténtalo de nuevo."
         : error.message || "No se pudo publicar.";
     publicationMessage.textContent =
@@ -483,7 +490,8 @@ publicationField("publish-report").addEventListener("click", async () => {
 
 /** El éxito conserva la publicación devuelta por HTTP 201; ninguna acción vuelve a enviarla. */
 publicationField("publish-view-created").addEventListener("click", () => {
-  if (lastCreatedPublication) window.RedAuxilioPublicationUI?.openPublishedReport?.(lastCreatedPublication);
+  if (lastCreatedPublication)
+    window.RedAuxilioPublicationUI?.openPublishedReport?.(lastCreatedPublication);
 });
 publicationField("publish-create-another").addEventListener("click", () => {
   lastCreatedPublication = null;
@@ -493,5 +501,6 @@ publicationField("publish-create-another").addEventListener("click", () => {
   syncPublicationCategory();
   window.RedAuxilioEvidenceDraft.clear();
   window.RedAuxilioPublishSteps?.reset?.();
-  publicationMessage.textContent = "Prepara un nuevo reporte. Ninguna categoría está preseleccionada.";
+  publicationMessage.textContent =
+    "Prepara un nuevo reporte. Ninguna categoría está preseleccionada.";
 });

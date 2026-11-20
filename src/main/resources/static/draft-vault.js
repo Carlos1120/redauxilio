@@ -8,6 +8,7 @@
   const DB_NAME = "redauxilio-secure-drafts";
   const STORE = "drafts";
   let accountScope = null;
+  let visitorScope = null;
   let epoch = 0;
   const authenticated = () =>
     document.getElementById("identity-open")?.dataset.authenticated === "true";
@@ -44,7 +45,27 @@
   }
 
   async function scope() {
-    if (!authenticated()) return { slot: "visitor", key: null };
+    if (!authenticated()) {
+      // Una visita anónima no tiene identidad comprobable: su clave solo dura la sesión
+      // de esta pestaña. El borrador puede recuperarse offline durante esa sesión.
+      if (visitorScope) return visitorScope;
+      if (!crypto?.subtle) throw new Error("Se necesita una conexión segura para guardar borradores.");
+      let encoded = sessionStorage.getItem("redauxilio:visitor-draft-key");
+      if (!encoded) {
+        const generated = crypto.getRandomValues(new Uint8Array(32));
+        encoded = btoa(String.fromCharCode(...generated));
+        sessionStorage.setItem("redauxilio:visitor-draft-key", encoded);
+        generated.fill(0);
+      }
+      const raw = Uint8Array.from(atob(encoded), (character) => character.charCodeAt(0));
+      const key = await crypto.subtle.importKey("raw", raw, { name: "AES-GCM" }, false, [
+        "encrypt",
+        "decrypt",
+      ]);
+      raw.fill(0);
+      visitorScope = { slot: "visitor", key };
+      return visitorScope;
+    }
     if (accountScope) return accountScope;
     if (!crypto?.subtle) throw new Error("El navegador no permite cifrar borradores privados.");
     const expectedEpoch = epoch;
@@ -123,8 +144,8 @@
   async function save(draft) {
     const started = epoch;
     const owner = await scope();
-    const record = owner.key ? await pack(draft, owner.key) : { version: 1, visitor: true, draft };
-    if (epoch !== started || (owner.key && !authenticated()))
+    const record = await pack(draft, owner.key);
+    if (epoch !== started || (owner.slot.startsWith("account:") && !authenticated()))
       throw new Error("La sesión cambió. No se guardó el borrador.");
     await transaction("readwrite", (store) => store.put(record, owner.slot));
   }
@@ -133,22 +154,22 @@
     const started = epoch;
     const owner = await scope();
     const record = await transaction("readonly", (store) => store.get(owner.slot));
-    if (epoch !== started || (owner.key && !authenticated()))
+    if (epoch !== started || (owner.slot.startsWith("account:") && !authenticated()))
       throw new Error("La sesión cambió. No se mostrará el borrador anterior.");
     if (!record) return null;
-    if (!owner.key) return record.visitor ? record.draft : null;
-    if (!record.protected) throw new Error("El borrador privado no está cifrado.");
+    // Se rechazan incluso los registros anónimos antiguos almacenados sin cifrar.
+    if (!record.protected) throw new Error("El borrador no está cifrado y no puede abrirse.");
     try {
       return await unpack(record, owner.key);
     } catch {
-      throw new Error("No se pudo descifrar el borrador de esta cuenta.");
+      throw new Error("No se pudo recuperar el borrador: la sesión o la clave cambió.");
     }
   }
 
   async function clear() {
     const started = epoch;
     const owner = await scope();
-    if (epoch !== started || (owner.key && !authenticated())) throw new Error("La sesión cambió.");
+    if (epoch !== started || (owner.slot.startsWith("account:") && !authenticated())) throw new Error("La sesión cambió.");
     await transaction("readwrite", (store) => store.delete(owner.slot));
   }
 

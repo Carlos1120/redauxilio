@@ -91,6 +91,17 @@ en 1366 px, el mapa comienza en `x=540, y=354`. El contenido de las tarjetas
 procede del servidor y cambia con las publicaciones; las capturas oficiales
 contienen datos de ejemplo fijos.
 
+Mis reportes toma los frames `30:389` (390×844) y `30:439` (1366×880).
+Reutiliza la cabecera global, presenta filtros Todos/Activos/Borradores,
+tarjetas con los pictogramas SVG originales y el panel lateral de consejos
+en escritorio. Las tarjetas usan publicaciones propias reales de la API y
+el único borrador IndexedDB del navegador; no se generan casos ficticios
+como si pertenecieran a la cuenta. Editar, cerrar/reabrir e historial abren
+los formularios privados existentes, cuya autorización sigue en el servidor.
+Se verificaron el inicio de sesión ciudadano local, la vista vacía y la
+composición a 390 y 1366 px. El quinto acceso «Encontrar personas» permanece
+en la navegación compartida, incorporado después de los frames originales.
+
 Inicio usa los SVG y fuentes originales de 4:248 y 6:311 guardados en `static/laguna-assets/`. En 360 y 768 px conserva la tarjeta blanca para reportar, la ilustración, las cuatro categorías ilustradas y la tarjeta de apoyo. Ajusta dimensiones y espacios sin adoptar los botones de texto ni la barra verde de 09C. Los accesos siguen activando los filtros públicos.
 
 Las familias Outfit, Atkinson Hyperlegible y Bricolage Grotesque se sirven localmente desde Google Fonts. Sus licencias SIL OFL originales se conservan junto a los archivos como `OFL-Outfit.txt`, `OFL-Atkinson.txt` y `OFL-Bricolage.txt` ([repositorio de fuentes](https://github.com/google/fonts/tree/main/ofl)).

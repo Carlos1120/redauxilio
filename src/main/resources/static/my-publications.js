@@ -13,7 +13,12 @@
   const stateForm = find("own-status-form");
   const states = find("own-next-state");
   const history = find("own-history");
+  const reportList = find("own-report-list");
+  const count = find("own-count");
   let mine = [];
+  let localDraft = null;
+  let activeFilter = "all";
+  let editorOpen = false;
   let sessionVersion = 0;
   let listVersion = 0;
   let historyVersion = 0;
@@ -45,6 +50,10 @@
   const current = () => mine.find((item) => String(item.id) === select.value);
   function notify(value) {
     message.textContent = value;
+    message.classList.toggle(
+      "is-error",
+      /no se pudo|debes iniciar|inicia sesión|sin conexión|fallo|error/i.test(value),
+    );
   }
 
   // Cada petición pertenece a una sesión y selección. Una respuesta tardía nunca repuebla el DOM.
@@ -82,10 +91,135 @@
     listVersion++;
     historyVersion++;
     mine = [];
+    localDraft = null;
+    editorOpen = false;
     saving = false;
     clearFields();
     select.disabled = false;
     refresh.disabled = false;
+    renderOverview();
+  }
+
+  /** Lee solo el borrador de este navegador; nunca lo presenta como publicación del servidor. */
+  async function readLocalDraft() {
+    if (typeof indexedDB === "undefined") return null;
+    return new Promise((resolve) => {
+      const opening = indexedDB.open("redauxilio-demo", 1);
+      opening.onupgradeneeded = () => opening.result.createObjectStore("drafts");
+      opening.onerror = () => resolve(null);
+      opening.onsuccess = () => {
+        const db = opening.result;
+        const transaction = db.transaction("drafts", "readonly");
+        const request = transaction.objectStore("drafts").get("current");
+        request.onsuccess = () => resolve(request.result || null);
+        request.onerror = () => resolve(null);
+        transaction.oncomplete = () => db.close();
+      };
+    });
+  }
+
+  /** Construye las tarjetas Laguna con texto seguro y acciones que abren la gestión existente. */
+  function renderOverview() {
+    reportList.replaceChildren();
+    const visible =
+      activeFilter === "draft"
+        ? []
+        : mine.filter((item) => activeFilter !== "active" || !item.closed);
+    const total = visible.length + (localDraft && activeFilter !== "active" ? 1 : 0);
+    count.textContent = `${total} ${total === 1 ? "publicación" : "publicaciones"}`;
+    for (const item of visible) {
+      const card = document.createElement("article");
+      card.className = "own-report-card";
+      const iconWrap = document.createElement("span");
+      iconWrap.className = "own-report-icon";
+      const icon = document.createElement("img");
+      const icons = {
+        ASSISTANCE: "own-shelter.svg",
+        ROAD: "own-road.svg",
+        HELP_REQUEST: "own-help.svg",
+        MISSING_PERSON: "publish-person.svg",
+      };
+      icon.src = `/laguna-assets/${icons[item.category] || "own-help.svg"}`;
+      icon.alt = "";
+      icon.width = 26;
+      icon.height = 26;
+      iconWrap.append(icon);
+      const identity = document.createElement("div");
+      identity.className = "own-report-identity";
+      const title = document.createElement("h4");
+      title.textContent = item.title;
+      const place = document.createElement("p");
+      const date = item.createdAt ? new Date(item.createdAt).toLocaleDateString("es-CO") : "";
+      place.textContent = [item.location, date].filter(Boolean).join(" · ");
+      const description = document.createElement("p");
+      description.className = "own-report-description";
+      description.textContent = item.description;
+      identity.append(title, place, description);
+      const state = document.createElement("span");
+      state.className = `own-report-state${item.closed ? " is-closed" : ""}`;
+      state.textContent = item.closed ? "Cerrado" : "Publicado";
+      const action = document.createElement("button");
+      action.type = "button";
+      action.className = "own-report-action";
+      action.textContent = item.closed
+        ? "Ver o reabrir  ›"
+        : item.category === "ROAD"
+          ? "Cerrar reporte  ›"
+          : "Editar reporte  ›";
+      action.addEventListener("click", () => {
+        select.value = String(item.id);
+        editorOpen = true;
+        showCurrent();
+        if (item.category === "ROAD" && !item.closed) states.value = "HABILITADA";
+        (item.category === "ROAD" && !item.closed ? stateForm : workspace).scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+      });
+      card.append(iconWrap, identity, state, action);
+      reportList.append(card);
+    }
+    if (localDraft && activeFilter !== "active") {
+      const card = document.createElement("article");
+      card.className = "own-report-card is-draft";
+      const iconWrap = document.createElement("span");
+      iconWrap.className = "own-report-icon";
+      const icon = document.createElement("img");
+      icon.src = "/laguna-assets/own-help.svg";
+      icon.alt = "";
+      icon.width = 26;
+      icon.height = 26;
+      iconWrap.append(icon);
+      const identity = document.createElement("div");
+      identity.className = "own-report-identity";
+      const title = document.createElement("h4");
+      title.textContent = localDraft.title || "Solicitud de ayuda";
+      const place = document.createElement("p");
+      place.textContent = "Sin publicar · Borrador";
+      const description = document.createElement("p");
+      description.className = "own-report-description";
+      description.textContent = "Borrador guardado en este dispositivo.";
+      identity.append(title, place, description);
+      const state = document.createElement("span");
+      state.className = "own-report-state is-draft";
+      state.textContent = "Borrador";
+      const action = document.createElement("a");
+      action.className = "own-report-action";
+      action.href = "#draft-section";
+      action.textContent = "Continuar  ›";
+      card.append(iconWrap, identity, state, action);
+      reportList.append(card);
+    }
+    if (!total) {
+      const empty = document.createElement("p");
+      empty.className = "own-empty";
+      empty.textContent = authenticated()
+        ? activeFilter === "draft"
+          ? "No hay borradores guardados en este dispositivo."
+          : "Aún no tienes publicaciones en esta vista."
+        : "Inicia sesión para ver tus reportes.";
+      reportList.append(empty);
+    }
   }
   async function receive(url, method = "GET", value = null, version = sessionVersion) {
     const ensureSession = () => {
@@ -261,7 +395,7 @@
 
   function showCurrent(withHistory = true) {
     const item = current();
-    workspace.hidden = !item;
+    workspace.hidden = !item || !editorOpen;
     if (!item) {
       clearFields();
       return;
@@ -339,6 +473,8 @@
       const result = await receive("/api/my/publications", "GET", null, version);
       if (!stillCurrent(version) || request !== listVersion) return;
       mine = result;
+      localDraft = await readLocalDraft();
+      if (!stillCurrent(version) || request !== listVersion) return;
       for (const item of mine) {
         const option = document.createElement("option");
         option.value = String(item.id);
@@ -348,6 +484,7 @@
       if (preferredId && mine.some((item) => item.id === preferredId))
         select.value = String(preferredId);
       showCurrent();
+      renderOverview();
       notify(
         mine.length
           ? "Selecciona tu publicación para actualizarla. Los cambios quedan auditados."
@@ -357,6 +494,7 @@
       if (stillCurrent(version) && request === listVersion) {
         mine = [];
         clearFields();
+        renderOverview();
         notify(error.message);
       }
     } finally {
@@ -423,6 +561,19 @@
   }
 
   refresh.addEventListener("click", () => void loadMine());
+  find("own-editor-close").addEventListener("click", () => {
+    editorOpen = false;
+    workspace.hidden = true;
+    find("own-title").scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+  for (const button of document.querySelectorAll("[data-own-filter]")) {
+    button.addEventListener("click", () => {
+      activeFilter = button.dataset.ownFilter;
+      for (const peer of document.querySelectorAll("[data-own-filter]"))
+        peer.setAttribute("aria-pressed", String(peer === button));
+      renderOverview();
+    });
+  }
   select.addEventListener("change", showCurrent);
   editForm.addEventListener("submit", (event) => {
     event.preventDefault();
@@ -504,6 +655,9 @@
     clearPrivate();
     if (event.detail.authenticated) void loadMine();
     else notify("Inicia sesión para ver tus publicaciones.");
+  });
+  window.addEventListener("hashchange", () => {
+    if (window.location.hash === "#own-section" && authenticated()) void loadMine();
   });
   window.addEventListener("offline", () => {
     clearPrivate();

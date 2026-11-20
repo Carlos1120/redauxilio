@@ -38,6 +38,11 @@ function harness(
       children: [],
       listeners: {},
       dataset: {},
+      classList: { toggle() {} },
+      scrollIntoView() {},
+      setAttribute(name, value) {
+        this[name] = value;
+      },
       addEventListener(name, fn) {
         this.listeners[name] = fn;
       },
@@ -45,9 +50,9 @@ function harness(
         this.children = children;
         this.value = "";
       },
-      append(child) {
-        this.children.push(child);
-        if (!this.value) this.value = child.value || "";
+      append(...children) {
+        this.children.push(...children);
+        if (!this.value) this.value = children[0]?.value || "";
       },
       querySelectorAll() {
         return this.id === "own-status-form"
@@ -63,6 +68,11 @@ function harness(
     if (!nodes.has(id)) nodes.set(id, Object.assign(element(), { id }));
     return nodes.get(id);
   };
+  const filterButtons = ["all", "active", "draft"].map((filter) => {
+    const button = find(`own-filter-${filter}`);
+    button.dataset.ownFilter = filter;
+    return button;
+  });
   find("identity-open").dataset.authenticated = String(authenticated);
   const listeners = new Map(),
     requests = [];
@@ -83,7 +93,11 @@ function harness(
   vm.runInNewContext(
     fs.readFileSync(path.join(__dirname, "../../main/resources/static/my-publications.js"), "utf8"),
     {
-      document: { getElementById: find, createElement: element },
+      document: {
+        getElementById: find,
+        createElement: element,
+        querySelectorAll: (selector) => (selector === "[data-own-filter]" ? filterButtons : []),
+      },
       window,
       navigator: { onLine: true },
       fetch: async (url, options) => {
@@ -436,4 +450,20 @@ test("persona propia encontrada sigue editable, reapertura motivada y no-op se a
   await h.session(false);
   assert.equal(h.find("own-missing-age").value, "");
   assert.equal(h.find("own-missing-seen").value, "");
+});
+
+test("la lista Laguna filtra publicaciones y abre el editor del reporte elegido", async () => {
+  const active = sample(1);
+  const closed = { ...sample(2), category: "ROAD", operationalStatus: "HABILITADA", closed: true };
+  const h = harness(true, async (url) =>
+    response(url.endsWith("/history") ? [] : [active, closed]),
+  );
+  await h.click("own-refresh");
+  assert.equal(h.find("own-report-list").children.length, 2);
+  await h.click("own-filter-active");
+  assert.equal(h.find("own-report-list").children.length, 1);
+  await h.click("own-filter-all");
+  h.find("own-report-list").children[0].children[3].listeners.click();
+  assert.equal(h.find("own-select").value, "1");
+  assert.equal(h.find("own-workspace").hidden, false);
 });

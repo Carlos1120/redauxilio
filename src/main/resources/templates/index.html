@@ -966,21 +966,56 @@
         hidden
       >
         <section id="own-section" class="draft-section" aria-labelledby="own-title">
-          <div class="section-heading">
-            <p class="eyebrow">GESTIÓN DEL AUTOR</p>
-            <h2 id="own-title">Mis publicaciones</h2>
-            <p>
-              Corrige información y actualiza estados de tus propios reportes. Los casos cerrados
-              siguen disponibles en el historial, pero no se editan sin reapertura.
+          <div class="own-mobile-banner" aria-hidden="true">Mis reportes</div>
+          <div class="own-intro">
+            <h2 id="own-title">
+              <span class="own-desktop-title">Mis reportes</span
+              ><span class="own-mobile-title">Tus publicaciones</span>
+            </h2>
+            <p class="own-desktop-intro">
+              Consulta, edita o cierra tus publicaciones cuando la situación haya cambiado.
             </p>
+            <p class="own-mobile-intro">Consulta y administra lo que has compartido.</p>
           </div>
-          <button type="button" id="own-refresh" class="secondary-button">
-            Cargar mis publicaciones
-          </button>
+          <div class="own-filters" role="group" aria-label="Filtrar mis reportes">
+            <button type="button" data-own-filter="all" aria-pressed="true">
+              <span class="own-filter-desktop">Todos los reportes</span
+              ><span class="own-filter-mobile">Todos</span>
+            </button>
+            <button type="button" data-own-filter="active" aria-pressed="false">Activos</button>
+            <button type="button" data-own-filter="draft" aria-pressed="false">Borradores</button>
+            <span id="own-count" aria-live="polite"></span>
+          </div>
+          <div class="own-list-heading">
+            <h3>Tus publicaciones recientes</h3>
+            <button type="button" id="own-refresh" class="secondary-button">Actualizar</button>
+          </div>
           <p id="own-message" role="status" aria-live="polite">
-            Necesitas iniciar sesión para consultar y actualizar tus publicaciones.
+            Inicia sesión para consultar tus publicaciones.
           </p>
+          <div class="own-overview">
+            <div id="own-report-list" class="own-report-list" aria-live="polite"></div>
+            <aside class="own-advice" aria-label="Consejos para mantener tus reportes">
+              <h3>Mantén tus reportes al día</h3>
+              <p>Si una situación cambia, actualiza la información para evitar confusiones.</p>
+              <div>
+                <strong>✓ Edita información antigua</strong
+                ><span>Incluye fecha y cambios relevantes.</span>
+              </div>
+              <div>
+                <strong>✓ Cierra reportes resueltos</strong
+                ><span>Pueden reabrirse si corresponde.</span>
+              </div>
+              <p>Los borradores no son visibles al público.</p>
+            </aside>
+          </div>
           <div id="own-workspace" hidden>
+            <div class="own-editor-heading">
+              <h3>Actualizar publicación</h3>
+              <button type="button" id="own-editor-close" class="secondary-button">
+                Volver a mis reportes
+              </button>
+            </div>
             <div class="field">
               <label for="own-select">Publicación que quieres actualizar</label>
               <select id="own-select"></select>

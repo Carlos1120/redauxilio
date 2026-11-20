@@ -2703,7 +2703,7 @@ body[data-laguna-page="verifier"] .verifier-workspace {
 }
 @media (max-width: 1199px) {
   .laguna-bottom-nav.has-role-destination {
-    grid-template-columns: repeat(5, minmax(0, 1fr));
+    grid-template-columns: repeat(6, minmax(0, 1fr));
   }
   .laguna-bottom-nav.has-role-destination > :is(a, button) {
     font-size: clamp(0.65rem, 1.8vw, 0.78rem);
@@ -3231,4 +3231,398 @@ body[data-laguna-page="explore"] .report-grid .card .report-date {
   color: #345065;
   font-size: 16px;
   line-height: 12px;
+}
+
+/* Mis reportes: frames oficiales Laguna 30:389 y 30:439. La lista resume
+   publicaciones reales y abre los formularios privados existentes bajo demanda. */
+body[data-laguna-page="own"] #page-own {
+  min-height: calc(100dvh - 89px);
+  padding: 0 0 64px;
+  background: #f8fafc;
+  font-family: "Laguna Outfit", sans-serif;
+}
+body[data-laguna-page="own"] #own-section {
+  width: min(calc(100% - 40px), 1248px);
+  max-width: 1248px;
+  margin: 0 auto;
+  padding: 39px 0 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  color: #1b303d;
+}
+.own-mobile-banner,
+.own-mobile-intro,
+.own-mobile-title,
+.own-filter-mobile {
+  display: none;
+}
+.own-intro h2 {
+  margin: 0;
+  font-size: 38px;
+  font-weight: 600;
+  line-height: 1.27;
+}
+.own-intro p {
+  margin: 2px 0 0;
+  color: #69808e;
+  font-size: 15px;
+}
+.own-filters {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  height: 62px;
+  margin-top: 27px;
+  padding: 0 18px;
+  border: 1px solid #dae6ed;
+  border-radius: 15px;
+  background: #fff;
+}
+body[data-laguna-page="own"] #page-own .own-filters button {
+  min-height: 25px;
+  height: 25px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 12px;
+  background: #f7fafc;
+  color: #1b303d;
+  font:
+    600 11px "Laguna Outfit",
+    sans-serif;
+  line-height: 25px;
+  text-align: left;
+  cursor: pointer;
+}
+body[data-laguna-page="own"] #page-own .own-filters button:first-child {
+  width: 159px;
+}
+body[data-laguna-page="own"] #page-own .own-filters button:nth-child(2) {
+  width: 104px;
+}
+body[data-laguna-page="own"] #page-own .own-filters button:nth-child(3) {
+  width: 127px;
+}
+body[data-laguna-page="own"] #page-own .own-filters button[aria-pressed="true"] {
+  background: #117d83;
+  color: #fff;
+}
+#own-count {
+  margin-left: auto;
+  color: #69808e;
+  font-size: 13px;
+}
+.own-list-heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 27px 0 17px;
+}
+.own-list-heading h3 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 600;
+}
+body[data-laguna-page="own"] #own-refresh {
+  min-height: 32px;
+  height: 32px;
+  margin-left: auto;
+  padding: 0 12px;
+  border: 1px solid #dae6ed;
+  border-radius: 10px;
+  background: #fff;
+  color: #0d6470;
+  font:
+    600 12px "Laguna Outfit",
+    sans-serif;
+}
+#own-message:not(.is-error) {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+#own-message.is-error {
+  margin: 12px 0;
+  color: #8d502b;
+}
+.own-overview {
+  display: grid;
+  grid-template-columns: minmax(0, 860px) minmax(280px, 356px);
+  gap: 31px;
+  align-items: start;
+}
+.own-report-list {
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+}
+.own-report-card {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr) 145px;
+  grid-template-rows: 1fr auto;
+  column-gap: 19px;
+  height: 129px;
+  padding: 13px 24px 18px 13px;
+  border: 1px solid #dae6ed;
+  border-radius: 16px;
+  background: #fff;
+}
+.own-report-icon {
+  grid-row: 1 / 3;
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: #e9f7f2;
+}
+.own-report-icon img {
+  display: block;
+  width: 26px;
+  height: 26px;
+}
+.own-report-identity {
+  grid-row: 1 / 3;
+  min-width: 0;
+}
+.own-report-identity h4 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 26px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.own-report-identity p {
+  margin: 2px 0 0;
+  color: #69808e;
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.own-report-identity .own-report-description {
+  margin-top: 20px;
+}
+.own-report-state {
+  align-self: start;
+  min-height: 25px;
+  padding: 5px 10px;
+  border-radius: 12px;
+  background: #e9f7f2;
+  color: #0d6470;
+  font-size: 11px;
+  font-weight: 600;
+}
+.own-report-state.is-draft {
+  background: #fff3d9;
+  color: #79561d;
+}
+.own-report-state.is-closed {
+  background: #edf2f5;
+  color: #526775;
+}
+body[data-laguna-page="own"] #page-own .own-report-action {
+  align-self: end;
+  min-height: 24px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #0d6470;
+  font:
+    600 13px "Laguna Outfit",
+    sans-serif;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+.own-advice {
+  display: grid;
+  gap: 12px;
+  min-height: 417px;
+  padding: 25px 22px 31px;
+  border-radius: 18px;
+  background: #e9f7f2;
+}
+.own-advice h3 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+}
+.own-advice > p {
+  margin: 0;
+  color: #69808e;
+  font-size: 14px;
+}
+.own-advice > p:last-child {
+  align-self: end;
+  color: #0d6470;
+  font-size: 12px;
+}
+.own-advice > div {
+  display: grid;
+  gap: 8px;
+  min-height: 82px;
+  padding: 16px;
+  border-radius: 13px;
+  background: #fff;
+}
+.own-advice strong {
+  font-size: 14px;
+  font-weight: 600;
+}
+.own-advice span {
+  color: #69808e;
+  font-size: 12px;
+}
+.own-empty {
+  margin: 0;
+  padding: 36px 24px;
+  border: 1px solid #dae6ed;
+  border-radius: 16px;
+  background: #fff;
+  color: #69808e;
+}
+body[data-laguna-page="own"] #own-workspace {
+  margin-top: 24px;
+}
+.own-editor-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.own-editor-heading h3 {
+  margin: 0;
+}
+@media (max-width: 1199px) {
+  .own-overview {
+    grid-template-columns: minmax(0, 1fr) minmax(260px, 32%);
+    gap: 20px;
+  }
+}
+@media (max-width: 760px) {
+  body[data-laguna-page="own"] #page-own {
+    padding-bottom: 90px;
+  }
+  body[data-laguna-page="own"] #own-section {
+    width: 100%;
+    padding: 0 20px;
+  }
+  .own-mobile-banner {
+    display: flex;
+    align-items: center;
+    height: 60px;
+    margin: 0 -20px;
+    padding: 0 20px;
+    background: #117d83;
+    color: #fff;
+    font-size: 22px;
+    font-weight: 600;
+  }
+  .own-intro {
+    margin-top: 26px;
+  }
+  .own-intro h2 {
+    font-size: 24px;
+    line-height: 30px;
+  }
+  .own-desktop-intro {
+    display: none;
+  }
+  .own-mobile-intro,
+  .own-mobile-title {
+    display: block;
+  }
+  .own-desktop-title {
+    display: none;
+  }
+  .own-intro p {
+    font-size: 12px;
+  }
+  .own-filters {
+    height: 25px;
+    margin-top: 13px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+  }
+  body[data-laguna-page="own"] #page-own .own-filters button {
+    flex: 1 1 auto;
+    width: auto;
+    background: #fff;
+  }
+  body[data-laguna-page="own"] #page-own .own-filters button:first-child {
+    width: 84px;
+  }
+  .own-filter-desktop {
+    display: none;
+  }
+  .own-filter-mobile {
+    display: inline;
+  }
+  body[data-laguna-page="own"] #page-own .own-filters button:nth-child(2) {
+    width: 89px;
+  }
+  body[data-laguna-page="own"] #page-own .own-filters button:nth-child(3) {
+    width: 130px;
+  }
+  #own-count,
+  .own-list-heading,
+  .own-advice {
+    display: none;
+  }
+  .own-overview {
+    display: block;
+    margin-top: 22px;
+  }
+  .own-report-list {
+    gap: 12px;
+  }
+  .own-report-card {
+    grid-template-columns: 42px minmax(0, 1fr);
+    grid-template-rows: 55px 1fr;
+    column-gap: 10px;
+    height: 135px;
+    padding: 16px 13px 25px;
+  }
+  .own-report-icon {
+    grid-row: 1;
+  }
+  .own-report-identity {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  .own-report-identity h4 {
+    font-size: 15px;
+    line-height: 20px;
+  }
+  .own-report-identity p {
+    font-size: 11px;
+  }
+  .own-report-identity .own-report-description {
+    display: none;
+  }
+  .own-report-state {
+    grid-column: 1;
+    grid-row: 2;
+    width: 105px;
+    margin: 7px 0 0 3px;
+  }
+  body[data-laguna-page="own"] #page-own .own-report-action {
+    grid-column: 2;
+    grid-row: 2;
+    justify-self: end;
+    align-self: start;
+    margin-top: 7px;
+    font-size: 12px;
+  }
+  .own-editor-heading {
+    align-items: start;
+    flex-direction: column;
+  }
 }

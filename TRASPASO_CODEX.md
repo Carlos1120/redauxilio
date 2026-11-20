@@ -18,4 +18,4 @@ Explorar usa directamente Leaflet en lugar de la ilustración SVG y del botón p
 
 ## Verificación y siguiente paso
 
-Las pruebas anteriores pasaron. Render reinició el servicio web por superar 512 MB de RAM; el 18,17 % de 1 GB corresponde al almacenamiento de PostgreSQL. Dockerfile propone JRE y heap de 45 %. Docker Desktop está pausado: faltan construcción, despliegue y métricas para confirmar el arreglo. Revisar CI y no subir credenciales.
+Render reinició el servicio por superar 512 MB; la captura de 1 GB era disco PostgreSQL. Dockerfile usa `21-jre-jammy` y heap de 45 %: construcción correcta, HTTP 200 con límite de 512 MB y 281 MiB en reposo. Cloudflare Tunnel a 8091 respondió HTTP 200. Faltan CI, PR #45, despliegue y métricas Render. No subir credenciales.

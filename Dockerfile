@@ -8,7 +8,7 @@ COPY src src
 RUN mvn -B -DskipTests package
 
 # La imagen de ejecución solo necesita Java; Maven queda en la etapa de compilación.
-FROM eclipse-temurin:21-jre
+FROM eclipse-temurin:21-jre-jammy
 WORKDIR /app
 RUN useradd --system --uid 10001 redauxilio
 COPY --from=build /workspace/target/redauxilio-*.jar /app/redauxilio.jar

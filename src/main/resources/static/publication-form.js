@@ -31,6 +31,7 @@ const evidenceInput = publicationField("publication-evidence");
 const evidencePreview = publicationField("evidence-preview");
 let duplicateFingerprint = null;
 let duplicateGeneration = 0;
+let lastCreatedPublication = null;
 /** Invalida avisos y respuestas pendientes ante cambios manuales o propuestas de ubicacion. */
 function invalidateDuplicateDecision() {
   duplicateGeneration++;
@@ -143,7 +144,8 @@ function proposeLocation(latitude, longitude, label) {
   invalidateDuplicateDecision();
   publicationField("latitude").value = Number(latitude).toFixed(6);
   publicationField("longitude").value = Number(longitude).toFixed(6);
-  if (label) publicationField("publication-location").value = label.slice(0, 160);
+  if (label && !/^Punto (seleccionado|marcado)|^Ubicación seleccionada$/i.test(label))
+    publicationField("publication-location").value = label.slice(0, 160);
   locationMessage.textContent = "Ubicación propuesta. Corrige las coordenadas si hace falta.";
   publicationUI.reportMap?.focusOn(latitude, longitude);
   updateLocationPreview();
@@ -178,7 +180,13 @@ function updateLocationPreview() {
   locationPreviewMap?.setView([latitude, longitude], 15, { animate: false });
   if (locationPreviewMap) {
     if (locationPreviewMarker) locationPreviewMarker.setLatLng([latitude, longitude]);
-    else locationPreviewMarker = window.L.marker([latitude, longitude]).addTo(locationPreviewMap);
+    else {
+      locationPreviewMarker = window.L.marker([latitude, longitude], { draggable: true }).addTo(locationPreviewMap);
+      locationPreviewMarker.on("dragend", () => {
+        const point = locationPreviewMarker.getLatLng();
+        proposeLocation(point.lat, point.lng, null);
+      });
+    }
   }
   const hasPlace = publicationField("publication-location").value.trim() !== "";
   locationPreviewStatus.dataset.state = hasPlace ? "ready" : "pending";
@@ -196,24 +204,15 @@ for (const id of ["latitude", "longitude", "publication-location"]) {
 }
 updateLocationPreview();
 
-publicationField("select-location").disabled = !publicationUI.reportMap;
 publicationField("select-location").addEventListener("click", () => {
-  locationMessage.textContent =
-    "Haz clic en el mapa para proponer un punto; también puedes escribir coordenadas.";
-  // El mapa vive en Explorar; vuelve al formulario al escoger el punto.
-  window.location.hash = "#search-section";
-  window.requestAnimationFrame(() =>
-    publicationUI.reportMap?.selectLocation((latitude, longitude) => {
-      proposeLocation(
-        latitude,
-        longitude,
-        publicationField("publication-location").value || "Punto seleccionado",
-      );
-      window.location.hash = "#draft-section";
-    }),
-  );
+  locationMessage.textContent = "Marca un punto en el mapa de este formulario o arrastra el marcador para ajustarlo.";
+  publicationField("publication-location-map")?.scrollIntoView({ block: "nearest" });
 });
-
+publicationField("publication-coordinates-toggle").addEventListener("click", (event) => {
+  const fields = publicationField("publication-coordinate-fields");
+  const opened = fields.classList.toggle("is-open");
+  event.currentTarget.setAttribute("aria-expanded", String(opened));
+});
 publicationField("use-device-location").addEventListener("click", () => {
   if (!navigator.geolocation) {
     locationMessage.textContent =
@@ -351,6 +350,16 @@ publicationField("publish-report").addEventListener("click", async () => {
         }
       : {}),
   };
+  const requiredSelections = {
+    ASSISTANCE: ["assistance-subtype", "assistance-status"],
+    ROAD: ["road-impact", "road-status"],
+    HELP_REQUEST: ["help-need-type", "help-urgency"],
+    MISSING_PERSON: [],
+  }[publicationCategory.value] || [];
+  if (requiredSelections.some((id) => !publicationField(id).value)) {
+    publicationMessage.textContent = "Selecciona las opciones específicas antes de publicar.";
+    return;
+  }
   const checkedGeneration = duplicateGeneration;
   button.disabled = true;
   publicationMessage.textContent = "Enviando publicación…";
@@ -426,6 +435,8 @@ publicationField("publish-report").addEventListener("click", async () => {
     });
     if (response.status === 401) throw new Error("La sesión terminó. Inicia sesión otra vez.");
     const result = await response.json().catch(() => ({}));
+    if (response.status === 429)
+      throw new Error("Alcanzaste el límite de cinco publicaciones por hora. Tu borrador se conserva.");
     if (response.status !== 201)
       throw new Error(
         result.message ||
@@ -451,14 +462,36 @@ publicationField("publish-report").addEventListener("click", async () => {
     } catch {
       // El servidor ya confirmó la creación: un fallo al refrescar no cambia ese resultado.
     }
-    publicationMessage.textContent = `Publicación creada. Si no aparece en la lista, limpia los filtros.${draftWarning}`;
+    lastCreatedPublication = result;
+    publicationField("publish-success").hidden = false;
+    draftForm.hidden = true;
+    publicationMessage.textContent = `Publicación confirmada por el servidor.${draftWarning}`;
   } catch (error) {
+    const reason =
+      error instanceof TypeError || /Failed to fetch|NetworkError|Load failed/i.test(error.message || "")
+        ? "No pudimos comunicarnos con el servidor. Comprueba la conexión e inténtalo de nuevo."
+        : error.message || "No se pudo publicar.";
     publicationMessage.textContent =
-      `${error.message || "No se pudo publicar."} ` +
+      `${reason} ` +
       (draftSaved
         ? "El borrador local se conserva."
         : "Los campos siguen en pantalla, pero no se pudo guardar el borrador local.");
   } finally {
     button.disabled = false;
   }
+});
+
+/** El éxito conserva la publicación devuelta por HTTP 201; ninguna acción vuelve a enviarla. */
+publicationField("publish-view-created").addEventListener("click", () => {
+  if (lastCreatedPublication) window.RedAuxilioPublicationUI?.openPublishedReport?.(lastCreatedPublication);
+});
+publicationField("publish-create-another").addEventListener("click", () => {
+  lastCreatedPublication = null;
+  publicationField("publish-success").hidden = true;
+  draftForm.hidden = false;
+  draftForm.reset();
+  syncPublicationCategory();
+  window.RedAuxilioEvidenceDraft.clear();
+  window.RedAuxilioPublishSteps?.reset?.();
+  publicationMessage.textContent = "Prepara un nuevo reporte. Ninguna categoría está preseleccionada.";
 });

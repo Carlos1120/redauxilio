@@ -1,6 +1,6 @@
 # RedAuxilio — traspaso de trabajo
 
-Actualizado: 20 de noviembre de 2026 (Colombia). Carpeta: C:\Users\Santiago\.codex\worktrees\laguna-fidelidad\redauxilio. Rama `codex/render-live-work`, PR #44 hacia `develop`. Respaldo aislado en `codex/backup-redauxilio-2026-11-18` y PR #43. No fusionar ni desplegar sin revisar el HEAD y el CI.
+Actualizado: 20 de noviembre de 2026 (Colombia). Carpeta: C:\Users\Santiago\.codex\worktrees\laguna-fidelidad\redauxilio. Rama `codex/render-memory-fix`, nuevo PR hacia `develop` pendiente. El PR #44 ya fue integrado. Respaldo aislado en `codex/backup-redauxilio-2026-11-18` y PR #43. No fusionar ni desplegar sin revisar el HEAD y el CI.
 
 ## Estado de producto
 
@@ -18,4 +18,4 @@ Explorar usa directamente Leaflet en lugar de la ilustración SVG y del botón p
 
 ## Verificación y siguiente paso
 
-`npm test`: 184/184; `mvnw test -q` y `npm run format:check`: correctos tras la corrección. Revisar el CI del nuevo HEAD. Conservar las credenciales fuera del repositorio y solicitar revisión visual humana del PR #44.
+Render reinició el servicio por superar 512 MB; la captura de 1 GB era disco PostgreSQL. Dockerfile usa `21-jre-jammy` y heap de 45 %: construcción correcta, HTTP 200 con límite de 512 MB y 281 MiB en reposo. Cloudflare Tunnel a 8091 respondió HTTP 200. Faltan CI, PR #45, despliegue y métricas Render. No subir credenciales.

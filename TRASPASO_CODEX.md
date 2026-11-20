@@ -1,6 +1,6 @@
 # RedAuxilio — traspaso de trabajo
 
-Actualizado: 20 de noviembre de 2026 (Colombia). Carpeta: C:\Users\Santiago\.codex\worktrees\laguna-fidelidad\redauxilio. Rama `codex/render-live-work`, PR #44 hacia `develop`. Respaldo aislado en `codex/backup-redauxilio-2026-11-18` y PR #43. No fusionar ni desplegar sin revisar el HEAD y el CI.
+Actualizado: 20 de noviembre de 2026 (Colombia). Carpeta: C:\Users\Santiago\.codex\worktrees\laguna-fidelidad\redauxilio. Rama `codex/render-memory-fix`, nuevo PR hacia `develop` pendiente. El PR #44 ya fue integrado. Respaldo aislado en `codex/backup-redauxilio-2026-11-18` y PR #43. No fusionar ni desplegar sin revisar el HEAD y el CI.
 
 ## Estado de producto
 

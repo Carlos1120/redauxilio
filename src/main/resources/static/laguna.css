@@ -2895,48 +2895,13 @@ body[data-laguna-page="explore"] .query-message[data-error="true"] {
   border-radius: 17px;
   background: #ecf2ef;
 }
-.explore-map-art {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
 .explore-map-panel .explore-map-live {
-  display: none;
+  display: block;
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
   border-radius: inherit;
-}
-.explore-map-panel.is-live .explore-map-live {
-  display: block;
-}
-.explore-map-panel.is-live .explore-map-art,
-.explore-map-panel.is-live .explore-map-location {
-  display: none;
-}
-.explore-map-location {
-  position: absolute;
-  top: 18px;
-  left: 20px;
-  padding: 13px 19px;
-  border-radius: 30px;
-  background: #fff;
-  color: #345065;
-  font-size: 12px;
-}
-.explore-live-toggle {
-  position: absolute;
-  right: 12px;
-  bottom: 12px;
-  padding: 8px 11px;
-  border: 1px solid #d5e4e6;
-  border-radius: 10px;
-  background: #fff;
-  color: #0c747c;
-  cursor: pointer;
-  font-size: 11px;
 }
 .explore-view-switch {
   display: none;
@@ -3118,9 +3083,6 @@ body[data-laguna-page="explore"] .report-grid .card > button {
     flex: 0 0 278px;
     margin: 0 0 22px !important;
   }
-  .explore-map-panel .explore-map-art {
-    content: url("/laguna-assets/explore-map-mobile.svg");
-  }
   .explore-view-switch {
     display: flex;
     position: absolute;
@@ -3143,18 +3105,6 @@ body[data-laguna-page="explore"] .report-grid .card > button {
   .explore-view-switch button[aria-pressed="true"] {
     background: #0c747c;
     color: #fff;
-  }
-  .explore-map-location {
-    top: auto;
-    bottom: 12px;
-    left: 12px;
-    font-size: 11px;
-  }
-  .explore-live-toggle {
-    right: 10px;
-    bottom: 10px;
-    max-width: 94px;
-    font-size: 10px;
   }
   body[data-laguna-page="explore"] .search-section::after {
     content: "Información en esta zona";

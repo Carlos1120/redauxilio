@@ -61,7 +61,7 @@ let currentQueryMessage = "";
 let currentSourceMessage = "";
 let suppressFocusReturn = false;
 let exploreMapMovedByUser = false;
-// El área de Leaflet está oculta al inicio; solo una interacción activa su filtro geográfico.
+// Solo una interacción explícita con Leaflet activa el filtro geográfico.
 for (const type of ["pointerdown", "wheel", "keydown"]) {
   getElement("report-map")?.addEventListener(type, () => {
     exploreMapMovedByUser = true;
@@ -458,16 +458,6 @@ for (const trigger of document.querySelectorAll(".explore-filter-trigger, .explo
       .forEach((button) => button.setAttribute("aria-expanded", String(panel.open)));
   });
 }
-/** La ilustración de Figma convive con el mapa real, accesible bajo demanda. */
-document.querySelector(".explore-live-toggle")?.addEventListener("click", (event) => {
-  const panel = document.querySelector(".explore-map-panel");
-  const live = panel.classList.toggle("is-live");
-  exploreMapMovedByUser = false;
-  event.currentTarget.setAttribute("aria-pressed", String(live));
-  event.currentTarget.textContent = live ? "Volver a vista ilustrada" : "Abrir mapa interactivo";
-  if (live) reportMap?.invalidateSize?.();
-  window.requestAnimationFrame(() => window.requestAnimationFrame(loadPublications));
-});
 for (const button of document.querySelectorAll("[data-explore-view]")) {
   button.addEventListener("click", () => {
     const view = button.dataset.exploreView;
@@ -492,14 +482,7 @@ async function loadPublications() {
       reviewStatus: getElement("review-status").value,
       freshnessStatus: getElement("freshness-status").value,
       includeClosed: String(getElement("include-closed").checked),
-      ...((
-        document.querySelector(".explore-map-panel")
-          ? document.querySelector(".explore-map-panel").classList.contains("is-live") &&
-            exploreMapMovedByUser
-          : true
-      )
-        ? reportMap?.bounds()
-        : {}),
+      ...(exploreMapMovedByUser ? reportMap?.bounds() : {}),
     });
     const response = await fetch(`/api/publications?${parameters}`);
     if (!response.ok) throw new Error("Consulta rechazada");

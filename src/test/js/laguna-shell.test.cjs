@@ -6,7 +6,9 @@ const path = require("node:path");
 
 const root = path.join(__dirname, "../../main/resources");
 const html = fs.readFileSync(path.join(root, "templates/index.html"), "utf8");
+const moderationHtml = fs.readFileSync(path.join(root, "templates/moderation.html"), "utf8");
 const css = fs.readFileSync(path.join(root, "static/laguna.css"), "utf8");
+const app = fs.readFileSync(path.join(root, "static/app.js"), "utf8");
 const js = fs.readFileSync(path.join(root, "static/laguna-navigation.js"), "utf8");
 const sw = fs.readFileSync(path.join(root, "static/sw.js"), "utf8");
 
@@ -34,6 +36,17 @@ test("La barra inferior móvil expone cinco destinos y Cuenta una sola vez", () 
   assert.equal((block.match(/id="laguna-mobile-account"/g) || []).length, 1);
   assert.match(css, /\.site-header \.identity-trigger\s*\{\s*display: none;\s*\}/);
   assert.match(js, /existingAccountTrigger\.click\(\)/);
+});
+
+test("Cuenta conserva texto visible y Explorar muestra Leaflet directamente", () => {
+  assert.match(html, /id="identity-open"[\s\S]*?<span class="laguna-account-label">Cuenta<\/span>/);
+  assert.match(
+    moderationHtml,
+    /operator-account-menu[\s\S]*?<span class="laguna-account-label">Cuenta<\/span>/,
+  );
+  assert.match(css, /\.explore-map-panel \.explore-map-live\s*\{\s*display: block;/);
+  assert.doesNotMatch(html, /class="explore-map-art"|class="explore-live-toggle"/);
+  assert.doesNotMatch(app, /\.explore-live-toggle|classList\.contains\("is-live"\)/);
 });
 
 test("Inicio conserva el texto de cada dispositivo y el escudo original", () => {

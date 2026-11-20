@@ -79,11 +79,11 @@ del servidor. Pruebas JS dirigidas Laguna: 11/11. Esta revisión automatizada
 no representa aceptación visual humana.
 
 Explorar toma los frames Laguna `8:559` (390×844) y `8:648` (1366×880).
-La vista muestra sus SVG originales de mapa, búsqueda, filtros y tarjetas
-compactas. La lista sigue consultando la API: búsqueda y filtros modifican
-los reportes visibles, y cada tarjeta abre su detalle. «Abrir mapa interactivo»
-expone Leaflet sin sustituir el mapa ilustrativo de referencia; el filtro por
-área solo se activa tras una interacción del usuario con el mapa real. La
+La vista conserva la búsqueda, filtros y tarjetas compactas de Figma, pero
+muestra Leaflet directamente por petición del usuario. La lista sigue
+consultando la API: búsqueda y filtros modifican los reportes visibles, y
+cada tarjeta abre su detalle. El filtro por área solo se activa tras una
+interacción del usuario con el mapa. La
 cabecera compartida conserva «Encontrar personas» y la barra móvil conserva
 sus cinco destinos, añadidos después de esos frames. En 390 px se observaron
 mapa en `y=282`, primera tarjeta en `y=625` y ancho documental de 390 px;

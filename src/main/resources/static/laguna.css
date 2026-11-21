@@ -3595,6 +3595,27 @@ body[data-laguna-page="own"] #own-workspace {
   gap: 10px;
   margin: 9px 0 4px;
 }
+/* Separa visualmente la clasificación del caso de su estado operativo. */
+body[data-laguna-page="publish"] :is(#assistance-fields, #road-fields) > .field {
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid #d7e5e8;
+  border-radius: 14px;
+  background: #f4f8f8;
+}
+body[data-laguna-page="publish"] :is(#assistance-fields, #road-fields) > .field > label {
+  display: block;
+  margin-bottom: 10px;
+  color: #193644;
+  font-size: 14px;
+  font-weight: 700;
+}
+body[data-laguna-page="publish"]
+  :is(#assistance-fields, #road-fields)
+  > .field
+  > .publish-choice-options {
+  margin: 0;
+}
 .publish-choice-options button {
   min-height: 50px;
   border: 1px solid #ccdce3;

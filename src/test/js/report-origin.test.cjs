@@ -77,6 +77,11 @@ async function loadReportView(items, savedAt = null, options = {}) {
     },
     window: {
       location: { hash: "" },
+      RedAuxilioDraftVault: {
+        read: async () => options.draftStorage?.value || null,
+        save: async (value) => { if (options.draftStorage) options.draftStorage.value = value; },
+        clear: async () => { if (options.draftStorage) delete options.draftStorage.value; },
+      },
       RedAuxilioMap: options.captureMap
         ? {
             create: () => ({
@@ -384,15 +389,18 @@ test("borrador HELP_REQUEST conserva los cuatro campos al recargar sin enviar", 
   assert.equal(second.element("help-requester").value, "Comunidad ficticia");
   assert.match(second.element("draft-message").textContent, /recuperado/);
 });
-test("cerrar sesión elimina evidencias locales y conserva el resto del borrador", async () => {
+test("cerrar sesión retira fotos de memoria sin destruir el borrador privado", async () => {
   const storage = {
     value: { text: "reporte offline", title: "Punto", evidence: [{ name: "foto.webp" }] },
   };
   const view = await loadReportView([], null, { draftStorage: storage });
+  let cleared = false;
+  view.context.window.RedAuxilioEvidenceDraft = { clear: () => { cleared = true; } };
   await view.context.window.RedAuxilioPublicationUI.clearEvidenceDraft();
+  assert.equal(cleared, true);
   assert.equal(storage.value.text, "reporte offline");
   assert.equal(storage.value.title, "Punto");
-  assert.deepEqual(Array.from(storage.value.evidence), []);
+  assert.equal(storage.value.evidence.length, 1);
 });
 test("detalle público de ayuda muestra datos propios y urgencia no oficial como texto", async () => {
   const item = {

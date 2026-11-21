@@ -6,7 +6,7 @@
  */
 // RA-10/13 renuevan recursos públicos; contacto, fotos e historiales siguen fuera de caché.
 // Laguna: renueva el shell para distribuir la vista limpia de exposición.
-const CACHE = "redauxilio-demo-v49";
+const CACHE = "redauxilio-demo-v50";
 const SHELL = [
   "/",
   "/app.css",
@@ -48,6 +48,7 @@ const SHELL = [
   "/laguna-assets/outfit-latin.woff2",
   "/laguna-assets/atkinson-latin.woff2",
   "/laguna-assets/bricolage-latin.woff2",
+  "/draft-vault.js",
   "/app.js",
   "/missing-person.js",
   "/missing-person-sightings.js",

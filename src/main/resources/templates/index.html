@@ -22,6 +22,7 @@
     <script src="/missing-person-sightings.js" defer></script>
     <script src="/missing-person-match.js" defer></script>
     <script src="/authorized-contact.js" defer></script>
+    <script src="/draft-vault.js" defer></script>
     <script src="/app.js" defer></script>
     <script src="/laguna-navigation.js" defer></script>
     <script src="/publication-form.js" defer></script>
@@ -624,20 +625,22 @@
                 aria-label="Tipo de publicación"
               >
                 <button type="button" data-publish-category="ASSISTANCE">
-                  <img src="/laguna-assets/map-shelter.svg" alt="" /><strong>Puntos de ayuda</strong
+                  <img src="/laguna-assets/publish-shelter.svg" alt="" /><strong
+                    >Puntos de ayuda</strong
                   ><small>Refugios, acopio y atención</small><em>Continuar con esta categoría ›</em>
                 </button>
                 <button type="button" data-publish-category="ROAD">
-                  <img src="/laguna-assets/map-road.svg" alt="" /><strong>Vía afectada</strong
+                  <img src="/laguna-assets/publish-road.svg" alt="" /><strong>Vía afectada</strong
                   ><small>Cierres o daños en calles</small><em>Continuar con esta categoría ›</em>
                 </button>
                 <button type="button" data-publish-category="HELP_REQUEST">
-                  <img src="/laguna-assets/map-help.svg" alt="" /><strong>Solicitud de ayuda</strong
+                  <img src="/laguna-assets/publish-help.svg" alt="" /><strong
+                    >Solicitud de ayuda</strong
                   ><small>Agua, comida u otra necesidad</small
                   ><em>Continuar con esta categoría ›</em>
                 </button>
                 <button type="button" data-publish-category="MISSING_PERSON">
-                  <img src="/laguna-assets/map-person.svg" alt="" /><strong
+                  <img src="/laguna-assets/publish-person.svg" alt="" /><strong
                     >Persona desaparecida</strong
                   ><small>Compartir una búsqueda</small><em>Continuar con esta categoría ›</em>
                 </button>
@@ -685,6 +688,7 @@
                   <div class="field">
                     <label for="assistance-subtype">Subtipo del punto</label>
                     <select id="assistance-subtype">
+                      <option value="">Selecciona el tipo de punto</option>
                       <option value="SHELTER">Refugio</option>
                       <option value="COLLECTION">Centro de acopio</option>
                       <option value="MEDICAL_CENTER">Centro médico</option>
@@ -693,6 +697,7 @@
                   <div class="field">
                     <label for="assistance-status">Disponibilidad</label>
                     <select id="assistance-status">
+                      <option value="">Selecciona disponibilidad</option>
                       <option value="DISPONIBLE">Disponible</option>
                       <option value="CAPACIDAD LIMITADA">Capacidad limitada</option>
                       <option value="LLENO">Lleno</option>
@@ -703,6 +708,7 @@
                   <div class="field">
                     <label for="road-impact">Tipo de afectación</label>
                     <select id="road-impact">
+                      <option value="">Selecciona afectación</option>
                       <option value="DERRUMBE">Derrumbe</option>
                       <option value="INUNDACIÓN">Inundación</option>
                       <option value="DAÑO ESTRUCTURAL">Daño estructural</option>
@@ -712,6 +718,7 @@
                   <div class="field">
                     <label for="road-status">Transitabilidad</label>
                     <select id="road-status">
+                      <option value="">Selecciona transitabilidad</option>
                       <option value="BLOQUEADA">Bloqueada</option>
                       <option value="PARCIALMENTE HABILITADA">Parcialmente habilitada</option>
                       <option value="HABILITADA">Habilitada</option>
@@ -733,7 +740,7 @@
                 </p>
                 <div class="field">
                   <label for="help-need-type">Tipo de necesidad</label
-                  ><select id="help-need-type" required>
+                  ><select id="help-need-type">
                     <option value="">Selecciona la necesidad</option>
                     <option>AGUA</option>
                     <option>ALIMENTOS</option>
@@ -749,7 +756,7 @@
                 </div>
                 <div class="field">
                   <label for="help-urgency">Urgencia declarada (no oficial)</label
-                  ><select id="help-urgency" required>
+                  ><select id="help-urgency">
                     <option value="">Selecciona la urgencia</option>
                     <option>BAJA</option>
                     <option>MEDIA</option>
@@ -855,7 +862,16 @@
                     Ubicación pendiente · elige un punto o escribe coordenadas.
                   </p>
                 </div>
-                <div class="coordinate-fields">
+                <button
+                  type="button"
+                  id="publication-coordinates-toggle"
+                  class="secondary-button"
+                  aria-expanded="false"
+                  aria-controls="publication-coordinate-fields"
+                >
+                  Introducir coordenadas
+                </button>
+                <div class="coordinate-fields" id="publication-coordinate-fields">
                   <div class="field">
                     <label for="latitude">Latitud</label
                     ><input
@@ -923,6 +939,25 @@
                 </button>
               </div>
             </form>
+            <section
+              id="publish-success"
+              class="publish-success"
+              role="status"
+              aria-live="polite"
+              hidden
+            >
+              <h3>¡Tu reporte fue publicado!</h3>
+              <p>
+                RedAuxilio recibió tu información. Es comunitaria y no representa verificación
+                oficial.
+              </p>
+              <div class="publish-success-actions">
+                <button id="publish-view-created" type="button">Ver reporte</button>
+                <button id="publish-create-another" type="button" class="secondary-button">
+                  Crear otro
+                </button>
+              </div>
+            </section>
             <aside class="publish-guidance">
               <h3>Publica con responsabilidad</h3>
               <p>Comparte hechos que conoces y un lugar aproximado.</p>

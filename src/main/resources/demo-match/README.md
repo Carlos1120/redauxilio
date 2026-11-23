@@ -21,7 +21,7 @@ Esta carpeta contiene únicamente fotografías aportadas para la exposición. Co
 ```
 
 4. Reinicia la aplicación. Los recursos se sanean y se guardan en SQL.
-5. Descarga la foto de búsqueda desde **Encontrar personas** y súbela para reproducir el resultado.
+5. Descarga la foto de búsqueda desde **Encontrar personas** y súbela para reproducir el resultado. También funcionan las fotos de referencia preparadas para ese caso. La comparación usa la huella de esos archivos concretos, no la semejanza visual con otras fotos de la misma persona.
 
 El porcentaje es predispuesto. No se ejecuta reconocimiento facial, no se confirma identidad y las fotos que el usuario compara no se almacenan.
 

@@ -46,10 +46,18 @@ class MissingPersonMatchController {
   @GetMapping("/api/missing-person-match/candidates/{candidateId}/comparison-photo")
   ResponseEntity<byte[]> comparisonPhoto(@PathVariable long candidateId) {
     PublicationEvidenceService.Image image = matches.comparisonPhoto(candidateId);
+    String extension =
+        switch (image.contentType()) {
+          case "image/png" -> "png";
+          case "image/webp" -> "webp";
+          default -> "jpg";
+        };
     return ResponseEntity.ok()
         .cacheControl(CacheControl.noStore())
         .header("X-Content-Type-Options", "nosniff")
-        .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=buscar-coincidencia.jpg")
+        .header(
+            HttpHeaders.CONTENT_DISPOSITION,
+            "attachment; filename=buscar-coincidencia." + extension)
         .contentType(MediaType.parseMediaType(image.contentType()))
         .body(image.bytes());
   }

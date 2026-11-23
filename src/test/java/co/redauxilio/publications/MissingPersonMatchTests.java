@@ -119,6 +119,56 @@ class MissingPersonMatchTests {
         jdbc.queryForObject("SELECT COUNT(*) FROM simulated_missing_match_input", Integer.class));
   }
 
+  /** La foto descargada desde el catálogo debe seguir coincidiendo al volver a cargarla. */
+  @Test
+  void downloadedJpegComparisonPhotoMatchesAfterUpload() throws Exception {
+    byte[] original;
+    try (var resource = getClass().getResourceAsStream("/demo-match/jesus-pena-comparison.jpeg")) {
+      org.junit.jupiter.api.Assertions.assertNotNull(resource);
+      original = resource.readAllBytes();
+    }
+    PublicationEvidenceService.ValidatedImage jpeg =
+        PublicationEvidenceService.validate("comparison.jpeg", "image/jpeg", original);
+    long id =
+        service.upsertFixture(
+            new MissingPersonMatchService.Fixture(
+                "JPEG_TEST",
+                "Caso JPEG",
+                null,
+                "Entrada de prueba.",
+                90,
+                List.of("unused.png"),
+                List.of("comparison.jpeg")),
+            List.of(PublicationEvidenceService.validate("prepared.png", "image/png", prepared)),
+            List.of(jpeg));
+    byte[] download =
+        mvc.perform(get("/api/missing-person-match/candidates/{id}/comparison-photo", id))
+            .andExpect(status().isOk())
+            .andReturn()
+            .getResponse()
+            .getContentAsByteArray();
+    mvc.perform(
+            multipart("/api/missing-person-match/simulate")
+                .file(new MockMultipartFile("files", "comparison.jpeg", "image/jpeg", download))
+                .with(user("citizen@example.invalid"))
+                .with(csrf()))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.matched").value(true));
+  }
+
+  /** Una foto de referencia preparada también activa el caso sin inferir otros rostros. */
+  @Test
+  void preparedReferencePhotoMatchesAfterUpload() throws Exception {
+    mvc.perform(
+            multipart("/api/missing-person-match/simulate")
+                .file(new MockMultipartFile("files", "prepared.png", "image/png", prepared))
+                .with(user("citizen@example.invalid"))
+                .with(csrf()))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.matched").value(true))
+        .andExpect(jsonPath("$.candidate.referenceName").value("Persona ficticia de prueba"));
+  }
+
   @Test
   void returnsNoMatchAndRejectsMoreThanThreePhotos() throws Exception {
     MockMultipartFile different =

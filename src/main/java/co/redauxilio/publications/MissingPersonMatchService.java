@@ -1,11 +1,14 @@
 package co.redauxilio.publications;
 
+import java.io.IOException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.sql.Timestamp;
 import java.time.Clock;
 import java.util.HexFormat;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -49,17 +52,26 @@ class MissingPersonMatchService {
   MatchResult simulate(List<MultipartFile> files) {
     if (files == null || files.isEmpty() || files.size() > PublicationEvidenceService.MAX_IMAGES)
       throw invalid("Adjunta entre una y tres imágenes para ejecutar la comparación.");
-    List<String> hashes =
-        files.stream()
-            .map(PublicationEvidenceService::validate)
-            .map(image -> sha256(image.bytes()))
-            .toList();
+    Set<String> hashes = new LinkedHashSet<>();
+    for (MultipartFile file : files) {
+      PublicationEvidenceService.ValidatedImage image = PublicationEvidenceService.validate(file);
+      hashes.add(sha256(image.bytes()));
+      try {
+        // La descarga ya está saneada; volver a codificar un JPEG cambia sus bytes.
+        hashes.add(sha256(file.getBytes()));
+      } catch (IOException failure) {
+        throw invalid("No se pudo leer una imagen válida.");
+      }
+    }
     String placeholders = String.join(",", java.util.Collections.nCopies(hashes.size(), "?"));
     List<Candidate> matches =
         jdbc.query(
             "SELECT DISTINCT c.id,c.reference_name,c.age_range,c.description,c.match_score,"
                 + "(SELECT COUNT(*) FROM simulated_missing_photo all_photos WHERE all_photos.candidate_id=c.id) "
-                + "FROM simulated_missing_candidate c JOIN simulated_missing_match_input p ON p.candidate_id=c.id "
+                + "FROM simulated_missing_candidate c JOIN ("
+                + "SELECT candidate_id,image_sha256 FROM simulated_missing_match_input "
+                + "UNION SELECT candidate_id,image_sha256 FROM simulated_missing_photo"
+                + ") p ON p.candidate_id=c.id "
                 + "WHERE c.active=TRUE AND p.image_sha256 IN ("
                 + placeholders
                 + ") ORDER BY c.match_score DESC,c.id LIMIT 1",

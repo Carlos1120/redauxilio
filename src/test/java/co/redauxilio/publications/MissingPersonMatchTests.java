@@ -87,8 +87,7 @@ class MissingPersonMatchTests {
         .andExpect(
             header().string("Cache-Control", org.hamcrest.Matchers.containsString("no-store")))
         .andExpect(
-            header()
-                .string("Content-Disposition", org.hamcrest.Matchers.containsString("attachment")))
+            header().string("Content-Disposition", "attachment; filename=buscar-coincidencia.png"))
         .andExpect(header().string("Content-Type", "image/png"));
   }
 
@@ -144,6 +143,9 @@ class MissingPersonMatchTests {
     byte[] download =
         mvc.perform(get("/api/missing-person-match/candidates/{id}/comparison-photo", id))
             .andExpect(status().isOk())
+            .andExpect(
+                header()
+                    .string("Content-Disposition", "attachment; filename=buscar-coincidencia.jpg"))
             .andReturn()
             .getResponse()
             .getContentAsByteArray();
